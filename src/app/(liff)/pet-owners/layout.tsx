@@ -8,8 +8,10 @@ export default function OwnersLayout({
       <header className="bg-white border-b border-zinc-200 p-4">
         <h1 className="text-lg font-semibold">Owners</h1>
       </header>
-      <main className="p-4">
-        {children}
+      <main className="p-4 flex justify-center">
+        <div className="w-full max-w-[448px]">
+          {children}
+        </div>
       </main>
     </div>
   );
