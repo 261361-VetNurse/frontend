@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { K2D } from "next/font/google";
+import StyledComponentsRegistry from "./lib/registry";
 import "./globals.css";
 
 const k2d = K2D({
@@ -20,10 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${k2d.variable} antialiased`}
-      >
-        {children}
+      <body className={`${k2d.variable} antialiased`}>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
       </body>
     </html>
   );

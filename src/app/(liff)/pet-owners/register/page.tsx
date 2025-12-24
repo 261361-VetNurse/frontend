@@ -8,6 +8,7 @@ const Register = styled.div`
     display: flex;
     flex-direction: column;
 
+    
     .icon{
         width: 78px;
         height: 82px;
@@ -18,7 +19,7 @@ const Register = styled.div`
         font-weight: 500;
     }
     .warp{
-        margin-left: 33px;
+        align-items: center;
     }
 `;
 
