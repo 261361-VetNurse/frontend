@@ -9,7 +9,7 @@ export default function OwnersLayout({
         <h1 className="text-lg font-semibold">Owners</h1>
       </header>
       <main className="p-4 flex justify-center">
-        <div className="w-full max-w-[448px]">
+        <div className="w-full max-w-[393px]">
           {children}
         </div>
       </main>
