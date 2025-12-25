@@ -1,6 +1,7 @@
 "use client"
 import styled from "styled-components";
 import ProflieCom from "@/components/homepage/pet-proflie";
+import AddProflie from "@/components/homepage/add-proflie";
 
 const Box = styled.div `
     display: flex;
@@ -11,7 +12,7 @@ const Box = styled.div `
     gap: 16px;
 
     .header-box{
-        width: 348px;
+        width: 100%;
         height: 50px;
         background-color: #F7F7F7;
         gap: 10px;
@@ -19,15 +20,17 @@ const Box = styled.div `
         align-items: center;
     }
     .mypet-box{
-        width: 348px;
+        width: 100%;
         background-color: #F7F7F7;
         display: flex;
         align-items: center;
     }
     .pet-list{
+        width: 100%;
         display: flex;
         align-items: center;
-        gap: 11px;
+        justify-content: space-between;
+        background-color: #F7F7F7;
     }
 `;
 
@@ -45,12 +48,12 @@ export default function HomePage() {
                 <div className="ml-auto w-[64px]">show all</div>
                 <img src="/next-icon.svg" alt="next-icon" />
             </div>
-            <div className="pet-list">
+            <div className="pet-list" >
                 <ProflieCom/>
                 <ProflieCom/>
                 <ProflieCom/>
                 <ProflieCom/>
-                <ProflieCom/>
+                <AddProflie/>
             </div>
         </Box>
     );
