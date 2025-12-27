@@ -5,7 +5,6 @@ const AddProfileWrapper = styled.div`
     display: flex;
     flex-direction: column;
     align-items: center;
-
     .avatar{
         width: 60px;
         height: 60px;
@@ -19,8 +18,13 @@ const AddProfileWrapper = styled.div`
         width: 24px;
         height: 24px;
         cursor: pointer;
+        transition: all 0.3s ease-in-out;
+
+        &:hover{
+            rotate: 90deg;
+        }
     }
-    .text{
+    .text1{
         color: #000;
         text-align: center;
         font-size: 13px;
@@ -34,7 +38,7 @@ export default function AddProflie() {
             <div className="avatar">
                 <img src="/add-pet.svg" alt="add-pet" className="icon" />
             </div>
-            <div className="text">New Pet</div>
+            <div className="text1">New Pet</div>
         </AddProfileWrapper>
     );
 }

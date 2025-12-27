@@ -2,11 +2,12 @@
 import styled from "styled-components";
 import ProflieCom from "@/components/homepage/pet-proflie";
 import AddProflie from "@/components/homepage/add-proflie";
+import ReminderPopUp from "@/components/homepage/reminder-popup";
 
 const Box = styled.div `
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     background-color: red;
     padding: 8px 24px;
     gap: 16px;
@@ -19,11 +20,16 @@ const Box = styled.div `
         display: flex;
         align-items: center;
     }
-    .mypet-box{
+    .body-box{
         width: 100%;
         background-color: #F7F7F7;
         display: flex;
         align-items: center;
+    }
+    .text{
+        color: #000;
+        font-size: 18px;
+        font-weight: 500;
     }
     .pet-list{
         width: 100%;
@@ -43,8 +49,8 @@ export default function HomePage() {
                 <span>username</span>
                 <img src="/help.svg" alt="help" className="ml-auto" />
             </div>
-            <div className="mypet-box">
-                <div>My Pets</div>
+            <div className="body-box">
+                <div className="text">My Pets</div>
                 <div className="ml-auto w-[64px]">show all</div>
                 <img src="/next-icon.svg" alt="next-icon" />
             </div>
@@ -54,6 +60,20 @@ export default function HomePage() {
                 <ProflieCom/>
                 <ProflieCom/>
                 <AddProflie/>
+            </div>
+            <div className="body-box">
+                <div className="text">Reminder</div>
+                <div className="ml-auto w-[64px]">show all</div>
+                <img src="/next-icon.svg" alt="next-icon" />
+            </div>
+            <div>
+                <ReminderPopUp/>
+                <ReminderPopUp/>
+            </div>
+            <div className="body-box">
+                <div className="text">Upcoming appointments</div>
+                <div className="ml-auto w-[64px]">show all</div>
+                <img src="/next-icon.svg" alt="next-icon" />
             </div>
         </Box>
     );
