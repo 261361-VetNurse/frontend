@@ -21,7 +21,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-<<<<<<< HEAD
       <head>
         <link rel="preload" href="/logo-optimized.jpg" as="image" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -29,10 +28,6 @@ export default function RootLayout({
       </head>
       <body className={`${k2d.variable} antialiased`}>
         {children}
-=======
-      <body className={`${k2d.variable} antialiased`}>
-        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
->>>>>>> icy_nomz
       </body>
     </html>
   );
