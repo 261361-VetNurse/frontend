@@ -7,70 +7,6 @@ import GroupOutlined from "@mui/icons-material/GroupOutlined";
 import PetsOutlined from "@mui/icons-material/PetsOutlined";
 import EventAvailableOutlined from "@mui/icons-material/EventAvailableOutlined";
 import ForumOutlined from "@mui/icons-material/ForumOutlined";
-import styled from "styled-components";
-
-const SidebarNav = styled.nav`
-  background-color: #FFFFFF;
-  width: 250px;
-  min-height: 100%;
-  border-right: 1px solid #E5E7EB;
-  padding: 12px 24px 24px;
-`;
-
-const MenuList = styled.ul`
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-`;
-
-const MenuItem = styled(Link)<{ $active?: boolean }>`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 44px;
-  padding: 12px;
-  border-radius: 8px;
-  text-decoration: none;
-  color: #111827;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: #F3F4F6;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #3B82F6;
-    outline-offset: 2px;
-  }
-
-  ${props => props.$active && `
-    background-color: #F3F4F6;
-    
-    .label {
-      font-weight: 600;
-    }
-  `}
-`;
-
-const Icon = styled.span`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  svg {
-    font-size: 20px;
-    color: #111827;
-  }
-`;
-
-const Label = styled.span`
-  font-size: 14px;
-  font-weight: 500;
-  color: #111827;
-`;
 
 interface MenuItemType {
   label: string;
@@ -110,24 +46,34 @@ export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <SidebarNav aria-label="Admin sidebar">
-      <MenuList>
+    <nav className="bg-white w-[250px] min-h-full border-r border-gray-200 py-3 px-6" aria-label="Admin sidebar">
+      <ul className="list-none m-0 p-0 flex flex-col gap-3">
         {menuItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           
           return (
             <li key={item.href}>
-              <MenuItem
+              <Link
                 href={item.href}
-                $active={isActive}
+                className={`flex items-center gap-3 h-11 px-3 rounded-lg no-underline text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${
+                  isActive ? 'bg-gray-100' : ''
+                }`}
               >
-                <Icon>{item.icon}</Icon>
-                <Label>{item.label}</Label>
-              </MenuItem>
+                <span className="flex items-center justify-center">
+                  <span className="text-xl text-gray-900">
+                    {item.icon}
+                  </span>
+                </span>
+                <span className={`text-sm font-medium text-gray-900 ${
+                  isActive ? 'font-semibold' : ''
+                }`}>
+                  {item.label}
+                </span>
+              </Link>
             </li>
           );
         })}
-      </MenuList>
-    </SidebarNav>
+      </ul>
+    </nav>
   );
 }

@@ -8,11 +8,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col bg-zinc-50">
+    <div className="admin-layout flex flex-col bg-zinc-50">
       <TopBarWrapper />
-      <div className="flex flex-1">
+      <div className="admin-main flex flex-1">
         <Sidebar />
-        <main className="flex-1 overflow-auto">
+        <main className="admin-content flex-1 overflow-auto fade-in">
           <Container paddingX={24}>
             {children}
           </Container>

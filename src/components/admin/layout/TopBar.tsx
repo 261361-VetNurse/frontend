@@ -3,197 +3,7 @@
 import NotificationsOutlined from '@mui/icons-material/NotificationsOutlined';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import KeyboardArrowDown from '@mui/icons-material/KeyboardArrowDown';
-import styled from "styled-components";
-
-const HeaderWrapper = styled.header`
-  width: 100%;
-  background-color: white;
-  border-bottom: 1px solid #E5E7EB;
-`;
-
-const TopbarContainer = styled.div`
-  max-width: 1440px;
-  height: 70px;
-  padding: 24px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  @media (max-width: 768px) {
-    height: 64px;
-    padding: 0 16px;
-  }
-`;
-
-const LeftSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const Logo = styled.div`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #F3F4F6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  @media (max-width: 768px) {
-    width: 36px;
-    height: 36px;
-  }
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-`;
-
-const BrandText = styled.span`
-  font-weight: 700;
-  font-size: 20px;
-  text-transform: uppercase;
-  color: #111827;
-
-  @media (max-width: 768px) {
-    font-size: 16px;
-  }
-`;
-
-const RightSection = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0;
-`;
-
-const NotificationButton = styled.button`
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: #F3F4F6;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #3B82F6;
-    outline-offset: 2px;
-  }
-
-  svg {
-    font-size: 24px;
-    color: #6B7280;
-  }
-`;
-
-const VerticalDivider = styled.div`
-  width: 1px;
-  height: 32px;
-  background-color: #E5E7EB;
-  margin: 0 16px;
-`;
-
-const UserMenuButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 12px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: #F3F4F6;
-  }
-
-  &:focus-visible {
-    outline: 2px solid #3B82F6;
-    outline-offset: 2px;
-  }
-`;
-
-const Avatar = styled.div`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  svg {
-    font-size: 32px;
-    color: #6B7280;
-  }
-`;
-
-const UserTextBlock = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 100px;
-  flex: 1;
-
-  @media (max-width: 480px) {
-    .userSubtitle {
-      display: none;
-    }
-  }
-`;
-
-const UserName = styled.span`
-  font-weight: 600;
-  font-size: 14px;
-  color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-  line-height: 17px;
-`;
-
-const UserSubtitle = styled.span`
-  font-size: 12px;
-  color: #6B7280;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-  line-height: 14px;
-
-  @media (max-width: 480px) {
-    display: none;
-  }
-`;
-
-const ChevronIcon = styled.div`
-  display: flex;
-  align-items: center;
-  color: #6B7280;
-
-  svg {
-    font-size: 20px;
-  }
-`;
+import Image from 'next/image';
 
 export interface TopBarProps {
   brandText?: string;
@@ -215,56 +25,77 @@ export default function TopBar({
   onUserMenuClick
 }: TopBarProps) {
   return (
-    <HeaderWrapper>
-      <TopbarContainer>
-        <LeftSection>
+    <header className="w-full bg-white border-b border-gray-200">
+      <div className="max-w-[1440px] h-[70px] px-6 flex items-center justify-between md:h-[64px] md:px-4">
+        <div className="flex items-center gap-4">
           {logoSrc ? (
-            <Logo>
-              <img src={logoSrc} alt="Logo" />
-            </Logo>
+            <div className="relative w-10 h-10 rounded-full bg-gray-100 overflow-hidden md:w-9 md:h-9">
+              <Image 
+                src={logoSrc} 
+                alt="Logo" 
+                fill
+                sizes="40px"
+                className="object-cover"
+                priority
+              />
+            </div>
           ) : (
-            <Logo />
+            <div className="w-10 h-10 rounded-full bg-gray-100 md:w-9 md:h-9" />
           )}
-          <BrandText>{brandText}</BrandText>
-        </LeftSection>
+          <span className="font-bold text-xl text-gray-900 uppercase md:text-base">
+            {brandText}
+          </span>
+        </div>
         
-        <RightSection>
-          <NotificationButton
+        <div className="flex items-center gap-0">
+          <button
             onClick={onNotificationsClick}
             aria-label="Notifications"
+            className="w-10 h-10 rounded-full border-none bg-transparent flex items-center justify-center cursor-pointer transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
           >
-            <NotificationsOutlined />
-          </NotificationButton>
+            <NotificationsOutlined className="text-2xl text-gray-500" />
+          </button>
           
-          <VerticalDivider />
+          <div className="w-px h-8 bg-gray-200 mx-4" />
           
-          <UserMenuButton
+          <button
             onClick={onUserMenuClick}
             aria-label="Open user menu"
+            className="flex items-center gap-3 px-3 py-2 border-none bg-transparent cursor-pointer rounded-lg transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
           >
             {userAvatar ? (
-              <Avatar>
-                <img src={userAvatar} alt="User avatar" />
-              </Avatar>
+              <div className="relative w-8 h-8 rounded-full overflow-hidden">
+                <Image 
+                  src={userAvatar} 
+                  alt="User avatar" 
+                  fill
+                  sizes="32px"
+                  className="object-cover"
+                />
+              </div>
             ) : (
-              <Avatar>
-                <AccountCircle />
-              </Avatar>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                <AccountCircle className="text-3xl text-gray-500" />
+              </div>
             )}
             
-            <UserTextBlock>
-              <UserName>{userName}</UserName>
+            <div className="flex flex-col items-start min-w-100px flex-1 md:userSubtitle">
+              <span className="font-semibold text-sm text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis max-w-120px leading-4">
+                {userName}
+              </span>
               {userSubtitle && (
-                <UserSubtitle>{userSubtitle}</UserSubtitle>
+                <span className="text-xs text-gray-500 whitespace-nowrap overflow-hidden text-ellipsis max-w-120px leading-3">
+                  {userSubtitle}
+                </span>
               )}
-            </UserTextBlock>
+            </div>
             
-            <ChevronIcon>
-              <KeyboardArrowDown />
-            </ChevronIcon>
-          </UserMenuButton>
-        </RightSection>
-      </TopbarContainer>
-    </HeaderWrapper>
+            <div className="flex items-center text-gray-500">
+              <KeyboardArrowDown className="text-xl" />
+            </div>
+          </button>
+        </div>
+      </div>
+    </header>
   );
 }
