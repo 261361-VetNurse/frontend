@@ -24,7 +24,7 @@ const NavItem = styled(Link)`
   .nav-text{
     color: #000;
     text-align: center;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 400;
   }
 `;
