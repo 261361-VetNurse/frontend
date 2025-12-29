@@ -10,7 +10,7 @@ const ReminBox = styled.div`
     border-radius: 12px;
     background-color: #FFF;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-    margin-bottom: 6px;
+    margin-bottom: 3px;
 `;
 
 const ReminderText = styled.div`

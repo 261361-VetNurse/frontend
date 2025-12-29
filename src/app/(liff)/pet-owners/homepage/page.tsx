@@ -10,7 +10,6 @@ const Box = styled.div `
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    background-color: red;
     padding: 8px 24px;
     gap: 16px;
 
@@ -79,6 +78,7 @@ export default function HomePage() {
                     <img src="/next-icon.svg" alt="next-icon" />
                 </div>
                 <div>
+                    <AppointmentBox/>
                     <AppointmentBox/>
                 </div>
             </Box>

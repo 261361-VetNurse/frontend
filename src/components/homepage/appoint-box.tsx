@@ -10,6 +10,7 @@ const AppointBox = styled.div`
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+    margin-bottom: 16px;
 
     .top-row{
         display: flex;
