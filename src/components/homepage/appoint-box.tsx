@@ -5,7 +5,7 @@ const AppointBox = styled.div`
     width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 8px;
     padding: 18px 20px;
     border-radius: 16px;
     background: #fff;
@@ -36,6 +36,11 @@ const AppointBox = styled.div`
     .location-icon{
         width: 16px;
         height: 16px;
+    }
+    .location-text{
+        color: #3C3C3C;
+        font-size: 13px;
+        font-weight: 275;
     }
     .meta-row{
         display: flex;
@@ -69,7 +74,7 @@ export default function AppointmentBox() {
                     <div className="name">Lee</div>
                     <div className="location-row">
                         <img className="location-icon" src="/location.svg" alt="location" />
-                        <span>ห้องอัลตร้าซาวด์</span>
+                        <span className="location-text">ห้องอัลตร้าซาวด์</span>
                     </div>
                 </div>
             </div>

@@ -1,14 +1,27 @@
 import styled from "styled-components";
 
-const navBox = styled.footer`
-    display: flex;
-    width: 100%;
-    height: 60px;
-    padding: 8px 24px;
-    justify-content: space-between;
-    align-items: center;
-    background: #FFF;
-    box-shadow: 0 -2px 2px 0 rgba(0, 0, 0, 0.25);
+const NavBarWrap = styled.footer`
+  display: flex;
+  height: 60px;
+  padding: 8px 24px;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 -2px 2px rgba(0,0,0,0.25);
+`;
+const NavItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 64px;
+
+  .nav-text{
+    color: #000;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 400;
+  }
 `;
 
 const navItems = [
@@ -17,12 +30,17 @@ const navItems = [
     {label: "My pets", icon: "/mypets-navbar.svg", href:"/homepage"},
     {label: "Community", icon: "/community-navbar.svg", href:"/homepage"},
     {label: "Notifications", icon: "/notifications-navbar.svg", href:"/homepage"}
-]
+];
 
 export default function NavBar() {
-    return(
-        <navBox>
-            <div></div>
-        </navBox>
-    );
+  return (
+    <NavBarWrap>
+      {navItems.map((item) => (
+        <NavItem key={item.label}>
+          <img src={item.icon} alt={item.label} />
+          <span className="nav-text">{item.label}</span>
+        </NavItem>
+      ))}
+    </NavBarWrap>
+  );
 }
