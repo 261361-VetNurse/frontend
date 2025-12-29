@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { K2D } from "next/font/google";
+import StyledComponentsRegistry from "./lib/registry";
 import "./globals.css";
 
 const k2d = K2D({
@@ -20,6 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+<<<<<<< HEAD
       <head>
         <link rel="preload" href="/logo-optimized.jpg" as="image" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -27,6 +29,10 @@ export default function RootLayout({
       </head>
       <body className={`${k2d.variable} antialiased`}>
         {children}
+=======
+      <body className={`${k2d.variable} antialiased`}>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+>>>>>>> icy_nomz
       </body>
     </html>
   );
