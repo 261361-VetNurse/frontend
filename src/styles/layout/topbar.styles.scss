@@ -1,0 +1,209 @@
+.header-wrapper {
+  width: 100%;
+  background-color: white;
+  border-bottom: 1px solid #E5E7EB;
+
+    .topbar-container {
+      max-width: 1440px;
+      height: 70px;
+      padding: 24px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      @media (max-width: 768px) {
+        height: 64px;
+        padding: 0 16px;
+      }
+
+        .left-section {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+
+            .logo {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              background-color: #F3F4F6;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              overflow: hidden;
+
+              @media (max-width: 768px) {
+                width: 36px;
+                height: 36px;
+              }
+
+              img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              }
+            }
+
+            .brand-text {
+              font-weight: 700;
+              font-size: 20px;
+              text-transform: uppercase;
+              color: #111827;
+
+              @media (max-width: 768px) {
+                font-size: 16px;
+              }
+            }
+        }
+
+        .right-section {
+          display: flex;
+          align-items: center;
+          gap: 0;
+          
+            .notification-button {
+              width: 40px;
+              height: 40px;
+              border-radius: 50%;
+              border: none;
+              background: transparent;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              transition: background-color 0.2s ease;
+
+              &:hover {
+                background-color: #F3F4F6;
+              }
+
+              &:focus-visible {
+                outline: 2px solid #3B82F6;
+                outline-offset: 2px;
+              }
+
+              svg {
+                font-size: 24px;
+                color: #6B7280;
+              }
+            }
+
+            .vertical-divider {
+              width: 1px;
+              height: 32px;
+              background-color: #E5E7EB;
+              margin: 0 16px;
+            }
+
+            .user-menu-button {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              padding: 8px 12px;
+              border: none;
+              background: transparent;
+              cursor: pointer;
+              border-radius: 8px;
+              transition: background-color 0.2s ease;
+
+              &:hover {
+                background-color: #F3F4F6;
+              }
+
+              &:focus-visible {
+                outline: 2px solid #3B82F6;
+                outline-offset: 2px;
+              }
+
+                .avatar {
+                  width: 32px;
+                  height: 32px;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  overflow: hidden;
+
+                  img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  }
+
+                  svg {
+                    font-size: 32px;
+                    color: #6B7280;
+                  }
+                }
+
+                .user-text-block {
+                  display: flex;
+                  flex-direction: column;
+                  align-items: flex-start;
+                  min-width: 100px;
+                  flex: 1;
+
+                  @media (max-width: 480px) {
+                    .user-subtitle {
+                      display: none;
+                    }
+                  }
+
+                    .user-name {
+                      font-weight: 600;
+                      font-size: 13px;
+                      color: #111827;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      max-width: 120px;
+                      line-height: 17px;
+                    }
+
+                    .user-subtitle {
+                      font-size: 11px;
+                      color: #6B7280;
+                      white-space: nowrap;
+                      overflow: hidden;
+                      text-overflow: ellipsis;
+                      max-width: 120px;
+                      line-height: 14px;
+
+                      @media (max-width: 480px) {
+                        display: none;
+                      }
+                    }
+                }
+
+                .chevron-icon {
+                  display: flex;
+                  align-items: center;
+                  color: #6B7280;
+
+                  svg {
+                    font-size: 20px;
+                  }
+                }
+            }
+        }
+
+    
+
+
+
+
+
+    
+
+
+
+    
+
+
+
+
+  }
+
+  
+}
+
+
