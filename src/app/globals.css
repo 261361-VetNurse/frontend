@@ -23,3 +23,8 @@ body {
   color: var(--foreground);
   font-family: var(--font-k2d), Arial, Helvetica, sans-serif;
 }
+
+/* ให้ทุก element ใช้ font เดียวกัน */
+* {
+  font-family: inherit;
+}
