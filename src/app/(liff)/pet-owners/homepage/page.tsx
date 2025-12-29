@@ -2,7 +2,8 @@
 import styled from "styled-components";
 import ProflieCom from "@/components/homepage/pet-proflie";
 import AddProflie from "@/components/homepage/add-proflie";
-import ReminderPopUp from "@/components/homepage/reminder-popup";
+import ReminderBox from "@/components/homepage/reminder-box";
+import AppointmentBox from "@/components/homepage/appoint-box";
 
 const Box = styled.div `
     display: flex;
@@ -67,13 +68,16 @@ export default function HomePage() {
                 <img src="/next-icon.svg" alt="next-icon" />
             </div>
             <div>
-                <ReminderPopUp/>
-                <ReminderPopUp/>
+                <ReminderBox/>
+                <ReminderBox/>
             </div>
             <div className="body-box">
                 <div className="text">Upcoming appointments</div>
                 <div className="ml-auto w-[64px]">show all</div>
                 <img src="/next-icon.svg" alt="next-icon" />
+            </div>
+            <div>
+                <AppointmentBox/>
             </div>
         </Box>
     );

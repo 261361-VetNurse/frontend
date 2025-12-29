@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import ProflieCom from "@/components/homepage/pet-proflie";
 
-const ReminPopUp = styled.div`
+const ReminBox = styled.div`
     width: 100%;
     display: flex;
     align-items: center;
@@ -10,7 +10,6 @@ const ReminPopUp = styled.div`
     border-radius: 12px;
     background-color: #FFF;
     box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-    width: 100%;
     margin-bottom: 6px;
 `;
 
@@ -36,9 +35,9 @@ const ReminderText = styled.div`
     }
 `;
 
-export default function ReminderPopUp() {
+export default function ReminderBox() {
     return(
-        <ReminPopUp>
+        <ReminBox>
             <ProflieCom showName={false} size={48} />
             <ReminderText>
                 <div className="title">Lee อย่าลืมทานยา ABO 250 mg</div>
@@ -48,6 +47,6 @@ export default function ReminderPopUp() {
                     <span>9:45 AM.</span>
                 </div>
             </ReminderText>
-        </ReminPopUp>
+        </ReminBox>
     );
 }
