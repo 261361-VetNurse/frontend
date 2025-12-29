@@ -4,6 +4,7 @@ import ProflieCom from "@/components/homepage/pet-proflie";
 import AddProflie from "@/components/homepage/add-proflie";
 import ReminderBox from "@/components/homepage/reminder-box";
 import AppointmentBox from "@/components/homepage/appoint-box";
+import NavBar from "@/components/common/NavBar";
 
 const Box = styled.div `
     display: flex;
@@ -43,42 +44,45 @@ const Box = styled.div `
 
 export default function HomePage() {
     return(
-        <Box>
-            <div className="header-box">
-                <img src="/Ava.svg" alt="Ava" />
-                <span>Hi!</span>
-                <span>username</span>
-                <img src="/help.svg" alt="help" className="ml-auto" />
-            </div>
-            <div className="body-box">
-                <div className="text">My Pets</div>
-                <div className="ml-auto w-[64px]">show all</div>
-                <img src="/next-icon.svg" alt="next-icon" />
-            </div>
-            <div className="pet-list" >
-                <ProflieCom/>
-                <ProflieCom/>
-                <ProflieCom/>
-                <ProflieCom/>
-                <AddProflie/>
-            </div>
-            <div className="body-box">
-                <div className="text">Reminder</div>
-                <div className="ml-auto w-[64px]">show all</div>
-                <img src="/next-icon.svg" alt="next-icon" />
-            </div>
-            <div>
-                <ReminderBox/>
-                <ReminderBox/>
-            </div>
-            <div className="body-box">
-                <div className="text">Upcoming appointments</div>
-                <div className="ml-auto w-[64px]">show all</div>
-                <img src="/next-icon.svg" alt="next-icon" />
-            </div>
-            <div>
-                <AppointmentBox/>
-            </div>
-        </Box>
+        <>
+            <Box>
+                <div className="header-box">
+                    <img src="/Ava.svg" alt="Ava" />
+                    <span>Hi!</span>
+                    <span>username</span>
+                    <img src="/help.svg" alt="help" className="ml-auto" />
+                </div>
+                <div className="body-box">
+                    <div className="text">My Pets</div>
+                    <div className="ml-auto w-[64px]">show all</div>
+                    <img src="/next-icon.svg" alt="next-icon" />
+                </div>
+                <div className="pet-list" >
+                    <ProflieCom/>
+                    <ProflieCom/>
+                    <ProflieCom/>
+                    <ProflieCom/>
+                    <AddProflie/>
+                </div>
+                <div className="body-box">
+                    <div className="text">Reminder</div>
+                    <div className="ml-auto w-[64px]">show all</div>
+                    <img src="/next-icon.svg" alt="next-icon" />
+                </div>
+                <div>
+                    <ReminderBox/>
+                    <ReminderBox/>
+                </div>
+                <div className="body-box">
+                    <div className="text">Upcoming appointments</div>
+                    <div className="ml-auto w-[64px]">show all</div>
+                    <img src="/next-icon.svg" alt="next-icon" />
+                </div>
+                <div>
+                    <AppointmentBox/>
+                </div>
+            </Box>
+            <NavBar/>
+        </>
     );
 }
