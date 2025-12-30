@@ -65,7 +65,7 @@ export default function PetProflie({ petName = "Pet Name", petImage, className, 
             <div className="avatar">
                 {petImage ? 
                 (<div className="icon">
-                    <img src={petImage || "/pet-ex1.svg"} alt="pet" onError={(e) => { e.currentTarget.src = "/pet-ex1.svg"; }} />
+                    <img src={petImage || "/pets-example/pet-ex1.svg"} alt="pet" onError={(e) => { e.currentTarget.src = "/pet-ex1.svg"; }} />
                 </div>) : 
                 (<div className="icon">
                     <AddIcon />

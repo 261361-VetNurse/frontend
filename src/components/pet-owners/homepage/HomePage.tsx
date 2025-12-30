@@ -1,56 +1,10 @@
 "use client";
 
-import styled from "styled-components";
+import { HomePageStyled } from "@/styles/homepage.styled";
 import PetProflie from "./pet-proflie";
 import ReminderBox from "./reminder-box";
 import AppointmentBox from "./appoint-box";
 
-const HomePageStyled = styled.div `
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-    width: 100%;
-
-    .header-box{
-        width: 100%;
-        height: 50px;
-        gap: 10px;
-        display: flex;
-        align-items: center;
-        span {
-            font-size: 18px;
-            color: #000;
-        }
-    }
-    .head-section{
-        width: 100%;
-        background-color: #F7F7F7;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        color: #000;
-
-        .head {
-            color: #000;
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .sub {
-            color: #000000ae;
-            font-size: 14px;
-            font-weight: 500;
-        }
-    }
-    .pet-list{
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #F7F7F7;
-    }
-`;
 
 export default function HomePage({username}: {username: string}) {
     return(
@@ -68,10 +22,10 @@ export default function HomePage({username}: {username: string}) {
                 </div>
             </div>
             <div className="pet-list" >
-                <PetProflie petName="Lee" petImage="/pet-ex1.svg"/>
-                <PetProflie petName="Lee" petImage="/pet-ex1.svg"/>
-                <PetProflie petName="Lee" petImage="/pet-ex1.svg"/>
-                <PetProflie petName="Lee" petImage="/pet-ex1.svg"/>
+                <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
+                <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
+                <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
+                <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
                 <PetProflie petName="New Pet"/>
             </div>
             <div className="head-section">

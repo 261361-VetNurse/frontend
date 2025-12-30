@@ -3,14 +3,27 @@ import styled from "styled-components";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
+const NavBarStyle = styled.div`
+  position: fixed;
+  display: flex;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #fff;
+  justify-content: center;
+  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+`;
+
 const NavBarWrap = styled.footer`
   display: flex;
-  height: 60px;
-  padding: 8px 24px;
+  flex-direction: row;
+  width: 393px;
+  padding: 8px 0;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+  
+  
 `;
 const NavItem = styled(Link)`
   display: flex;
@@ -40,16 +53,19 @@ const navItems = [
 export default function NavBar() {
   const pathname = usePathname();
   return (
-    <NavBarWrap>
-      {navItems.map((item) => (
-        <NavItem key={item.label} href={item.href}>
-          <img
-            src={pathname === item.href ? item.activeIcon : item.icon}
-            alt={item.label}
-          />
-          <span className="nav-text">{item.label}</span>
-        </NavItem>
-      ))}
-    </NavBarWrap>
+    <NavBarStyle>
+      <NavBarWrap>
+        {navItems.map((item) => (
+          <NavItem key={item.label} href={item.href}>
+            <img
+              src={pathname === item.href ? item.activeIcon : item.icon}
+              alt={item.label}
+            />
+            <span className="nav-text">{item.label}</span>
+          </NavItem>
+        ))}
+      </NavBarWrap>
+    </NavBarStyle>
+    
   );
 }

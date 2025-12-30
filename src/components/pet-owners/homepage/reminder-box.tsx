@@ -40,7 +40,7 @@ const ReminderText = styled.div`
 export default function ReminderBox() {
     return(
         <ReminBox>
-            <ProflieCom petImage="/pet-ex1.svg" showName={false} size={40} />
+            <ProflieCom petImage="/pets-example/pet-ex1.svg" showName={false} size={40} />
             <ReminderText>
                 <div className="title">Lee อย่าลืมทานยา ABO 250 mg</div>
                 <div className="time-row time-text">

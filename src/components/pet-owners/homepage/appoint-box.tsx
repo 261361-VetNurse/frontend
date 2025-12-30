@@ -49,7 +49,7 @@ const AppointBox = styled.div`
 export default function AppointmentBox() {
     return(
         <AppointBox>
-                <ProflieCom petImage="/pet-ex1.svg" showName={false} size={40}/>
+                <ProflieCom petImage="/pets-example/pet-ex1.svg" showName={false} size={40}/>
                 <div className="name-location">
                     <div className="name">Lee</div>
                     <div className="data-row">
