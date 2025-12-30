@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ProflieCom from "@/components/homepage/pet-proflie";
+import ProflieCom from "@/components/pet-owners/homepage/pet-proflie";
 
 const ReminBox = styled.div`
     width: 100%;
@@ -7,10 +7,12 @@ const ReminBox = styled.div`
     align-items: center;
     gap: 16px;
     padding: 16px;
-    border-radius: 12px;
     background-color: #FFF;
-    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
-    margin-bottom: 3px;
+    cursor: pointer;
+
+    &:active{
+        background-color: #F0F0F0;
+    }
 `;
 
 const ReminderText = styled.div`
@@ -38,7 +40,7 @@ const ReminderText = styled.div`
 export default function ReminderBox() {
     return(
         <ReminBox>
-            <ProflieCom showName={false} size={48} />
+            <ProflieCom petImage="/pets-example/pet-ex1.svg" showName={false} size={40} />
             <ReminderText>
                 <div className="title">Lee อย่าลืมทานยา ABO 250 mg</div>
                 <div className="time-row time-text">
