@@ -4,25 +4,27 @@ import styled from "styled-components";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const TabStyled = styled.nav`
-width: 100%;
+    width: 100%;
     display: flex;
     align-items: center;
     height: 40px;
-    border-radius: 24px;
-    border: 1px solid #dddddd;
+    border-radius: 50px;
     overflow: hidden;
+    padding: 0;
+    gap: 10px;
+    background-color: #FFFFFF;
     .tab-item {
         all: unset;
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #FFF;
+        color: #BEBEBE;
         font-size: 18px;
         height: 100%;
         font-weight: 500;
         flex: 1 0 0;
-        padding: 4px 12px;
-      overflow: hidden;
+        padding: 6px 16px;
+        overflow: hidden;
         cursor: pointer;
         background: transparent;
         border: none;
@@ -35,8 +37,10 @@ width: 100%;
         }
     }
     .tab-item.active {
-        background: #ffffff;
-        color: #374e45;
+        background: #09BFF8;
+        color: #FFFFFF;
+        border-radius: 50px;
+        
     }
 `;
 export type TabItem = {

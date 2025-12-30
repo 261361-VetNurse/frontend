@@ -11,6 +11,7 @@
   "dependencies": {
     "next": "16.1.0",
     "react": "19.2.3",
+    "react-day-picker": "^9.13.0",
     "react-dom": "19.2.3",
     "styled-components": "^6.1.19"
   },

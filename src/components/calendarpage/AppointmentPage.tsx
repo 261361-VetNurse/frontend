@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from 'react';
 import styled from "styled-components";
 import {TabItem, Tabs} from "@/components/common/Tabs";
@@ -7,8 +7,9 @@ import {usePathname, useRouter, useSearchParams} from "next/navigation";
 
 const AppointmentPageStyled = styled.div`
     width: 100%;
-    background: #374e45;
-    height: 500px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
 `;
 
 export const AppointmentPage = () => {
@@ -30,8 +31,8 @@ export const AppointmentPage = () => {
     console.log('activeParam',activeParam);
     return (
         <AppointmentPageStyled>
-<           Tabs data={appointmentTabs} queryKey={'tab'} onChangeAction={handleChangeTab}/>
-            {activeParam === null || activeParam === 'appointment' ? <div>appointment</div> : <div>record</div>}
+        <Tabs data={appointmentTabs} queryKey={'tab'} onChangeAction={handleChangeTab}/>
+            {/* {activeParam === null || activeParam === 'appointment' ? <div>appointment</div> : <div>record</div>} */}
         </AppointmentPageStyled>
     );
 };
