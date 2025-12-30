@@ -10,7 +10,7 @@ const NavBarWrap = styled.footer`
   justify-content: space-between;
   align-items: center;
   background: #fff;
-  box-shadow: 0 -2px 2px rgba(0,0,0,0.25);
+  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
 `;
 const NavItem = styled(Link)`
   display: flex;

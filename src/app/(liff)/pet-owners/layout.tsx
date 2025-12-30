@@ -1,18 +1,21 @@
+import Container from '@/components/common/Container';
+import NavBar from '@/components/common/NavBar';
+
 export default function OwnersLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <header className="bg-white border-b border-zinc-200 p-4">
-        <h1 className="text-lg font-semibold">Owners</h1>
-      </header>
-      <main className="p-4 flex justify-center">
-        <div className="w-full max-w-[393px]">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen">
+        <Container maxWidth={"393px"} paddingX={"0px"}>
+          <main>
+            <div style={{padding: '8px 24px',backgroundColor: '#F7F7F7'}}>
+              {children}
+            </div>
+          </main>
+          <NavBar/>
+        </Container>
     </div>
   );
 }
