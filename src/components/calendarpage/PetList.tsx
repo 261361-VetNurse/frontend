@@ -3,7 +3,6 @@ import styled from "styled-components";
 const BoxWrap = styled.div`
     display: flex;
     width: 100%;
-    margin-bottom: 10px;
 
     .ListBox{
         display: flex;
@@ -13,7 +12,7 @@ const BoxWrap = styled.div`
         align-self: stretch;
         border-radius: 16px;
         background: #FFF;
-        box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.2);
+        //box-shadow: 0 6px 16px 0 rgba(0, 0, 0, 0.2);
         border: none;
         width: 100%;
         height: 66px;

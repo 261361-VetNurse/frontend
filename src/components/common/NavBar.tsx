@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons-material";
 
 const NavBarStyle = styled.div`
-  position: fixed;
+  position: absolute;
   display: flex;
   bottom: 0;
   left: 0;

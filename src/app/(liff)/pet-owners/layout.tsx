@@ -7,7 +7,10 @@ export default function RegisterLayout({
 }) {
   return (
     <div className='w-full' style={{backgroundColor: '#F7F7F7'}}>
-        <main>
+        <main style={{
+            display: 'flex',
+            justifyContent: 'center',
+        }}>
           {children}
         </main>
     </div>

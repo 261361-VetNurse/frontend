@@ -1,21 +1,21 @@
-import Container from '@/components/common/Container';
+"use client"
 import NavBar from '@/components/common/NavBar';
+import styled from "styled-components";
 
+const CalendarPageStyled = styled.div`
+width: 393px;
+    position: relative;
+    height: 100dvh;
+`;
 export default function OwnersLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen w-full" style={{backgroundColor: '#F7F7F7'}}>
-        <Container width="393px">
-          <main>
-            <div style={{padding: '8px 24px'}}>
-              {children}
-            </div>
-          </main>
+        <CalendarPageStyled>
+            {children}
           <NavBar/>
-        </Container>
-    </div>
+        </CalendarPageStyled>
   );
 }

@@ -9,7 +9,7 @@ const AppointBox = styled.div`
     padding: 16px;
     border-radius: 8px;
     background: #fff;
-    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    //box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
 
     &:active {
         background-color: #F0F0F0;

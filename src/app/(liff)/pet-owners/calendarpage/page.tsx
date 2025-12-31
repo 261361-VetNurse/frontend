@@ -8,28 +8,24 @@ import styled from "styled-components";
 import ReminderBox from "@/components/pet-owners/homepage/reminder-box";
 import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
 
-const BoxBody = styled.div`
-    width: 100%;
-    background: red;
-    padding: 8px 24px;
-    flex-direction: column;
-    align-items: center;
-
-    .head {
-        color: #000;
-        font-size: 18px;
-        font-weight: 500;
-        margin-top: 10px;
-    }
-`;
+// const BoxBody = styled.div`
+//     width: 100%;
+//     background: red;
+//     padding:16px;
+//     flex-direction: column;
+//     align-items: center;
+//
+//     .head {
+//         color: #000;
+//         font-size: 18px;
+//         font-weight: 500;
+//         margin-top: 10px;
+//     }
+// `;
 export default function Page() {
     return(
-        <BoxBody>
+        // <BoxBody>
             <AppointmentPage/>
-            <PetList/>
-            <Calendar/>
-            <div className="head">Upcoming appointments</div>
-           <AppointmentBox/>
-        </BoxBody>
+        // </BoxBody>
     );
 }

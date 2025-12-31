@@ -8,6 +8,7 @@ const TabStyled = styled.nav`
     display: flex;
     align-items: center;
     height: 40px;
+    min-height: 40px;
     border-radius: 50px;
     overflow: hidden;
     padding: 0;
