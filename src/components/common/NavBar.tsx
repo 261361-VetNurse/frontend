@@ -2,15 +2,29 @@
 import styled from "styled-components";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons-material";
+
+const NavBarStyle = styled.div`
+  position: fixed;
+  display: flex;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background: #fff;
+  justify-content: center;
+  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+`;
 
 const NavBarWrap = styled.footer`
   display: flex;
-  height: 60px;
-  padding: 8px 24px;
+  flex-direction: row;
+  width: 393px;
+  padding: 8px 0;
   justify-content: space-between;
   align-items: center;
-  background: #fff;
-  box-shadow: 0 -2px 2px rgba(0,0,0,0.25);
+  
+  
 `;
 const NavItem = styled(Link)`
   display: flex;
@@ -30,26 +44,31 @@ const NavItem = styled(Link)`
 `;
 
 const navItems = [
-  { label: "Home", icon: "/home-navbar.svg", activeIcon: "/home-blue-navbar.svg", href: "/pet-owners/homepage" },
-  { label: "Calendar", icon: "/calendar-navbar.svg", activeIcon: "/calendar-blue-navbar.svg", href: "/pet-owners/appointmentpage" },
-  { label: "My pets", icon: "/mypets-navbar.svg", activeIcon: "/mypets-blue-navbar.svg", href: "/pet-owners/mypets" },
-  { label: "Community", icon: "/community-navbar.svg", activeIcon: "/community-blue-navbar.svg", href: "/" },
-  { label: "Notifications", icon: "/notifications-navbar.svg", activeIcon: "/notifications-blue-navbar.svg", href: "/" },
+  { label: "Home", icon: Home, href: "/pet-owners/homepage" },
+  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calenderpage" },
+  { label: "My pets", icon: Pets, href: "/pet-owners/mypets" },
+  { label: "Medication", icon: Medication, href: "/pet-owners/medication" },
+  { label: "Notifications", icon: Notifications, href: "/" },
 ];
 
 export default function NavBar() {
   const pathname = usePathname();
   return (
-    <NavBarWrap>
-      {navItems.map((item) => (
-        <NavItem key={item.label} href={item.href}>
-          <img
-            src={pathname === item.href ? item.activeIcon : item.icon}
-            alt={item.label}
-          />
-          <span className="nav-text">{item.label}</span>
-        </NavItem>
-      ))}
-    </NavBarWrap>
+    <NavBarStyle> 
+      <NavBarWrap>
+        {navItems.map((item) => (
+          <NavItem key={item.label} href={item.href}>
+            <item.icon 
+              sx={{ 
+                fontSize: 24, 
+                color: pathname === item.href ? '#2196F3' : '#C3C3C3' 
+              }}
+            />
+            <span className="nav-text">{item.label}</span>
+          </NavItem>
+        ))}
+      </NavBarWrap>
+    </NavBarStyle>
+    
   );
 }

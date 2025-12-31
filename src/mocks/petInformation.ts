@@ -6,7 +6,7 @@ export const mockPetInformationById: Record<string, PetInformation> = {
       id: "4302459",
       pid: "4302459",
       name: "Lee",
-      avatarUrl: "/pet-ex1.svg",
+      avatarUrl: "/pets-example/pet-ex1.svg",
       verified: true,
     },
     basicInfo: {
@@ -26,7 +26,7 @@ export const mockPetInformationById: Record<string, PetInformation> = {
       id: "430587",
       pid: "430587",
       name: "Tom",
-      avatarUrl: "/pet-ex1.svg",
+      avatarUrl: "/pets-example/pet-ex1.svg",
       verified: false,
     },
     basicInfo: {
