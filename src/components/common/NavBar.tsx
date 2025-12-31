@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons-material";
 
 const NavBarStyle = styled.div`
-  position: absolute;
+  position: fixed;
   display: flex;
   bottom: 0;
   left: 0;
@@ -45,7 +45,7 @@ const NavItem = styled(Link)`
 
 const navItems = [
   { label: "Home", icon: Home, href: "/pet-owners/homepage" },
-  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calenderpage" },
+  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calendarpage" },
   { label: "My pets", icon: Pets, href: "/" },
   { label: "Medication", icon: Medication, href: "/pet-owners/medication" },
   { label: "Notifications", icon: Notifications, href: "/" },
