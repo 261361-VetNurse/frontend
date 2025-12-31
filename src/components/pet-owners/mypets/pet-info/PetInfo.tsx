@@ -64,7 +64,7 @@ export default function PetInfo() {
     {
       iconSrc: "/record.svg",
       title: "Pet Symptom Record",
-      href: `/pet-owners/mypets/${currentPet.id}/symptoms`,
+      href: `/pet-owners/symptoms`,
     },
     {
       iconSrc: "/history.svg",

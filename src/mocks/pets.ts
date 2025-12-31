@@ -24,7 +24,7 @@ export const mockPets: Pet[] = [
     birthDate: "2023-01-01",
     verified: false,
     inMedical: false,
-    imageUrl: "/pets-example/pet-ex1.svg",
+    imageUrl: "/pets-example/pet-ex2.svg",
 
     species: "Dog",
     breed: "Poodle",
