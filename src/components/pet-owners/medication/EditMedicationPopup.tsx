@@ -118,7 +118,14 @@ export default function EditMedicationPopup({ open, onClose, record, pets, onSav
       <PopupCard>
         <Title>Edit Medication</Title>
         <PetRow>
-          <PetAvatar src={pets.find((p: Pet) => p.id === petId)?.avatarUrl || ''} alt={pets.find((p: Pet) => p.id === petId)?.name || ''} />
+          {pets.find((p: Pet) => p.id === petId)?.avatarUrl ? (
+            <PetAvatar
+              src={pets.find((p: Pet) => p.id === petId)?.avatarUrl as string}
+              alt={pets.find((p: Pet) => p.id === petId)?.name || ''}
+            />
+          ) : (
+            <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#edeef0' }} />
+          )}
           <PetInfo>
             <div style={{ fontWeight: 600 }}>{pets.find((p: Pet) => p.id === petId)?.name || ''}</div>
             <div style={{ fontSize: 13, color: theme.colors.textSecondary }}>PID: 098765345</div>
@@ -138,7 +145,7 @@ export default function EditMedicationPopup({ open, onClose, record, pets, onSav
         <FormField label="Note" htmlFor="note-area">
           <NoteArea id="note-area" value={note} onChange={e => setNote(e.target.value)} />
         </FormField>
-        <PrimaryButton style={{ width: '100%'}} onClick={() => onSave?.({ petId, medName, dose, times, note })}>
+        <PrimaryButton size={'md'} style={{ width: '100%'}} onClick={() => onSave?.({ petId, medName, dose, times, note })}>
           Save
         </PrimaryButton>
         <div style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', fontSize: 22, color: theme.colors.textPrimary }} onClick={onClose}>×</div>

@@ -121,8 +121,8 @@ export default function MedicationDetailPopup({ open, onClose, record, onEdit, o
             <Detail>{record.note}</Detail>
         </div>
         <ButtonRow>
-          <PrimaryButton style={{ flex: 1 }} onClick={() => onEdit(record)}>Edit</PrimaryButton>
-          <DeleteButton style={{ flex: 1 }} onClick={onDelete}>Delete</DeleteButton>
+          <PrimaryButton size={'md'} style={{ flex: 1 }} onClick={() => onEdit(record)}>Edit</PrimaryButton>
+          <DeleteButton size={'md'} style={{ flex: 1 }} onClick={onDelete}>Delete</DeleteButton>
         </ButtonRow>
         <div style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', fontSize: 22, color: theme.colors.textPrimary }} onClick={onClose}>×</div>
       </PopupCard>

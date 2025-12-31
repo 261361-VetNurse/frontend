@@ -184,7 +184,7 @@ export default function RegisterPage() {
           </FormField>
         </Form>
         
-        <PrimaryButton type="submit">
+        <PrimaryButton size={'md'} type="submit">
             Register
         </PrimaryButton>
       </RegisterCard>

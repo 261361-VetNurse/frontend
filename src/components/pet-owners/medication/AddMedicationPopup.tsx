@@ -151,7 +151,7 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
         <FormField label="Note" htmlFor="note-area">
           <NoteArea id="note-area" value={note} onChange={e => setNote(e.target.value)} placeholder="" />
         </FormField>
-        <PrimaryButton style={{ width: '100%' }} onClick={() => onSubmit?.({ petId, medName, dose, times, note })}>
+        <PrimaryButton size={'md'} style={{ width: '100%' }} onClick={() => onSubmit?.({ petId, medName, dose, times, note })}>
           Add New Medication
         </PrimaryButton>
         <div style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', fontSize: 22, color: theme.colors.textPrimary }} onClick={onClose}>×</div>
