@@ -29,6 +29,8 @@ export const AppointmentPage = () => {
     const searchParams = useSearchParams();
     const activeParam = searchParams.get('tab');
     const [isPopUpOpen, setIsPopUpOpen] = useState(false);
+    const isRecordTab = activeParam === 'record';
+    const isAppointmentTab = !isRecordTab;
 
     const appointmentTabs = [{
         name: "Appointment",
@@ -49,16 +51,26 @@ export const AppointmentPage = () => {
     }
     return (
         <AppointmentPageStyled>
-            <PopUp open={isPopUpOpen} onOpenChange={setIsPopUpOpen} />
-            <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
+            {isAppointmentTab && (
+                <>
+                    <PopUp open={isPopUpOpen} onOpenChange={setIsPopUpOpen} />
+                    <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
+                </>
+            )}
             <div className="scroll-area">
                 <Tabs data={appointmentTabs} queryKey={'tab'} onChangeAction={handleChangeTab}/>
-                <PetList/>
-                <Calendar/>
-                <div className="head">Upcoming appointments</div>
-                <AppointmentBox/>
-                <AppointmentBox/>
-                <AppointmentBox/>
+                {isAppointmentTab ? (
+                    <>
+                        <PetList/>
+                        <Calendar/>
+                        <div className="head">Upcoming appointments</div>
+                        <AppointmentBox/>
+                        <AppointmentBox/>
+                        <AppointmentBox/>
+                    </>
+                ) : (
+                    <div className="head">No records yet</div>
+                )}
             </div>
 
                 {/* {activeParam === null || activeParam === 'appointment' ? <div>appointment</div> : <div>record</div>} */}
