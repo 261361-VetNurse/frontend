@@ -10,6 +10,7 @@ import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
 import {QuickDialButton} from "@/components/common/QuickDialButton";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PopUp } from "@/components/calendarpage/AppointmentPopUp";
+import AppointmentPopDone from "@/components/calendarpage/AppointmentPopDone";
 
 const AppointmentPageStyled = styled.div`
     width: 100%;
@@ -39,6 +40,13 @@ const AppointmentPageStyled = styled.div`
         height: 1px;
         background: rgba(0, 0, 0, 0.20);
     }
+    .appointment-card{
+        border: none;
+        background: transparent;
+        padding: 0;
+        text-align: left;
+        cursor: pointer;
+    }
 `;
 
 export const AppointmentPage = () => {
@@ -51,6 +59,13 @@ export const AppointmentPage = () => {
         time: string;
         location: string;
     }[]>([]);
+    const [selectedAppointment, setSelectedAppointment] = useState<{
+        dateKey: string;
+        pet: string;
+        time: string;
+        location: string;
+    } | null>(null);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
     const isRecordTab = activeParam === 'record';
     const isAppointmentTab = !isRecordTab;
     const today = dayjs();
@@ -86,6 +101,15 @@ export const AppointmentPage = () => {
     }) => {
         const dateKey = dayjs(date).format("YYYY-MM-DD");
         setAppointments((prev) => ([...prev, { dateKey, pet, time, location }]));
+    }
+    const handleOpenAppointment = (appointment: {
+        dateKey: string;
+        pet: string;
+        time: string;
+        location: string;
+    }) => {
+        setSelectedAppointment(appointment);
+        setIsDetailOpen(true);
     }
     const upcomingAppointments = React.useMemo(() => {
         return appointments
@@ -134,6 +158,11 @@ export const AppointmentPage = () => {
                         onOpenChange={setIsPopUpOpen}
                         onCreateAppointment={handleCreateAppointment}
                     />
+                    <AppointmentPopDone
+                        open={isDetailOpen}
+                        appointment={selectedAppointment || undefined}
+                        onClose={() => setIsDetailOpen(false)}
+                    />
                     <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
                 </>
             )}
@@ -149,15 +178,21 @@ export const AppointmentPage = () => {
                                 <div className="date-text">
                                     {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
                                 </div>
-                                <div className="line">-</div>
+                                <div className="line"> .</div>
                                 {items.map((appointment, index) => (
-                                    <AppointmentBox
+                                    <button
                                         key={`${appointment.dateKey}-${appointment.pet}-${index}`}
-                                        petName={appointment.pet}
-                                        locationText={appointment.location}
-                                        dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
-                                        timeText={appointment.time}
-                                    />
+                                        type="button"
+                                        className="appointment-card"
+                                        onClick={() => handleOpenAppointment(appointment)}
+                                    >
+                                        <AppointmentBox
+                                            petName={appointment.pet}
+                                            locationText={appointment.location}
+                                            dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
+                                            timeText={appointment.time}
+                                        />
+                                    </button>
                                 ))}
                             </React.Fragment>
                         ))}
