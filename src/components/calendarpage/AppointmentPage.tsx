@@ -111,6 +111,16 @@ export const AppointmentPage = () => {
         setSelectedAppointment(appointment);
         setIsDetailOpen(true);
     }
+    const handleDeleteAppointment = (appointment: {
+        dateKey: string;
+        pet: string;
+        time: string;
+        location: string;
+    }) => {
+        setAppointments((prev) => prev.filter((item) => item !== appointment));
+        setIsDetailOpen(false);
+        setSelectedAppointment(null);
+    }
     const upcomingAppointments = React.useMemo(() => {
         return appointments
             .filter((appointment) => appointment.dateKey >= todayKey)
@@ -162,6 +172,7 @@ export const AppointmentPage = () => {
                         open={isDetailOpen}
                         appointment={selectedAppointment || undefined}
                         onClose={() => setIsDetailOpen(false)}
+                        onDelete={handleDeleteAppointment}
                     />
                     <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
                 </>

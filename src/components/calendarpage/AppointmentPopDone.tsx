@@ -102,7 +102,7 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
     border-radius: 22px;
     font-weight: 600;
     cursor: pointer;
-    background: ${({ $variant }) => ($variant === "edit" ? "#09BFF8" : "#EB1D1D")};
+    background: ${({ $variant }) => ($variant === "edit" ? "#09BFF8" : "#EC221F")};
     box-shadow: 0 6px 12px rgba(0,0,0,0.12);
   `
 
@@ -124,7 +124,7 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
     return (
       <AppointmentPopDone.Overlay onClick={this.handleOverlayClick}>
         <AppointmentPopDone.Card>
-          <AppointmentPopDone.Close onClick={() => this.props.onClose()} aria-label="Close">
+          <AppointmentPopDone.Close onClick={() => this.props.onClose()} aria-label="Close" className="pr-4 py-1.5">
             ×
           </AppointmentPopDone.Close>
           <AppointmentPopDone.Title>Appointment</AppointmentPopDone.Title>
