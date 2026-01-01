@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { FormField } from '@/components/form/FormField';
 import { TextInput } from '@/components/form/TextInput';
 import { SelectInput } from '@/components/form/SelectInput';
@@ -23,6 +24,8 @@ interface FormData {
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -90,8 +93,11 @@ export default function RegisterPage() {
     
     if (validateForm()) {
       console.log('Form submitted:', formData);
-      // TODO: Handle form submission
     }
+
+    useEffect(() => {
+      router.push('/pet-owners/home-page');
+    }, [router]);
   };
 
   return (

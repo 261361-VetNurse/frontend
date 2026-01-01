@@ -1,5 +1,4 @@
-import React from 'react';
-import { X, CheckCircle2 } from 'lucide-react'; 
+'use client';
 
 export default function NotificationsPage() {
   return (
@@ -12,7 +11,6 @@ export default function NotificationsPage() {
           <h1 className="text-gray-800 font-bold text-[16px] tracking-tight">PetCare+</h1>
           <p className="text-[10px] text-gray-400 mt-[-2px]">www.petcare.cmu.ac.th</p>
           <button className="absolute right-5 top-5 text-gray-400">
-            <X size={22} strokeWidth={1.5} />
           </button>
         </div>
 

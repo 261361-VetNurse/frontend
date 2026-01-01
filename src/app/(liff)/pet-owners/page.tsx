@@ -7,7 +7,7 @@ export default function OwnersPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/pet-owners/homepage');
+    router.push('/pet-owners/register-page');
   }, [router]);
 
   return null;
