@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import dayjs from "dayjs";
 import styled from "styled-components";
 import {TabItem, Tabs} from "@/components/common/Tabs";
 import {useSearchParams} from "next/navigation";
@@ -8,7 +9,7 @@ import Calendar from "@/components/calendarpage/Calendar";
 import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
 import {QuickDialButton} from "@/components/common/QuickDialButton";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import { PopUp } from "@/components/calendarpage/PopUp";
+import { PopUp } from "@/components/calendarpage/AppointmentPopUp";
 
 const AppointmentPageStyled = styled.div`
     width: 100%;
@@ -29,6 +30,7 @@ export const AppointmentPage = () => {
     const searchParams = useSearchParams();
     const activeParam = searchParams.get('tab');
     const [isPopUpOpen, setIsPopUpOpen] = useState(false);
+    const [appointments, setAppointments] = useState<{ dateKey: string; pet: string }[]>([]);
     const isRecordTab = activeParam === 'record';
     const isAppointmentTab = !isRecordTab;
 
@@ -49,11 +51,32 @@ export const AppointmentPage = () => {
         console.log('handleClick');
         setIsPopUpOpen(true);
     }
+    const handleCreateAppointment = ({ date, pet }: { date: Date; pet: string }) => {
+        const dateKey = dayjs(date).format("YYYY-MM-DD");
+        setAppointments((prev) => ([...prev, { dateKey, pet }]));
+    }
+    const appointmentPetsByDate = React.useMemo(() => {
+        const map: Record<string, string[]> = {};
+        appointments.forEach(({ dateKey, pet }) => {
+            if (!map[dateKey]) {
+                map[dateKey] = [pet];
+                return;
+            }
+            if (!map[dateKey].includes(pet)) {
+                map[dateKey].push(pet);
+            }
+        });
+        return map;
+    }, [appointments]);
     return (
         <AppointmentPageStyled>
             {isAppointmentTab && (
                 <>
-                    <PopUp open={isPopUpOpen} onOpenChange={setIsPopUpOpen} />
+                    <PopUp
+                        open={isPopUpOpen}
+                        onOpenChange={setIsPopUpOpen}
+                        onCreateAppointment={handleCreateAppointment}
+                    />
                     <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
                 </>
             )}
@@ -62,7 +85,7 @@ export const AppointmentPage = () => {
                 {isAppointmentTab ? (
                     <>
                         <PetList/>
-                        <Calendar/>
+                        <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
                         <div className="head">Upcoming appointments</div>
                         <AppointmentBox/>
                         <AppointmentBox/>
