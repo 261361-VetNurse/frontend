@@ -21,8 +21,23 @@ const AppointmentPageStyled = styled.div`
         overflow: auto;
         display: flex;
         flex-direction: column;
-        row-gap: 16px;
+        row-gap: 10px;
         padding: 16px;
+    }
+    .head-text{
+        color: #000;
+        font-size: 18px;
+        font-weight: 500;
+    }
+    .date-text{
+        color: #000;
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .line{
+        width: 345px;
+        height: 1px;
+        background: rgba(0, 0, 0, 0.20);
     }
 `;
 
@@ -30,9 +45,17 @@ export const AppointmentPage = () => {
     const searchParams = useSearchParams();
     const activeParam = searchParams.get('tab');
     const [isPopUpOpen, setIsPopUpOpen] = useState(false);
-    const [appointments, setAppointments] = useState<{ dateKey: string; pet: string }[]>([]);
+    const [appointments, setAppointments] = useState<{
+        dateKey: string;
+        pet: string;
+        time: string;
+        location: string;
+    }[]>([]);
     const isRecordTab = activeParam === 'record';
     const isAppointmentTab = !isRecordTab;
+    const today = dayjs();
+    const todayKey = today.format("YYYY-MM-DD");
+    const todayLabel = today.format("ddd, DD/MM/YYYY");
 
     const appointmentTabs = [{
         name: "Appointment",
@@ -51,13 +74,28 @@ export const AppointmentPage = () => {
         console.log('handleClick');
         setIsPopUpOpen(true);
     }
-    const handleCreateAppointment = ({ date, pet }: { date: Date; pet: string }) => {
+    const handleCreateAppointment = ({
+        date,
+        pet,
+        time,
+        location,
+    }: {
+        date: Date;
+        pet: string;
+        time: string;
+        location: string;
+    }) => {
         const dateKey = dayjs(date).format("YYYY-MM-DD");
-        setAppointments((prev) => ([...prev, { dateKey, pet }]));
+        setAppointments((prev) => ([...prev, { dateKey, pet, time, location }]));
     }
+    const futureAppointments = React.useMemo(() => {
+        return appointments
+            .filter((appointment) => appointment.dateKey > todayKey)
+            .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+    }, [appointments, todayKey]);
     const appointmentPetsByDate = React.useMemo(() => {
         const map: Record<string, string[]> = {};
-        appointments.forEach(({ dateKey, pet }) => {
+        futureAppointments.forEach(({ dateKey, pet }) => {
             if (!map[dateKey]) {
                 map[dateKey] = [pet];
                 return;
@@ -67,7 +105,7 @@ export const AppointmentPage = () => {
             }
         });
         return map;
-    }, [appointments]);
+    }, [futureAppointments]);
     return (
         <AppointmentPageStyled>
             {isAppointmentTab && (
@@ -86,13 +124,21 @@ export const AppointmentPage = () => {
                     <>
                         <PetList/>
                         <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
-                        <div className="head">Upcoming appointments</div>
-                        <AppointmentBox/>
-                        <AppointmentBox/>
-                        <AppointmentBox/>
+                        <div className="head-text">Upcoming appointments</div>
+                        <div className="date-text">{todayLabel}</div>
+                        <div className="line">-</div>
+                        {futureAppointments.map((appointment, index) => (
+                            <AppointmentBox
+                                key={`${appointment.dateKey}-${appointment.pet}-${index}`}
+                                petName={appointment.pet}
+                                locationText={appointment.location}
+                                dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
+                                timeText={appointment.time}
+                            />
+                        ))}
                     </>
                 ) : (
-                    <div className="head">No records yet</div>
+                    <div className="head-text">No records yet</div>
                 )}
             </div>
 

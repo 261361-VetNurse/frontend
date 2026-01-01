@@ -46,23 +46,37 @@ const AppointBox = styled.div`
     
 `;
 
-export default function AppointmentBox() {
+type AppointmentBoxProps = {
+    petName?: string;
+    petImage?: string;
+    locationText?: string;
+    dateText?: string;
+    timeText?: string;
+};
+
+export default function AppointmentBox({
+    petName = "Lee",
+    petImage = "/pets-example/pet-ex1.svg",
+    locationText = "ห้องอัลตร้าซาวด์",
+    dateText = "1/01/2026",
+    timeText = "11.00 - 12.00 น.",
+}: AppointmentBoxProps) {
     return(
         <AppointBox>
-                <ProflieCom petImage="/pets-example/pet-ex1.svg" showName={false} size={40}/>
+                <ProflieCom petImage={petImage} showName={false} size={40}/>
                 <div className="name-location">
-                    <div className="name">Lee</div>
+                    <div className="name">{petName}</div>
                     <div className="data-row">
                         <img className="data-icon" src="/location.svg" alt="location" />
-                        <span className="data-text">ห้องอัลตร้าซาวด์</span>
+                        <span className="data-text">{locationText}</span>
                     </div>
                     <div className="data-row">
                         <img className="data-icon" src="/calendar.svg" alt="calendar" />
-                        <div className="data-text">17/12/2025</div>
+                        <div className="data-text">{dateText}</div>
                     </div>
                     <div className="data-row">
                         <img className="data-icon" src="/clock.svg" alt="time" />
-                        <div className="data-text">11.00 - 12.00 น.</div>
+                        <div className="data-text">{timeText}</div>
                     </div>
                 </div>
                 

@@ -28,7 +28,7 @@ import {
 type PopUpProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreateAppointment: (appointment: { date: Date; pet: string }) => void
+  onCreateAppointment: (appointment: { date: Date; pet: string; time: string; location: string }) => void
 }
 
 export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
@@ -81,7 +81,7 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
     }
 
     if (date) {
-      onCreateAppointment({ date, pet })
+      onCreateAppointment({ date, pet, time, location })
       onOpenChange(false)
     }
   }
