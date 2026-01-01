@@ -55,7 +55,6 @@ export const AppointmentPage = () => {
     const isAppointmentTab = !isRecordTab;
     const today = dayjs();
     const todayKey = today.format("YYYY-MM-DD");
-    const todayLabel = today.format("ddd, DD/MM/YYYY");
 
     const appointmentTabs = [{
         name: "Appointment",
@@ -88,14 +87,34 @@ export const AppointmentPage = () => {
         const dateKey = dayjs(date).format("YYYY-MM-DD");
         setAppointments((prev) => ([...prev, { dateKey, pet, time, location }]));
     }
-    const futureAppointments = React.useMemo(() => {
+    const upcomingAppointments = React.useMemo(() => {
         return appointments
-            .filter((appointment) => appointment.dateKey > todayKey)
-            .sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+            .filter((appointment) => appointment.dateKey >= todayKey)
+            .sort((a, b) => {
+                if (a.dateKey === b.dateKey) {
+                    return a.time.localeCompare(b.time);
+                }
+                return a.dateKey.localeCompare(b.dateKey);
+            });
     }, [appointments, todayKey]);
+    const upcomingAppointmentsByDate = React.useMemo(() => {
+        const map: Record<string, typeof appointments> = {};
+        upcomingAppointments.forEach((appointment) => {
+            if (!map[appointment.dateKey]) {
+                map[appointment.dateKey] = [];
+            }
+            map[appointment.dateKey].push(appointment);
+        });
+        return Object.entries(map)
+            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+            .map(([dateKey, items]) => ({
+                dateKey,
+                items,
+            }));
+    }, [upcomingAppointments]);
     const appointmentPetsByDate = React.useMemo(() => {
         const map: Record<string, string[]> = {};
-        futureAppointments.forEach(({ dateKey, pet }) => {
+        upcomingAppointments.forEach(({ dateKey, pet }) => {
             if (!map[dateKey]) {
                 map[dateKey] = [pet];
                 return;
@@ -105,7 +124,7 @@ export const AppointmentPage = () => {
             }
         });
         return map;
-    }, [futureAppointments]);
+    }, [upcomingAppointments]);
     return (
         <AppointmentPageStyled>
             {isAppointmentTab && (
@@ -125,16 +144,22 @@ export const AppointmentPage = () => {
                         <PetList/>
                         <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
                         <div className="head-text">Upcoming appointments</div>
-                        <div className="date-text">{todayLabel}</div>
-                        <div className="line">-</div>
-                        {futureAppointments.map((appointment, index) => (
-                            <AppointmentBox
-                                key={`${appointment.dateKey}-${appointment.pet}-${index}`}
-                                petName={appointment.pet}
-                                locationText={appointment.location}
-                                dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
-                                timeText={appointment.time}
-                            />
+                        {upcomingAppointmentsByDate.map(({ dateKey, items }) => (
+                            <React.Fragment key={dateKey}>
+                                <div className="date-text">
+                                    {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
+                                </div>
+                                <div className="line">-</div>
+                                {items.map((appointment, index) => (
+                                    <AppointmentBox
+                                        key={`${appointment.dateKey}-${appointment.pet}-${index}`}
+                                        petName={appointment.pet}
+                                        locationText={appointment.location}
+                                        dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
+                                        timeText={appointment.time}
+                                    />
+                                ))}
+                            </React.Fragment>
                         ))}
                     </>
                 ) : (
