@@ -1,8 +1,14 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 export default function OwnersPage() {
-  return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Owners</h1>
-      <p className="text-zinc-600">Mobile-first owners section</p>
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.push('/pet-owners/homepage');
+  }, [router]);
+
+  return null;
 }
