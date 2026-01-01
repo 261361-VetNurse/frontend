@@ -10,14 +10,12 @@ export const Page = styled.div`
   gap: 10px;
 `;
 
-/** ใช้กรณีต้องการห่อ page content ให้เป็น layout แบบ column */
 export const Content = styled.div`
   display: flex;
   flex-direction: column;
   gap: 16px;
 `;
 
-/** Floating action button (เหมือน medication) */
 export const FabButton = styled.button`
   position: fixed;
   bottom: 80px;

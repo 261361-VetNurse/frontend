@@ -69,7 +69,7 @@ export default function PetInfo() {
     {
       iconSrc: "/history.svg",
       title: "Medical History",
-      href: `/pet-owners/mypets/${currentPet.id}/history`,
+      href: `/pet-owners/mypets/${currentPet.id}/medical`,
     },
   ];
 

@@ -49,7 +49,6 @@ export default function Appointments() {
     if (!petId) return;
     const idFromUrl = String(petId);
 
-    // ถ้า id นี้มีอยู่จริงใน options ค่อย set
     const exists = petOptions.some((p) => p.id === idFromUrl);
     if (exists) setSelectedPetId(idFromUrl);
   }, [petId, petOptions]);
