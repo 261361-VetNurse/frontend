@@ -57,7 +57,7 @@ export default function Calendar({ appointmentPetsByDate = {} }: CalendarProps) 
       <span className="relative inline-flex">
         <PickersDay day={day} outsideCurrentMonth={outsideCurrentMonth} {...other} />
         {showDots ? (
-          <span className="pointer-events-none absolute bottom-1 left-1/2 -translate-x-1/2">
+          <span className="pointer-events-none absolute bottom-0 left-1/2 -translate-x-1/2">
             <DotRow>
               {dotColors.map((color, index) => (
                 <Dot key={`${dateKey}-${color}-${index}`} $color={color} />

@@ -154,7 +154,7 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
                       aria-invalid={Boolean(errors.date)}
                       className={`h-10 w-full justify-between text-sm font-medium ${dateTextClass} !py-[8px] !px-[12px] !pl-[42px] cursor-pointer`}
                     >
-                      {date ? date.toLocaleDateString() : "Select date"}
+                      {date ? new Intl.DateTimeFormat("en-GB").format(date) : "Select date"}
                       <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </PopoverTrigger>
