@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 import PetInfoTopBar from "@/components/pet-owners/mypets/pet-info/PetInfoTopBar";
 import PetSelectorCard from "@/components/pet-owners/mypets/PetSelectorCard";
@@ -22,18 +22,19 @@ import { FabButton, Page } from "@/styles/appointments.styled";
 import { Add } from "@mui/icons-material";
 
 type PetOption = {
-  id: string;
+  id: string;      
   name: string;
-  pid: string;
+  pid: string;   
   imageUrl?: string;
 };
 
 export default function Appointments() {
   const router = useRouter();
+  const { petId } = useParams<{ petId: string }>(); 
 
   const petOptions: PetOption[] = useMemo(() => {
     return Object.values(mockPetInformationById).map((p) => ({
-      id: p.header.id,
+      id: String(p.header.id),
       name: p.header.name,
       pid: p.header.pid,
       imageUrl: p.header.avatarUrl,
@@ -41,15 +42,23 @@ export default function Appointments() {
   }, []);
 
   const [selectedPetId, setSelectedPetId] = useState<string>(
-    petOptions[0]?.id ?? ""
+    String(petId ?? petOptions[0]?.id ?? "")
   );
+
+  useEffect(() => {
+    if (!petId) return;
+    const idFromUrl = String(petId);
+
+    // ถ้า id นี้มีอยู่จริงใน options ค่อย set
+    const exists = petOptions.some((p) => p.id === idFromUrl);
+    if (exists) setSelectedPetId(idFromUrl);
+  }, [petId, petOptions]);
 
   const selectedPet =
     petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
 
-  // popup (เหมือน medication)
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const allAppointments: Appointment[] = useMemo(() => {
@@ -78,10 +87,8 @@ export default function Appointments() {
 
   return (
     <Page>
-      {/* Top bar */}
       <PetInfoTopBar title="Appointment" onBack={() => router.back()} />
 
-      {/* Select pet */}
       <div style={{ marginTop: 8 }}>
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}
@@ -89,16 +96,17 @@ export default function Appointments() {
           imageUrl={selectedPet?.imageUrl}
           options={petOptions}
           selectedId={selectedPetId}
-          onSelect={(id) => setSelectedPetId(id)}
+          onSelect={(id) => {
+            setSelectedPetId(id);
+            router.push(`/pet-owners/mypets/${id}/appointments`);
+          }}
         />
       </div>
 
-      {/* Tabs */}
       <div style={{ marginTop: 8 }}>
         <AppointmentTabs value={tab} onChange={setTab} />
       </div>
 
-      {/* Sections */}
       <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 24 }}>
         {grouped.length === 0 ? (
           <div style={{ fontSize: 14, color: "#71717a" }}>No appointments</div>
@@ -124,12 +132,10 @@ export default function Appointments() {
         )}
       </div>
 
-      {/* Floating action button */}
       <FabButton onClick={handleAdd}>
         <Add />
       </FabButton>
 
-      {/* Create Appointment Popup */}
       <AddAppointmentPopup
         open={showCreatePopup}
         onClose={handleClosePopup}

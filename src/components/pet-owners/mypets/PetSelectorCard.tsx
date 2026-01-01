@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 type PetOption = {
   id: string;
   name: string;
-  pid: string;
+  pid?: string;
   imageUrl?: string;
 };
 
@@ -14,25 +14,22 @@ export default function PetSelectorCard({
   name,
   pid,
   imageUrl,
-
-  // NEW
   options,
   selectedId,
   onSelect,
 }: {
   name: string;
-  pid: string;
+  pid?: string;
   imageUrl?: string;
 
   options: PetOption[];
   selectedId?: string;
-  onSelect: (id: string) => void;
+  onSelect: (petId: string) => void;
 }) {
   const imageSrc = imageUrl ?? "/pet-placeholder.svg";
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
-  // close when click outside
   useEffect(() => {
     function handleDown(e: MouseEvent) {
       if (!wrapRef.current) return;
@@ -58,13 +55,24 @@ export default function PetSelectorCard({
 
             <div>
               <div className="text-sm font-semibold text-zinc-900">{name}</div>
-              <div className="text-xs text-zinc-500">{`PID: ${pid}`}</div>
+              <div className="text-xs text-zinc-500">{`PID: ${pid ?? "-"}`}</div>
             </div>
           </div>
 
-          <span className="text-zinc-500 text-2xl leading-none">
-            {open ? "⌃" : "⌄"}
-          </span>
+          {/* ▼ Down icon */}
+          <div
+            className={[
+              "relative h-5 w-5 transition-transform duration-200",
+              open ? "rotate-180" : "",
+            ].join(" ")}
+          >
+            <Image
+              src="/down-icon.svg"
+              alt="Toggle pet selector"
+              fill
+              className="object-contain"
+            />
+          </div>
         </div>
       </button>
 
@@ -80,6 +88,7 @@ export default function PetSelectorCard({
           <div className="max-h-[240px] overflow-auto p-2">
             {options.map((p) => {
               const active = p.id === selectedId;
+
               return (
                 <button
                   key={p.id}
@@ -107,7 +116,9 @@ export default function PetSelectorCard({
                       <div className="text-sm font-semibold text-zinc-900">
                         {p.name}
                       </div>
-                      <div className="text-xs text-zinc-500">{`PID: ${p.pid}`}</div>
+                      <div className="text-xs text-zinc-500">{`PID: ${
+                        p.pid ?? "-"
+                      }`}</div>
                     </div>
                   </div>
 

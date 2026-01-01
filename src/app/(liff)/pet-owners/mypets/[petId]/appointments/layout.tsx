@@ -1,4 +1,3 @@
-import NavBar from "@/components/common/NavBar";
 import Container from "@/components/common/Container";
 
 export default function OwnersLayout({

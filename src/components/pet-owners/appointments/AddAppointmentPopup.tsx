@@ -32,7 +32,6 @@ export default function AddAppointmentPopup({
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
 
-  // ✅ reset ทุกครั้งที่เปิด popup (กันจำค่าเก่า)
   useEffect(() => {
     if (open) {
       setDate("");
@@ -47,7 +46,6 @@ export default function AddAppointmentPopup({
 
   if (!open) return null;
 
-  // ✅ ปิดแล้ว reset ด้วย (ทั้งกด X / กด overlay / หลัง submit)
   function handleClose() {
     setDate("");
     setTime("");
@@ -68,7 +66,6 @@ export default function AddAppointmentPopup({
       location: location.trim(),
     });
 
-    // ถ้าต้องการให้ปิด popup หลัง Add (เหมือนฟีลยา) ให้ใช้บรรทัดนี้
     handleClose();
   }
 

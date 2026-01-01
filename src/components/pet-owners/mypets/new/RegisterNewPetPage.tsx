@@ -20,13 +20,12 @@ export default function RegisterNewPetPage() {
   const [name, setName] = useState("");
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
-  const [dob, setDob] = useState(""); // ISO (yyyy-mm-dd)
+  const [dob, setDob] = useState(""); 
   const [sex, setSex] = useState<Sex>("Female");
   const [color, setColor] = useState("");
   const [hasPrevHistory, setHasPrevHistory] = useState<YesNo>("yes");
   const [prevClinic, setPrevClinic] = useState("");
 
-  // Prevent hydration mismatch: render "-" until mounted (because formatAge uses new Date()).
   const computedAge = useMemo(() => {
     if (!mounted) return "-";
     if (!dob) return "-";

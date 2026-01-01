@@ -3,8 +3,10 @@
 import { useMemo, useState } from "react";
 
 type Props = {
-  value: string; // YYYY-MM-DD
+  value: string; 
   onChange: (isoDate: string) => void;
+
+  markedDates?: string[];
 };
 
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -21,10 +23,8 @@ function toISODate(d: Date) {
 }
 
 function parseISO(iso: string) {
-  // iso: YYYY-MM-DD
   const [y, m, d] = iso.split("-").map((x) => Number(x));
-  const dt = new Date(y, (m || 1) - 1, d || 1);
-  return dt;
+  return new Date(y, (m || 1) - 1, d || 1);
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -35,15 +35,29 @@ function isSameDay(a: Date, b: Date) {
   );
 }
 
-export default function SymptomCalendar({ value, onChange }: Props) {
+export default function SymptomCalendar({
+  value,
+  onChange,
+  markedDates = [],
+}: Props) {
   const selectedDate = useMemo(() => parseISO(value), [value]);
   const today = useMemo(() => new Date(), []);
 
-  // month cursor
+  const markedSet = useMemo(() => new Set(markedDates), [markedDates]);
+
   const [cursor, setCursor] = useState(() => {
-    // start at selected month
     return new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
   });
+
+  useMemo(() => {
+    const sameMonth =
+      cursor.getFullYear() === selectedDate.getFullYear() &&
+      cursor.getMonth() === selectedDate.getMonth();
+    if (!sameMonth) {
+      setCursor(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+    }
+
+  }, [selectedDate.getFullYear(), selectedDate.getMonth()]);
 
   const monthLabel = useMemo(() => {
     return cursor.toLocaleDateString("en-US", {
@@ -53,20 +67,17 @@ export default function SymptomCalendar({ value, onChange }: Props) {
   }, [cursor]);
 
   const days = useMemo(() => {
-    // build 6x7 grid
     const startOfMonth = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
     const endOfMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
 
     const firstWeekday = startOfMonth.getDay(); // 0..6
     const totalDaysInMonth = endOfMonth.getDate();
 
-    // previous month tail
     const prevMonthEnd = new Date(cursor.getFullYear(), cursor.getMonth(), 0);
     const prevMonthDays = prevMonthEnd.getDate();
 
     const cells: { date: Date; inMonth: boolean }[] = [];
 
-    // fill leading
     for (let i = 0; i < firstWeekday; i++) {
       const dayNum = prevMonthDays - (firstWeekday - 1 - i);
       cells.push({
@@ -75,7 +86,6 @@ export default function SymptomCalendar({ value, onChange }: Props) {
       });
     }
 
-    // fill current
     for (let d = 1; d <= totalDaysInMonth; d++) {
       cells.push({
         date: new Date(cursor.getFullYear(), cursor.getMonth(), d),
@@ -83,7 +93,6 @@ export default function SymptomCalendar({ value, onChange }: Props) {
       });
     }
 
-    // fill trailing to 42 cells
     while (cells.length < 42) {
       const nextDay = cells.length - (firstWeekday + totalDaysInMonth) + 1;
       cells.push({
@@ -146,30 +155,33 @@ export default function SymptomCalendar({ value, onChange }: Props) {
           const selected = isSameDay(d, selectedDate);
           const isToday = isSameDay(d, today);
 
+          const iso = toISODate(d);
+          const hasRecord = markedSet.has(iso);
+
           return (
             <button
               key={idx}
               type="button"
-              onClick={() => onChange(toISODate(d))}
+              onClick={() => onChange(iso)}
               className={[
                 "h-10 flex items-center justify-center rounded-xl transition relative",
                 selected
                   ? "bg-white border border-zinc-200 shadow-sm"
                   : "hover:bg-zinc-50",
+                isToday && !selected ? "ring-1 ring-sky-200" : "",
               ].join(" ")}
             >
               <div
                 className={[
                   "text-sm",
                   inMonth ? "text-zinc-800" : "text-zinc-300",
-                  isToday && !selected ? "font-semibold" : "",
+                  isToday ? "font-semibold" : "",
                 ].join(" ")}
               >
                 {d.getDate()}
               </div>
 
-              {/* dots under selected day (เหมือนรูป) */}
-              {selected && (
+              {hasRecord && (
                 <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
                   <span className="h-1 w-1 rounded-full bg-pink-400" />
                   <span className="h-1 w-1 rounded-full bg-pink-400" />

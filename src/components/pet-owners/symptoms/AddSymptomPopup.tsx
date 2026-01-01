@@ -12,10 +12,10 @@ type PetLite = {
 
 export type AddSymptomPayload = {
   petId: string;
-  date: string; 
-  time: string; 
+  date: string;
+  time: string;
   note: string;
-  images: File[]; 
+  images: File[];
 };
 
 export function SymptomFab({ onClick }: { onClick: () => void }) {
@@ -50,17 +50,48 @@ export default function AddSymptomPopup({
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
+  function resetFileInput() {
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  function cleanupPreviews(urls: string[]) {
+    urls.forEach((u) => URL.revokeObjectURL(u));
+  }
+
   useEffect(() => {
     if (open) {
+      // reset form
       setDate("");
       setTime("");
       setNote("");
+
+      // cleanup & reset files/previews
       setFiles([]);
-      if (inputRef.current) inputRef.current.value = "";
+      setPreviews((prev) => {
+        cleanupPreviews(prev);
+        return [];
+      });
+
+      resetFileInput();
+    } else {
+      setPreviews((prev) => {
+        cleanupPreviews(prev);
+        return [];
+      });
     }
+
+    // cleanup on unmount
+    return () => {
+      setPreviews((prev) => {
+        cleanupPreviews(prev);
+        return [];
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pet?.id]);
 
   const canSubmit = useMemo(() => {
@@ -71,15 +102,15 @@ export default function AddSymptomPopup({
 
   if (!open) return null;
 
-  function resetFileInput() {
-    if (inputRef.current) inputRef.current.value = "";
-  }
-
   function handleClose() {
     setDate("");
     setTime("");
     setNote("");
     setFiles([]);
+    setPreviews((prev) => {
+      cleanupPreviews(prev);
+      return [];
+    });
     resetFileInput();
     onClose();
   }
@@ -94,9 +125,16 @@ export default function AddSymptomPopup({
     const picked = Array.from(list);
     if (picked.length === 0) return;
 
-    setFiles((prev) => {
-      const combined = [...prev, ...picked];
-      return combined.slice(0, MAX_FILES);
+    setFiles((prevFiles) => {
+      const combined = [...prevFiles, ...picked].slice(0, MAX_FILES);
+
+      // keep previews in sync with files
+      setPreviews((prevPrev) => {
+        cleanupPreviews(prevPrev);
+        return combined.map((f) => URL.createObjectURL(f));
+      });
+
+      return combined;
     });
 
     resetFileInput();
@@ -104,6 +142,11 @@ export default function AddSymptomPopup({
 
   function removeFile(idx: number) {
     setFiles((prev) => prev.filter((_, i) => i !== idx));
+    setPreviews((prev) => {
+      const removed = prev[idx];
+      if (removed) URL.revokeObjectURL(removed);
+      return prev.filter((_, i) => i !== idx);
+    });
   }
 
   function handleSubmit() {
@@ -243,21 +286,26 @@ export default function AddSymptomPopup({
             />
 
             {files.length > 0 ? (
-              <div className="mt-2 space-y-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 {files.map((f, idx) => (
                   <div
                     key={`${f.name}-${idx}`}
-                    className="flex items-center justify-between rounded-xl border border-zinc-200 px-3 py-2"
+                    className="relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50"
                   >
-                    <div className="text-sm text-zinc-700 truncate pr-3">
-                      {f.name}
-                    </div>
+                    <Image
+                      src={previews[idx]}
+                      alt={f.name}
+                      fill
+                      className="object-cover"
+                    />
+
                     <button
                       type="button"
                       onClick={() => removeFile(idx)}
-                      className="text-sm text-zinc-500 hover:text-zinc-700"
+                      className="absolute right-1 top-1 h-6 w-6 rounded-full bg-black/60 text-white text-sm leading-none flex items-center justify-center hover:bg-black/70"
+                      aria-label="Remove image"
                     >
-                      Remove
+                      ✕
                     </button>
                   </div>
                 ))}

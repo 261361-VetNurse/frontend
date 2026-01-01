@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 
 import PetInfoTopBar from "@/components/pet-owners/mypets/pet-info/PetInfoTopBar";
 import PetSelectorCard from "@/components/pet-owners/mypets/PetSelectorCard";
@@ -9,7 +9,16 @@ import PetSelectorCard from "@/components/pet-owners/mypets/PetSelectorCard";
 import SymptomCalendar from "@/components/pet-owners/symptoms/SymptomCalendar";
 import SymptomDateSection from "@/components/pet-owners/symptoms/SymptomDateSection";
 import SymptomCard from "@/components/pet-owners/symptoms/SymptomCard";
-import AddSymptomPopup, { SymptomFab } from "@/components/pet-owners/symptoms/AddSymptomPopup";
+import AddSymptomPopup, {
+  SymptomFab,
+} from "@/components/pet-owners/symptoms/AddSymptomPopup";
+
+import SymptomDetailPopup, {
+  type SymptomDetailRecord,
+} from "@/components/pet-owners/symptoms/SymptomDetailPopup";
+import EditSymptomPopup, {
+  type EditSymptomPayload,
+} from "@/components/pet-owners/symptoms/EditSymptomPopup";
 
 import { mockPetInformationById } from "@/mocks/petInformation";
 
@@ -27,11 +36,10 @@ export type SymptomRecordItem = {
   petPid: string;
   avatarUrl?: string;
 
-  date: string; 
-  time: string; 
+  date: string; // YYYY-MM-DD
+  time: string; // HH:MM
   note: string;
-
-  imageCount?: number; 
+  imageUrls?: string[];
 };
 
 function todayISO() {
@@ -40,6 +48,10 @@ function todayISO() {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
+}
+
+function isTodayISO(isoDate: string) {
+  return isoDate === todayISO();
 }
 
 function formatHeaderDate(isoDate: string) {
@@ -54,7 +66,6 @@ function formatHeaderDate(isoDate: string) {
 }
 
 function formatTime12h(time24: string) {
-  // "11:00" -> "11.00 A.M."
   const [hStr, mStr] = time24.split(":");
   const h = Number(hStr);
   const m = Number(mStr);
@@ -62,10 +73,17 @@ function formatTime12h(time24: string) {
 
   const suffix = h >= 12 ? "P.M." : "A.M.";
   const hour12 = ((h + 11) % 12) + 1;
-  return `${String(hour12).padStart(2, "0")}.${String(m).padStart(2, "0")} ${suffix}`;
+  return `${String(hour12).padStart(2, "0")}.${String(m).padStart(
+    2,
+    "0"
+  )} ${suffix}`;
 }
 
-const mockSymptoms: SymptomRecordItem[] = [
+function formatTime12hFrom24(time24: string) {
+  return formatTime12h(time24);
+}
+
+const mockSymptomsSeed: SymptomRecordItem[] = [
   {
     id: "sym-001",
     petId: "4302459",
@@ -75,7 +93,12 @@ const mockSymptoms: SymptomRecordItem[] = [
     date: "2025-12-17",
     time: "11:00",
     note: "มีอาการซึมไม่อยากอาหาร มีอาเจียนเล็กน้อย",
-    imageCount: 3,
+    imageUrls: [
+      "/pets-example/pet-ex1.svg",
+      "/pets-example/pet-ex1.svg",
+      "/pets-example/pet-ex1.svg",
+      "/pets-example/pet-ex1.svg",
+    ],
   },
   {
     id: "sym-002",
@@ -86,7 +109,7 @@ const mockSymptoms: SymptomRecordItem[] = [
     date: "2025-12-17",
     time: "09:30",
     note: "เกาไม่หยุดบริเวณคอ อาจแพ้/ระคายเคือง",
-    imageCount: 0,
+    imageUrls: [],
   },
 ];
 
@@ -102,34 +125,108 @@ export default function SymptomRecord() {
     }));
   }, []);
 
+  const { petId } = useParams<{ petId: string }>();
+
   const [selectedPetId, setSelectedPetId] = useState<string>(
-    petOptions[0]?.id ?? ""
+    String(petId ?? petOptions[0]?.id ?? "")
   );
+
+  useEffect(() => {
+    if (!petId) return;
+    const idFromUrl = String(petId);
+    const exists = petOptions.some((p) => String(p.id) === idFromUrl);
+    if (exists) setSelectedPetId(idFromUrl);
+  }, [petId, petOptions]);
 
   const selectedPet =
     petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
 
   const [selectedDate, setSelectedDate] = useState<string>(todayISO());
+  const [symptoms, setSymptoms] = useState<SymptomRecordItem[]>(
+    mockSymptomsSeed
+  );
+
   const [openCreate, setOpenCreate] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<SymptomDetailRecord | null>(
+    null
+  );
+  const [editRecord, setEditRecord] = useState<SymptomDetailRecord | null>(null);
 
-  // filter by pet + date
-  const filtered = useMemo(() => {
-    return mockSymptoms.filter((r) => {
-      const okPet = !selectedPetId || r.petId === selectedPetId;
-      const okDate = !selectedDate || r.date === selectedDate;
-      return okPet && okDate;
-    });
-  }, [selectedPetId, selectedDate]);
-
-  // group by date label (เผื่ออนาคตเลือกหลายวัน/หรือแสดง list หลายวัน)
-  const grouped = useMemo(() => {
-    const map = new Map<string, SymptomRecordItem[]>();
-    for (const r of filtered) {
-      const label = formatHeaderDate(r.date);
-      map.set(label, [...(map.get(label) ?? []), r]);
+  // วันที่ที่มี record ของ pet ที่เลือก
+  const markedDates = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of symptoms) {
+      if (!selectedPetId || r.petId === selectedPetId) set.add(r.date);
     }
-    return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
-  }, [filtered]);
+    return Array.from(set);
+  }, [symptoms, selectedPetId]);
+
+  // หัวข้อด้านบน: Today record เฉพาะ "วันนี้จริง"
+  const listTitle = useMemo(() => {
+    return isTodayISO(selectedDate) ? "Today record" : "Record";
+  }, [selectedDate]);
+
+  // ถ้าไม่ใช่วันนี้ ให้โชว์วันที่ที่เลือกเป็นบรรทัดบน
+  const headerDateLine = useMemo(() => {
+    return isTodayISO(selectedDate) ? null : formatHeaderDate(selectedDate);
+  }, [selectedDate]);
+
+  // filter by pet + selected date
+  const filtered = useMemo(() => {
+    return symptoms
+      .filter((r) => {
+        const okPet = !selectedPetId || r.petId === selectedPetId;
+        const okDate = !selectedDate || r.date === selectedDate;
+        return okPet && okDate;
+      })
+      // (optional) เรียงเวลา
+      .sort((a, b) => a.time.localeCompare(b.time));
+  }, [symptoms, selectedPetId, selectedDate]);
+
+  function openDetailById(id: string) {
+    const found = symptoms.find((x) => x.id === id);
+    if (!found) return;
+
+    const detail: SymptomDetailRecord = {
+      id: found.id,
+      petId: found.petId,
+      petName: found.petName,
+      petPid: found.petPid,
+      avatarUrl: found.avatarUrl,
+      date: found.date,
+      time: found.time,
+      note: found.note,
+      imageUrls: found.imageUrls ?? [],
+    };
+
+    setDetailRecord(detail);
+  }
+
+  function handleEditFromDetail(rec: SymptomDetailRecord) {
+    setDetailRecord(null);
+    setEditRecord(rec);
+  }
+
+  function handleDeleteFromDetail(id: string) {
+    setSymptoms((prev) => prev.filter((x) => x.id !== id));
+    setDetailRecord(null);
+  }
+
+  function handleSaveEdit(payload: EditSymptomPayload) {
+    setSymptoms((prev) =>
+      prev.map((x) => {
+        if (x.id !== payload.id) return x;
+        return {
+          ...x,
+          date: payload.date,
+          time: payload.time,
+          note: payload.note,
+          imageUrls: payload.imageUrls,
+        };
+      })
+    );
+    setEditRecord(null);
+  }
 
   return (
     <div className="pb-24">
@@ -149,31 +246,41 @@ export default function SymptomRecord() {
 
       {/* Calendar */}
       <div className="px-4 mt-4">
-        <SymptomCalendar value={selectedDate} onChange={setSelectedDate} />
+        <SymptomCalendar
+          value={selectedDate}
+          onChange={setSelectedDate}
+          markedDates={markedDates}
+        />
       </div>
 
       {/* List */}
-      <div className="px-4 mt-4 space-y-6">
-        <div className="font-semibold text-zinc-900">Today record</div>
+      <div className="px-4 mt-4 space-y-4">
+        <div className="space-y-2">
+          <div className="font-semibold text-zinc-900">{listTitle}</div>
 
-        {grouped.length === 0 ? (
+          {headerDateLine && (
+            <div className="text-sm text-zinc-800 border-b border-zinc-200 pb-2">
+              {headerDateLine}
+            </div>
+          )}
+        </div>
+
+        {filtered.length === 0 ? (
           <div className="text-sm text-zinc-500">No records</div>
         ) : (
-          grouped.map((sec) => (
-            <SymptomDateSection key={sec.label} label={sec.label}>
-              {sec.items.map((r) => (
-                <SymptomCard
-                  key={r.id}
-                  petName={r.petName}
-                  note={r.note}
-                  time={formatTime12h(r.time)}
-                  avatarUrl={r.avatarUrl}
-                  imageCount={r.imageCount ?? 0}
-                  onClick={() => console.log("open detail", r.id)}
-                />
-              ))}
-            </SymptomDateSection>
-          ))
+          <SymptomDateSection label={headerDateLine ? "" : formatHeaderDate(selectedDate)}>
+            {filtered.map((r) => (
+              <SymptomCard
+                key={r.id}
+                petName={r.petName}
+                note={r.note}
+                time={formatTime12h(r.time)}
+                avatarUrl={r.avatarUrl}
+                imageUrls={r.imageUrls ?? []}
+                onClick={() => openDetailById(r.id)}
+              />
+            ))}
+          </SymptomDateSection>
         )}
       </div>
 
@@ -192,11 +299,41 @@ export default function SymptomRecord() {
             avatarUrl: selectedPet.imageUrl,
           }}
           onSubmit={(data) => {
-            console.log("submit symptom", data);
+            const newItem: SymptomRecordItem = {
+              id: `sym-${String(Date.now())}`,
+              petId: data.petId,
+              petName: selectedPet.name,
+              petPid: selectedPet.pid,
+              avatarUrl: selectedPet.imageUrl,
+              date: data.date,
+              time: data.time,
+              note: data.note,
+              imageUrls: (data.images ?? []).map((f) => URL.createObjectURL(f)),
+            };
+            setSymptoms((prev) => [newItem, ...prev]);
             setOpenCreate(false);
           }}
         />
       )}
+
+      {/* Detail Popup */}
+      <SymptomDetailPopup
+        open={!!detailRecord}
+        record={detailRecord}
+        onClose={() => setDetailRecord(null)}
+        onEdit={(rec) => rec && handleEditFromDetail(rec)}
+        onDelete={(id) => handleDeleteFromDetail(id)}
+        formatTime={(t: string) => formatTime12hFrom24(t)}
+      />
+
+      {/* Edit Popup */}
+      <EditSymptomPopup
+        open={!!editRecord}
+        record={editRecord}
+        onClose={() => setEditRecord(null)}
+        onSave={handleSaveEdit}
+        maxImages={4}
+      />
     </div>
   );
 }

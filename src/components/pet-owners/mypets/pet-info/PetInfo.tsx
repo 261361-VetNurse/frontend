@@ -54,7 +54,7 @@ export default function PetInfo() {
     {
       iconSrc: "/calendar-app.svg",
       title: "Appointment",
-      href: `/pet-owners/appointments`,
+      href: `/pet-owners/mypets/${currentPet.id}/appointments`,
     },
     {
       iconSrc: "/medication.svg",
@@ -64,7 +64,7 @@ export default function PetInfo() {
     {
       iconSrc: "/record.svg",
       title: "Pet Symptom Record",
-      href: `/pet-owners/symptoms`,
+      href: `/pet-owners/mypets/${currentPet.id}/symptoms`,
     },
     {
       iconSrc: "/history.svg",
