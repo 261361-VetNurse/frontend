@@ -44,11 +44,11 @@ const NavItem = styled(Link)`
 `;
 
 const navItems = [
-  { label: "Home", icon: Home, href: "/pet-owners/homepage" },
-  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calenderpage" },
-  { label: "My pets", icon: Pets, href: "/" },
-  { label: "Medication", icon: Medication, href: "/pet-owners/medication" },
-  { label: "Notifications", icon: Notifications, href: "/" },
+  { label: "Home", icon: Home, href: "/pet-owners/home-page" },
+  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calender-page" },
+  { label: "My pets", icon: Pets, href: "/pet-owners/my-pets" },
+  { label: "Medication", icon: Medication, href: "/pet-owners/medication-page" },
+  { label: "Notifications", icon: Notifications, href: "/pet-owners/notification-page" },
 ];
 
 export default function NavBar() {
