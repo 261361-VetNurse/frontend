@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FormField } from '@/components/form/FormField';
-import { TextInput } from '@/components/form/TextInput';
-import { SelectInput } from '@/components/form/SelectInput';
-import { PrimaryButton } from '@/components/form/PrimaryButton';
+import { FormField } from '@/components/pet-owners/form/FormField';
+import { TextInput } from '@/components/pet-owners/form/TextInput';
+import { SelectInput } from '@/components/pet-owners/form/SelectInput';
+import { PrimaryButton } from '@/components/pet-owners/form/PrimaryButton';
 import {
   RegisterContainer,
   RegisterCard,

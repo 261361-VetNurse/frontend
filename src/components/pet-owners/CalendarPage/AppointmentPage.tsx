@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 import styled from "styled-components";
-import {TabItem, Tabs} from "@/components/common/Tabs";
+import {TabItem, Tabs} from "@/components/pet-owners/common/Tabs";
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 
 

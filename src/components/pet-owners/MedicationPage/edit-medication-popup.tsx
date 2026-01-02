@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { FormField } from '../../form/FormField';
-import { TextInput } from '../../form/TextInput';
-import { SelectInput } from '../../form/SelectInput';
-import { PrimaryButton } from '../../form/PrimaryButton';
+import { FormField } from '../form/FormField';
+import { TextInput } from '../form/TextInput';
+import { SelectInput } from '../form/SelectInput';
+import { PrimaryButton } from '../form/PrimaryButton';
 import { Pets } from '@mui/icons-material';
 import { theme } from '@/styles/theme';
 

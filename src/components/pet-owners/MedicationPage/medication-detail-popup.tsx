@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { PrimaryButton } from '../../form/PrimaryButton';
+import { PrimaryButton } from '../form/PrimaryButton';
 import { theme } from '@/styles/theme';
 
 const Overlay = styled.div`
@@ -78,7 +78,7 @@ const DeleteButton = styled(PrimaryButton)`
   color: #fff !important;
 `;
 
-import type { MedicationRecord } from './Medication';
+import type { MedicationRecord } from './MedicationPage';
 
 type MedicationDetailPopupProps = {
   open: boolean;

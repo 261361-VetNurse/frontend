@@ -16,10 +16,10 @@ import {
   OwnerId
 } from '../../../styles/OwnerInformationPage.styles';
 import { theme } from '../../../styles/theme';
-import { FormField } from '../../form/FormField';
-import { TextInput } from '../../form/TextInput';
-import { SelectInput } from '../../form/SelectInput';
-import { PrimaryButton } from '../../form/PrimaryButton';
+import { FormField } from '../form/FormField';
+import { TextInput } from '../form/TextInput';
+import { SelectInput } from '../form/SelectInput';
+import { PrimaryButton } from '../form/PrimaryButton';
 
 const EditOwnerInformationPage = () => {
   const router = useRouter();

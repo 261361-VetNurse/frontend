@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import CreateMedicationPopup from './AddMedicationPopup';
-import MedicationDetailPopup from './MedicationDetailPopup';
-import EditMedicationPopup from './EditMedicationPopup';
+import CreateMedicationPopup from './add-medication-popup';
+import MedicationDetailPopup from './medication-detail-popup';
+import EditMedicationPopup from './edit-medication-popup';
 import Image from 'next/image';
 import {
   Page,

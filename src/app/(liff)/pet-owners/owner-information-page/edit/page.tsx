@@ -1,4 +1,4 @@
-import EditOwnerInformationPage from '@/components/pet-owners/OwnerInformation/EditOwnerInformationPage';
+import EditOwnerInformationPage from '@/components/pet-owners/OwnerInformationPage/EditOwnerInformationPage';
 
 export default function PetOwnersInformation() {
     return(

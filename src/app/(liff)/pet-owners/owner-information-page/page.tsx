@@ -1,4 +1,4 @@
-import OwnerInformationPage from '@/components/pet-owners/OwnerInformation/OwnerInformationPage';
+import OwnerInformationPage from '@/components/pet-owners/OwnerInformationPage/OwnerInformationPage';
 export default function PetOwnersInformation() {
     return(
     <OwnerInformationPage />
