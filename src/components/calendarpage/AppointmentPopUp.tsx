@@ -158,7 +158,7 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
                       <ChevronDownIcon className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </PopoverTrigger>
-                    <PopoverContent className="w-auto overflow-hidden p-0" align="start">
+                    <PopoverContent className="z-[60] w-auto overflow-hidden p-0" align="start">
                       <Calendar
                         mode="single"
                         selected={date}
