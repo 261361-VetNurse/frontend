@@ -1,0 +1,17 @@
+import Container from "@/components/common/Container";
+
+export default function OwnersLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-start">
+      <Container width={"393px"}>
+        <main className="w-full">
+          {children}
+        </main>
+      </Container>
+    </div>
+  );
+}

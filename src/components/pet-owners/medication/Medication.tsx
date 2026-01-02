@@ -190,14 +190,13 @@ const groupRecordsByDate = (items: MedicationRecord[]) => {
     map.set(key, arr);
   }
 
-  // sort date ascending (Unknown date ไปท้าย)
   const entries = Array.from(map.entries()).sort((a, b) => {
     if (a[0] === 'Unknown date') return 1;
     if (b[0] === 'Unknown date') return -1;
     return a[0].localeCompare(b[0]);
   });
 
-  return entries; // [ [dateKey, records[]], ... ]
+  return entries; 
 };
 
 
@@ -214,7 +213,6 @@ const getHeaderTitle = (tab: TabType): string => {
   }
 };
 
-// Main component
 export default function Medication({
   records = mockRecords,
   onAdd,
@@ -247,12 +245,9 @@ export default function Medication({
 
   const handleClosePopup = () => setShowCreatePopup(false);
   const handleSubmitPopup = (data: any) => {
-    // TODO: handle submit logic (e.g. call API or update state)
     setShowCreatePopup(false);
-    // Optionally: show success message or refresh list
   };
 
-  // Filter records based on selected pet
   const filteredRecords = records[selectedTab].filter((record: MedicationRecord) => 
     selectedPetId === 'all' || record.petId === selectedPetId
   );
@@ -267,12 +262,9 @@ export default function Medication({
   };
   const handleCloseEdit = () => setEditRecord(null);
   const handleSaveEdit = (data: any) => {
-    // TODO: update record logic
     setEditRecord(null);
-    // Optionally: show success message or refresh list
   };
   const handleDeleteDetail = () => {
-    // TODO: implement delete logic
     setDetailRecord(null);
   };
 

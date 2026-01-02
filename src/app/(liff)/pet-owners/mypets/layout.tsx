@@ -14,7 +14,6 @@ export default function OwnersLayout({
           {children}
         </main>
       </Container>
-      <NavBar />
     </div>
     
   );

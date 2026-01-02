@@ -45,8 +45,8 @@ const NavItem = styled(Link)`
 
 const navItems = [
   { label: "Home", icon: Home, href: "/pet-owners/homepage" },
-  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calenderpage" },
-  { label: "My pets", icon: Pets, href: "/" },
+  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calendarpage" },
+  { label: "My pets", icon: Pets, href: "/pet-owners/mypets" },
   { label: "Medication", icon: Medication, href: "/pet-owners/medication" },
   { label: "Notifications", icon: Notifications, href: "/" },
 ];
@@ -54,7 +54,7 @@ const navItems = [
 export default function NavBar() {
   const pathname = usePathname();
   return (
-    <NavBarStyle>
+    <NavBarStyle> 
       <NavBarWrap>
         {navItems.map((item) => (
           <NavItem key={item.label} href={item.href}>
