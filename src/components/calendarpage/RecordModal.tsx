@@ -138,7 +138,7 @@ export default function RecordModal({
                 </div>
                 <div className="attachment" aria-label={`+${attachmentCount} attachments`}>
                     <span className="attachment-dot" aria-hidden="true" />
-                    <img className="attachment-icon" src="/window.svg" alt="" aria-hidden="true" />
+                    <img className="attachment-icon" src="/record-example.svg" alt="record-example" aria-hidden="true" />
                     <span className="attachment-count">+{attachmentCount}</span>
                 </div>
             </div>
