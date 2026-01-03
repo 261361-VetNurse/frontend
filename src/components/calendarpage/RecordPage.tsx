@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { Tabs } from "@/components/common/Tabs";
 import PetList from "@/components/calendarpage/PetList";
 import Calendar from "@/components/calendarpage/Calendar";
+import RecordModal from "@/components/calendarpage/RecordModal";
 import { QuickDialButton } from "../common/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
@@ -59,6 +60,17 @@ const recordTabs = [
     },
 ];
 
+const recordSamples = [
+    {
+        id: "record-1",
+        timeText: "11.00 A.M.",
+        petName: "Lee",
+        noteLines: ["มีอาการซึมไม่อยากอาหาร", "มีอาเจียนเล็กน้อย"],
+        petImage: "/pets-example/pet-ex1.svg",
+        attachmentCount: 3,
+    },
+];
+
 export const RecordPage = () => {
     const [selectedPetId, setSelectedPetId] = useState("all");
     const handleClick = () => {
@@ -80,6 +92,17 @@ export const RecordPage = () => {
                     {dayjs("2026-01-03").format("ddd, DD/MM/YYYY")}
                 </div>
                 <div className="line"> .</div>
+                {recordSamples.map((record) => (
+                    <button key={record.id} type="button" className="record-card">
+                        <RecordModal
+                            timeText={record.timeText}
+                            petName={record.petName}
+                            noteLines={record.noteLines}
+                            petImage={record.petImage}
+                            attachmentCount={record.attachmentCount}
+                        />
+                    </button>
+                ))}
             </div>
             <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
         </RecordPageStyled>

@@ -23,12 +23,7 @@ type AppointmentPopDoneProps = {
   onDelete?: (appointment: AppointmentDetail) => void
 }
 
-type AppointmentPopDoneState = {
-  isEditingStatus: boolean
-  statusDraft: boolean
-}
-
-export default class AppointmentPopDone extends React.Component<AppointmentPopDoneProps, AppointmentPopDoneState> {
+export default class AppointmentPopDone extends React.Component<AppointmentPopDoneProps> {
   static Overlay = styled.div`
     position: fixed;
     inset: 0;
@@ -64,7 +59,7 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
   `
   static Row = styled.div`
     display: flex;
-    gap: 14px;
+    gap: 16px;
     align-items: center;
   `
   static Avatar = styled.img`
@@ -92,80 +87,32 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
     font-weight: 600;
   `
   static Value = styled.div`
-    font-size: 15px;
-    color: #444;
-    margin-top: 4px;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.70);
+    font-weight: 500;
+    margin-top: 5px;
   `
-  static StatusRow = styled.label<{ $disabled: boolean }>`
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 6px;
-    cursor: ${({ $disabled }) => ($disabled ? "default" : "pointer")};
-    opacity: ${({ $disabled }) => ($disabled ? 0.85 : 1)};
-  `
-  static StatusCheckbox = styled.input`
-    width: 24px;
-    height: 24px;
-    accent-color: #4d4d4d;
-  `
-  static StatusText = styled.span`
-    font-size: 16px;
-    font-weight: 600;
-    color: #111;
-  `
-  static BtnRow = styled.div<{ $single?: boolean }>`
+  static BtnRow = styled.div`
     display: grid;
-    grid-template-columns: ${({ $single }) => ($single ? "1fr" : "1fr 1fr")};
+    grid-template-columns: 1fr 1fr;
     gap: 16px;
   `
   static ActionButton = styled.button<{ $variant: "edit" | "delete" }>`
     border: none;
     color: #fff;
-    height: 44px;
-    border-radius: 22px;
-    font-weight: 600;
+    height: 40px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 500;
     cursor: pointer;
     background: ${({ $variant }) => ($variant === "edit" ? "#09BFF8" : "#EC221F")};
     box-shadow: 0 6px 12px rgba(0,0,0,0.12);
   `
 
-  state: AppointmentPopDoneState = {
-    isEditingStatus: false,
-    statusDraft: false,
-  }
-
-  componentDidUpdate(prevProps: AppointmentPopDoneProps) {
-    const opened = !prevProps.open && this.props.open
-    const appointmentChanged = prevProps.appointment !== this.props.appointment
-    if (this.props.appointment && (opened || appointmentChanged)) {
-      const statusText = this.props.appointment.status ? this.props.appointment.status : "Active"
-      const isCanceled = statusText.toLowerCase() === "canceled" || statusText.toLowerCase() === "cancelled"
-      if (isCanceled !== this.state.statusDraft || this.state.isEditingStatus) {
-        this.setState({ statusDraft: isCanceled, isEditingStatus: false })
-      }
-    }
-  }
-
   handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
     if (event.target === event.currentTarget) {
       this.props.onClose()
     }
-  }
-
-  handleSaveStatus = () => {
-    const appointment = this.props.appointment
-    if (!appointment) {
-      return
-    }
-    const updatedAppointment = {
-      ...appointment,
-      status: this.state.statusDraft ? "Canceled" : "Active",
-    }
-    if (this.props.onEdit) {
-      this.props.onEdit(updatedAppointment)
-    }
-    this.setState({ isEditingStatus: false })
   }
 
   render() {
@@ -174,9 +121,8 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
     }
 
     let appointment = this.props.appointment
-    let statusText = appointment.status ? appointment.status : "Active"
-    let isCanceled = statusText.toLowerCase() === "canceled" || statusText.toLowerCase() === "cancelled"
-    let pidText = appointment.pid ? appointment.pid : "-"
+    let statusText = appointment.status ? appointment.status : "Canceled"
+    let pidText = appointment.pid ? appointment.pid : "098765345"
 
     return (
       <AppointmentPopDone.Overlay onClick={this.handleOverlayClick}>
@@ -213,50 +159,31 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
           </div>
           <div>
             <AppointmentPopDone.Label>Status</AppointmentPopDone.Label>
-            {this.state.isEditingStatus ? (
-              <AppointmentPopDone.StatusRow $disabled={false}>
-                <AppointmentPopDone.StatusCheckbox
-                  type="checkbox"
-                  checked={this.state.statusDraft}
-                  onChange={(event) => this.setState({ statusDraft: event.target.checked })}
-                  aria-label="Canceled"
-                />
-                <AppointmentPopDone.StatusText>Canceled</AppointmentPopDone.StatusText>
-              </AppointmentPopDone.StatusRow>
-            ) : (
-              <AppointmentPopDone.Value>{statusText}</AppointmentPopDone.Value>
-            )}
+            <AppointmentPopDone.Value>{statusText}</AppointmentPopDone.Value>
           </div>
-          <AppointmentPopDone.BtnRow $single={this.state.isEditingStatus}>
+          <AppointmentPopDone.BtnRow>
             <AppointmentPopDone.ActionButton
               $variant="edit"
               type="button"
               onClick={() => {
-                if (this.state.isEditingStatus) {
-                  this.handleSaveStatus()
-                  return
+                if (this.props.onEdit) {
+                  this.props.onEdit(appointment)
                 }
-                this.setState({
-                  isEditingStatus: true,
-                  statusDraft: isCanceled,
-                })
               }}
             >
-              {this.state.isEditingStatus ? "Save" : "Edit"}
+              Edit
             </AppointmentPopDone.ActionButton>
-            {!this.state.isEditingStatus ? (
-              <AppointmentPopDone.ActionButton
-                $variant="delete"
-                type="button"
-                onClick={() => {
-                  if (this.props.onDelete) {
-                    this.props.onDelete(appointment)
-                  }
-                }}
-              >
-                Delete
-              </AppointmentPopDone.ActionButton>
-            ) : null}
+            <AppointmentPopDone.ActionButton
+              $variant="delete"
+              type="button"
+              onClick={() => {
+                if (this.props.onDelete) {
+                  this.props.onDelete(appointment)
+                }
+              }}
+            >
+              Delete
+            </AppointmentPopDone.ActionButton>
           </AppointmentPopDone.BtnRow>
         </AppointmentPopDone.Card>
       </AppointmentPopDone.Overlay>
