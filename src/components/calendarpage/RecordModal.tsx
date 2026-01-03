@@ -3,28 +3,27 @@
 import styled from "styled-components";
 
 const RecordCard = styled.div`
-    width: 100%;
-    min-height: 140px;
+    width: 345px;
+    min-height: 126px;
     border-radius: 18px;
     background: #fff;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
     padding: 18px 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 16px;
 
     .time{
         align-self: flex-end;
         color: #2b2b2b;
-        font-size: 16px;
-        font-weight: 400;
-        letter-spacing: 0.2px;
+        font-size: 14px;
+        font-weight: 275;
     }
 
     .divider{
-        width: 100%;
+        width: 313px;
         height: 1px;
-        background: rgba(0, 0, 0, 0.18);
+        background: rgba(0, 0, 0, 0.20);
     }
 
     .content{
@@ -34,8 +33,8 @@ const RecordCard = styled.div`
     }
 
     .avatar{
-        width: 56px;
-        height: 56px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         object-fit: cover;
         background: #f1f1f1;
@@ -51,17 +50,15 @@ const RecordCard = styled.div`
     }
 
     .name{
-        font-size: 22px;
+        font-size: 16px;
         font-weight: 500;
         color: #000;
     }
 
     .note{
-        font-size: 16px;
-        font-weight: 400;
-        color: #5a5a5a;
-        line-height: 1.4;
-        white-space: pre-line;
+        font-size: 14px;
+        font-weight: 275;
+        color: #3C3C3C;
     }
 
     .attachment{
