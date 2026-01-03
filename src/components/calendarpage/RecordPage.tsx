@@ -7,6 +7,7 @@ import PetList from "@/components/calendarpage/PetList";
 import Calendar from "@/components/calendarpage/Calendar";
 import RecordModal from "@/components/calendarpage/RecordModal";
 import RecordPopUp from "@/components/calendarpage/RecordPopUp";
+import RecordPopDone from "@/components/calendarpage/RecordPopDone";
 import { QuickDialButton } from "../common/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
@@ -93,8 +94,22 @@ export const RecordPage = () => {
     const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
     const [selectedPetId, setSelectedPetId] = useState("all");
     const [isRecordPopUpOpen, setIsRecordPopUpOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<RecordEntry | null>(null);
+    const [isRecordDetailOpen, setIsRecordDetailOpen] = useState(false);
     const handleClick = () => {
         setIsRecordPopUpOpen(true);
+    };
+    const handleOpenRecord = (record: RecordEntry) => {
+        setSelectedRecord(record);
+        setIsRecordDetailOpen(true);
+    };
+    const handleCloseRecord = () => {
+        setIsRecordDetailOpen(false);
+    };
+    const handleDeleteRecord = (record: RecordEntry) => {
+        setRecords((prev) => prev.filter((item) => item.id !== record.id));
+        setIsRecordDetailOpen(false);
+        setSelectedRecord(null);
     };
     const handleCreateRecord = ({
         date,
@@ -214,7 +229,12 @@ export const RecordPage = () => {
                         </div>
                         <div className="line"> </div>
                         {items.map((record) => (
-                            <button key={record.id} type="button" className="record-card">
+                            <button
+                                key={record.id}
+                                type="button"
+                                className="record-card"
+                                onClick={() => handleOpenRecord(record)}
+                            >
                                 <RecordModal
                                     timeText={record.time}
                                     petName={record.pet}
@@ -238,6 +258,12 @@ export const RecordPage = () => {
                 open={isRecordPopUpOpen}
                 onOpenChange={setIsRecordPopUpOpen}
                 onCreateRecord={handleCreateRecord}
+            />
+            <RecordPopDone
+                open={isRecordDetailOpen}
+                record={selectedRecord ?? undefined}
+                onClose={handleCloseRecord}
+                onDelete={handleDeleteRecord}
             />
         </RecordPageStyled>
     );
