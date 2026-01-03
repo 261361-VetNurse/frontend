@@ -105,19 +105,31 @@ export const AppointmentPage = () => {
         time: string;
         location: string;
     }) => {
+        const normalizedPet = pet.trim().toLowerCase();
         const dateKey = dayjs(date).format("YYYY-MM-DD");
-        const petMeta = PET_META[pet];
-        setAppointments((prev) => ([
-            ...prev,
-            {
-                dateKey,
-                pet,
-                time,
-                location,
-                petImage: petMeta?.image,
-                pid: petMeta?.pid,
-            },
-        ]));
+        const petMeta = PET_META[normalizedPet];
+        setAppointments((prev) => {
+            const hasSameSlot = prev.some(
+                (item) =>
+                    item.pet.trim().toLowerCase() === normalizedPet &&
+                    item.dateKey === dateKey &&
+                    item.time === time
+            );
+            if (hasSameSlot) {
+                return prev;
+            }
+            return [
+                ...prev,
+                {
+                    dateKey,
+                    pet: normalizedPet,
+                    time,
+                    location,
+                    petImage: petMeta?.image,
+                    pid: petMeta?.pid,
+                },
+            ];
+        });
     }
     const handleOpenAppointment = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
