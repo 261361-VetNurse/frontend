@@ -1,9 +1,12 @@
 "use client";
 import { useState } from "react";
+import dayjs from "dayjs";
 import styled from "styled-components";
 import { Tabs } from "@/components/common/Tabs";
 import PetList from "@/components/calendarpage/PetList";
 import Calendar from "@/components/calendarpage/Calendar";
+import { QuickDialButton } from "../common/QuickDialButton";
+import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 const RecordPageStyled = styled.div`
     width: 100%;
@@ -58,6 +61,9 @@ const recordTabs = [
 
 export const RecordPage = () => {
     const [selectedPetId, setSelectedPetId] = useState("all");
+    const handleClick = () => {
+        console.log("handleClick");
+    };
 
     return (
         <RecordPageStyled>
@@ -69,8 +75,13 @@ export const RecordPage = () => {
                     onSelectPet={setSelectedPetId}
                 />
                 <Calendar appointmentPetsByDate={{}} />
-                <div className="head-text">No records yet</div>
+                <div className="head-text">Today record</div>
+                <div className="date-text">
+                    {dayjs("2026-01-03").format("ddd, DD/MM/YYYY")}
+                </div>
+                <div className="line"> .</div>
             </div>
+            <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
         </RecordPageStyled>
     );
 };
