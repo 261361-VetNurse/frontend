@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import dayjs from "dayjs";
 import styled from "styled-components";
 import { Tabs } from "@/components/common/Tabs";
@@ -61,49 +61,170 @@ const recordTabs = [
     },
 ];
 
-const recordSamples = [
+type RecordEntry = {
+    id: string;
+    dateKey: string;
+    pet: string;
+    time: string;
+    note: string;
+    petImage?: string;
+    pid?: string;
+    attachmentCount?: number;
+};
+
+const PET_META: Record<string, { pid?: string; image?: string }> = {
+    cat: { pid: "098765345", image: "/pets-example/pet-ex1.svg" },
+    dog: { image: "/pets-example/pet-ex1.svg" },
+};
+
+const recordSamples: RecordEntry[] = [
     {
         id: "record-1",
-        timeText: "11.00 A.M.",
-        petName: "Lee",
-        noteLines: ["มีอาการซึมไม่อยากอาหาร", "มีอาเจียนเล็กน้อย"],
+        dateKey: "2026-01-03",
+        time: "11:00",
+        pet: "Lee",
+        note: "มีอาการซึมไม่อยากอาหาร\nมีอาเจียนเล็กน้อย",
         petImage: "/pets-example/pet-ex1.svg",
         attachmentCount: 3,
     },
 ];
 
 export const RecordPage = () => {
+    const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
     const [selectedPetId, setSelectedPetId] = useState("all");
     const [isRecordPopUpOpen, setIsRecordPopUpOpen] = useState(false);
     const handleClick = () => {
         setIsRecordPopUpOpen(true);
     };
+    const handleCreateRecord = ({
+        date,
+        pet,
+        time,
+        note,
+    }: {
+        date: Date;
+        pet: string;
+        time: string;
+        note: string;
+    }) => {
+        const normalizedPet = pet.trim().toLowerCase();
+        const dateKey = dayjs(date).format("YYYY-MM-DD");
+        const petMeta = PET_META[normalizedPet];
+        setRecords((prev) => {
+            const hasSameSlot = prev.some(
+                (item) =>
+                    item.pet.trim().toLowerCase() === normalizedPet &&
+                    item.dateKey === dateKey &&
+                    item.time === time
+            );
+            if (hasSameSlot) {
+                return prev;
+            }
+            return [
+                ...prev,
+                {
+                    id: `record-${Date.now()}`,
+                    dateKey,
+                    pet: normalizedPet,
+                    time,
+                    note: note.trim(),
+                    petImage: petMeta?.image,
+                    pid: petMeta?.pid,
+                },
+            ];
+        });
+    };
+    const petOptions = React.useMemo(() => {
+        const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
+        records.forEach((record) => {
+            if (!map.has(record.pet)) {
+                const petMeta = PET_META[record.pet];
+                map.set(record.pet, {
+                    id: record.pet,
+                    name: record.pet,
+                    image: record.petImage ?? petMeta?.image,
+                    pid: record.pid ?? petMeta?.pid,
+                });
+            }
+        });
+        return Array.from(map.values());
+    }, [records]);
+    React.useEffect(() => {
+        if (selectedPetId !== "all" && !petOptions.some((pet) => pet.id === selectedPetId)) {
+            setSelectedPetId("all");
+        }
+    }, [petOptions, selectedPetId]);
+    const filteredRecords = React.useMemo(() => {
+        return records.filter(
+            (record) => selectedPetId === "all" || record.pet === selectedPetId
+        );
+    }, [records, selectedPetId]);
+    const sortedRecords = React.useMemo(() => {
+        return [...filteredRecords].sort((a, b) => {
+            if (a.dateKey === b.dateKey) {
+                return a.time.localeCompare(b.time);
+            }
+            return a.dateKey.localeCompare(b.dateKey);
+        });
+    }, [filteredRecords]);
+    const recordsByDate = React.useMemo(() => {
+        const map: Record<string, RecordEntry[]> = {};
+        sortedRecords.forEach((record) => {
+            if (!map[record.dateKey]) {
+                map[record.dateKey] = [];
+            }
+            map[record.dateKey].push(record);
+        });
+        return Object.entries(map)
+            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+            .map(([dateKey, items]) => ({
+                dateKey,
+                items,
+            }));
+    }, [sortedRecords]);
+    const recordPetsByDate = React.useMemo(() => {
+        const map: Record<string, string[]> = {};
+        filteredRecords.forEach(({ dateKey, pet }) => {
+            if (!map[dateKey]) {
+                map[dateKey] = [pet];
+                return;
+            }
+            if (!map[dateKey].includes(pet)) {
+                map[dateKey].push(pet);
+            }
+        });
+        return map;
+    }, [filteredRecords]);
 
     return (
         <RecordPageStyled>
             <div className="scroll-area">
                 <Tabs data={recordTabs} queryKey="tab" />
                 <PetList
-                    pets={[]}
+                    pets={petOptions}
                     selectedPetId={selectedPetId}
                     onSelectPet={setSelectedPetId}
                 />
-                <Calendar appointmentPetsByDate={{}} />
-                <div className="head-text">Today record</div>
-                <div className="date-text">
-                    {dayjs("2026-01-03").format("ddd, DD/MM/YYYY")}
-                </div>
-                <div className="line"> </div>
-                {recordSamples.map((record) => (
-                    <button key={record.id} type="button" className="record-card">
-                        <RecordModal
-                            timeText={record.timeText}
-                            petName={record.petName}
-                            noteLines={record.noteLines}
-                            petImage={record.petImage}
-                            attachmentCount={record.attachmentCount}
-                        />
-                    </button>
+                <Calendar appointmentPetsByDate={recordPetsByDate} />
+                <div className="head-text">Records</div>
+                {recordsByDate.map(({ dateKey, items }) => (
+                    <React.Fragment key={dateKey}>
+                        <div className="date-text">
+                            {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
+                        </div>
+                        <div className="line"> </div>
+                        {items.map((record) => (
+                            <button key={record.id} type="button" className="record-card">
+                                <RecordModal
+                                    timeText={record.time}
+                                    petName={record.pet}
+                                    noteText={record.note}
+                                    petImage={record.petImage}
+                                    attachmentCount={record.attachmentCount}
+                                />
+                            </button>
+                        ))}
+                    </React.Fragment>
                 ))}
             </div>
             <QuickDialButton
@@ -113,7 +234,11 @@ export const RecordPage = () => {
                 color="#09BFF8"
                 onClickAction={handleClick}
             />
-            <RecordPopUp open={isRecordPopUpOpen} onClose={() => setIsRecordPopUpOpen(false)} />
+            <RecordPopUp
+                open={isRecordPopUpOpen}
+                onOpenChange={setIsRecordPopUpOpen}
+                onCreateRecord={handleCreateRecord}
+            />
         </RecordPageStyled>
     );
 };

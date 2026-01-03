@@ -25,14 +25,14 @@ import {
 } from "@/components/ui/select";
 
 type RecordPopUpProps = {
-  open?: boolean;
-  onClose?: () => void;
-  onCreateRecord?: (record: { date: Date; pet: string; time: string; note: string }) => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreateRecord: (record: { date: Date; pet: string; time: string; note: string }) => void;
 };
 
 export default function RecordPopUp({
-  open = false,
-  onClose,
+  open,
+  onOpenChange,
   onCreateRecord,
 }: RecordPopUpProps) {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
@@ -44,11 +44,14 @@ export default function RecordPopUp({
     pet?: string;
     date?: string;
     time?: string;
+    note?: string;
   }>({});
   const currentYear = new Date().getFullYear();
   const fromYear = currentYear - 100;
   const toYear = currentYear + 100;
   const dateTextClass = date ? "text-foreground" : "text-muted-foreground";
+  const isTimeValid = Boolean(time) && time >= "00:00" && time <= "23:59";
+  const isFormComplete = Boolean(pet && date && note.trim()) && isTimeValid;
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -63,8 +66,12 @@ export default function RecordPopUp({
 
     if (!time) {
       newErrors.time = "Please select a time";
-    } else if (time < "00:00" || time > "23:59") {
+    } else if (!isTimeValid) {
       newErrors.time = "Time must be between 00:00 and 23:59";
+    }
+
+    if (!note.trim()) {
+      newErrors.note = "Please enter a note";
     }
 
     setErrors(newErrors);
@@ -79,24 +86,13 @@ export default function RecordPopUp({
     }
 
     if (date) {
-      if (onCreateRecord) {
-        onCreateRecord({ date, pet, time, note });
-      }
-      if (onClose) {
-        onClose();
-      }
+      onCreateRecord({ date, pet, time, note });
+      onOpenChange(false);
     }
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen && onClose) {
-          onClose();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
         className="sm:max-w-[420px] rounded-2xl border border-black/10 p-6 shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
@@ -219,9 +215,16 @@ export default function RecordPopUp({
               <textarea
                 id="note"
                 value={note}
-                onChange={(event) => setNote(event.target.value)}
+                onChange={(event) => {
+                  setNote(event.target.value);
+                  if (errors.note) {
+                    setErrors((prev) => ({ ...prev, note: "" }));
+                  }
+                }}
+                aria-invalid={Boolean(errors.note)}
                 className="min-h-[110px] w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm font-medium shadow-sm"
               />
+              {errors.note ? <p className="text-xs text-destructive">{errors.note}</p> : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="record-image" className="text-[16px] font-[600]">
@@ -239,7 +242,8 @@ export default function RecordPopUp({
           <DialogFooter className="pt-1">
             <Button
               type="submit"
-              className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md hover:bg-sky-600 cursor-pointer"
+              disabled={!isFormComplete}
+              className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Add New Record
             </Button>
