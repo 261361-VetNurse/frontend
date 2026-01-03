@@ -1,6 +1,6 @@
 import Sidebar from '@/components/admin/layout/Sidebar';
 import TopBarWrapper from '@/components/admin/layout/TopBarWrapper';
-import Container from '@/components/common/Container';
+import Container from '@/components/pet-owners/common/Container';
 
 export default function AdminLayout({
   children,

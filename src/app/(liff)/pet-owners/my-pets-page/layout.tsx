@@ -1,15 +1,19 @@
 import Container from '@/components/pet-owners/common/Container';
 
-export default function RegisterLayout({
+export default function OwnersLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+
   return (
-    <div className='w-full' style={{backgroundColor: '#F7F7F7'}}>
+    <div className='flex flex-col items-center justify-center min-h-screen'>
+      <Container width={"393px"}>
         <main>
           {children}
         </main>
+      </Container>
     </div>
+    
   );
 }

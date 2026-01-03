@@ -4,7 +4,7 @@ import OwnerHeaderCard from "@/components/pet-owners/mypets/OwnerHeaderCard";
 import StatCard from "@/components/pet-owners/mypets/StatCard";
 import NewPetButton from "@/components/pet-owners/mypets/NewPet";
 import PetCard from "@/components/pet-owners/mypets/PetCard";
-import NavBar from "@/components/common/NavBar";
+import NavBar from "@/components//pet-owners/common/NavBar";
 
 import { mockPets } from "@/mocks/pets";
 import { mockOwner } from "@/mocks/owner";
