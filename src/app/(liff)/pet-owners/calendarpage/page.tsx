@@ -1,12 +1,9 @@
  "use client"
 
-import {AppointmentPage} from "@/components/calendarpage/AppointmentPage";
-import PetList from "@/components/calendarpage/PetList";
-import Calendar from "@/components/calendarpage/Calendar"
+import { useSearchParams } from "next/navigation";
 import "react-day-picker/dist/style.css";
-import styled from "styled-components";
-import ReminderBox from "@/components/pet-owners/homepage/reminder-box";
-import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
+import { AppointmentPage } from "@/components/calendarpage/AppointmentPage";
+import { RecordPage } from "@/components/calendarpage/RecordPage";
 
 // const BoxBody = styled.div`
 //     width: 100%;
@@ -23,9 +20,9 @@ import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
 //     }
 // `;
 export default function Page() {
-    return(
-        // <BoxBody>
-            <AppointmentPage/>
-        // </BoxBody>
-    );
+    const searchParams = useSearchParams();
+    const activeTab = searchParams.get("tab");
+    const showRecord = activeTab === "record";
+
+    return showRecord ? <RecordPage /> : <AppointmentPage />;
 }

@@ -2,8 +2,7 @@
 import React, { useState } from 'react';
 import dayjs from "dayjs";
 import styled from "styled-components";
-import {TabItem, Tabs} from "@/components/common/Tabs";
-import {useSearchParams} from "next/navigation";
+import { Tabs } from "@/components/common/Tabs";
 import PetList from "@/components/calendarpage/PetList";
 import Calendar from "@/components/calendarpage/Calendar";
 import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
@@ -26,6 +25,19 @@ const PET_META: Record<string, { pid?: string; image?: string }> = {
     cat: { pid: "098765345", image: "/pets-example/pet-ex1.svg" },
     dog: { image: "/pets-example/pet-ex1.svg" },
 };
+
+const appointmentTabs = [
+    {
+        name: "Appointment",
+        path: "/appointment",
+        params: "appointment",
+    },
+    {
+        name: "Record",
+        path: "/record",
+        params: "record",
+    },
+];
 
 const AppointmentPageStyled = styled.div`
     width: 100%;
@@ -65,31 +77,14 @@ const AppointmentPageStyled = styled.div`
 `;
 
 export const AppointmentPage = () => {
-    const searchParams = useSearchParams();
-    const activeParam = searchParams.get('tab');
     const [isPopUpOpen, setIsPopUpOpen] = useState(false);
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [selectedPetId, setSelectedPetId] = useState("all");
-    const isRecordTab = activeParam === 'record';
-    const isAppointmentTab = !isRecordTab;
     const today = dayjs();
     const todayKey = today.format("YYYY-MM-DD");
 
-    const appointmentTabs = [{
-        name: "Appointment",
-        path: "/appointment",
-        params: 'appointment'
-    },{
-        name: "Record",
-        path: "/record",
-        params: 'record'
-    }]
-    const handleChangeTab = (tab:TabItem,index:number) => {
-        console.log('handleChangeTab',tab,index);
-    }
-    console.log('activeParam',activeParam);
     const handleClick = () => {
         console.log('handleClick');
         setIsPopUpOpen(true);
@@ -214,64 +209,55 @@ export const AppointmentPage = () => {
     }, [upcomingAppointments]);
     return (
         <AppointmentPageStyled>
-            {isAppointmentTab && (
-                <>
-                    <PopUp
-                        open={isPopUpOpen}
-                        onOpenChange={setIsPopUpOpen}
-                        onCreateAppointment={handleCreateAppointment}
-                    />
-                    <AppointmentPopDone
-                        open={isDetailOpen}
-                        appointment={selectedAppointment || undefined}
-                        onClose={() => setIsDetailOpen(false)}
-                        onDelete={handleDeleteAppointment}
-                        onEdit={handleEditAppointment}
-                    />
-                    <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
-                </>
-            )}
+            <>
+                <PopUp
+                    open={isPopUpOpen}
+                    onOpenChange={setIsPopUpOpen}
+                    onCreateAppointment={handleCreateAppointment}
+                />
+                <AppointmentPopDone
+                    open={isDetailOpen}
+                    appointment={selectedAppointment || undefined}
+                    onClose={() => setIsDetailOpen(false)}
+                    onDelete={handleDeleteAppointment}
+                    onEdit={handleEditAppointment}
+                />
+                <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
+            </>
             <div className="scroll-area">
-                <Tabs data={appointmentTabs} queryKey={'tab'} onChangeAction={handleChangeTab}/>
-                {isAppointmentTab ? (
-                    <>
-                        <PetList
-                            pets={petOptions}
-                            selectedPetId={selectedPetId}
-                            onSelectPet={setSelectedPetId}
-                        />
-                        <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
-                        <div className="head-text">Upcoming appointments</div>
-                        {upcomingAppointmentsByDate.map(({ dateKey, items }) => (
-                            <React.Fragment key={dateKey}>
-                                <div className="date-text">
-                                    {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
-                                </div>
-                                <div className="line"> .</div>
-                                {items.map((appointment, index) => (
-                                    <button
-                                        key={`${appointment.dateKey}-${appointment.pet}-${index}`}
-                                        type="button"
-                                        className="appointment-card"
-                                        onClick={() => handleOpenAppointment(appointment)}
-                                    >
-                                        <AppointmentBox
-                                            petName={appointment.pet}
-                                            locationText={appointment.location}
-                                            dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
-                                            timeText={appointment.time}
-                                        />
-                                    </button>
-                                ))}
-                            </React.Fragment>
+                <Tabs data={appointmentTabs} queryKey="tab" />
+                <PetList
+                    pets={petOptions}
+                    selectedPetId={selectedPetId}
+                    onSelectPet={setSelectedPetId}
+                />
+                <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
+                <div className="head-text">Upcoming appointments</div>
+                {upcomingAppointmentsByDate.map(({ dateKey, items }) => (
+                    <React.Fragment key={dateKey}>
+                        <div className="date-text">
+                            {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
+                        </div>
+                        <div className="line"> .</div>
+                        {items.map((appointment, index) => (
+                            <button
+                                key={`${appointment.dateKey}-${appointment.pet}-${index}`}
+                                type="button"
+                                className="appointment-card"
+                                onClick={() => handleOpenAppointment(appointment)}
+                            >
+                                <AppointmentBox
+                                    petName={appointment.pet}
+                                    locationText={appointment.location}
+                                    dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
+                                    timeText={appointment.time}
+                                />
+                            </button>
                         ))}
-                    </>
-                ) : (
-                    <div className="head-text">No records yet</div>
-                )}
+                    </React.Fragment>
+                ))}
             </div>
 
-                {/* {activeParam === null || activeParam === 'appointment' ? <div>appointment</div> : <div>record</div>} */}
         </AppointmentPageStyled>
     );
 };
