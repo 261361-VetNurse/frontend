@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+
 import { X, ChevronLeft, Search } from 'lucide-react';
 
 export default function HelpCenterPage() {
@@ -14,22 +14,13 @@ export default function HelpCenterPage() {
   ];
 
   return (
-    <div className="bg-[#f8f9fa] min-h-screen font-sans flex justify-center">
-      <div className="w-full max-w-md bg-[#f8f9fa] min-h-screen relative shadow-lg pb-10">
-        
-        {/* Header Section (เหมือนหน้า Notifications) */}
-        <div className="bg-white px-4 py-4 flex flex-col items-center relative border-b border-gray-100">
-          <h1 className="text-gray-800 font-bold text-[16px] tracking-tight">PetCare+</h1>
-          <p className="text-[10px] text-gray-400 mt-[-2px]">www.petcare.cmu.ac.th</p>
-          <button className="absolute right-5 top-5 text-gray-400">
-            <X size={22} strokeWidth={1.5} />
-          </button>
-        </div>
+    <div className="min-h-screen flex justify-center">
+      <div className="w-full min-h-screen relative pb-10">
 
         <div className="p-5">
           {/* Help Center Title with Back Button */}
           <div className="flex items-center mb-5">
-            <button className="text-gray-800 mr-4">
+            <button className="text-gray-800 mr-4" onClick={() => window.history.back()}>
               <ChevronLeft size={24} />
             </button>
             <h2 className="text-[18px] font-bold text-gray-800 flex-grow text-center mr-8">Help Center</h2>

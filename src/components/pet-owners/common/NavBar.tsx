@@ -46,8 +46,8 @@ const NavItem = styled(Link)`
 
 const navItems = [
   { label: "Home", icon: Home, href: "/pet-owners/home-page" },
-  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calender-page" },
-  { label: "My pets", icon: Pets, href: "/pet-owners/my-pets" },
+  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calendar-page" },
+  { label: "My pets", icon: Pets, href: "/pet-owners/my-pets-page" },
   { label: "Medication", icon: Medication, href: "/pet-owners/medication-page" },
   { label: "Notifications", icon: Notifications, href: "/pet-owners/notification-page" },
 ];

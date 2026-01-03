@@ -1,4 +1,3 @@
-import Container from '@/components/pet-owners/common/Container';
 
 export default function RegisterLayout({
   children,

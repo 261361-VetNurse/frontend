@@ -4,15 +4,18 @@ import { HomePageStyled } from "@/styles/homepage.styled";
 import PetProflie from "./pet-proflie";
 import ReminderBox from "./reminder-box";
 import AppointmentBox from "./appoint-box";
+import { useRouter } from "next/dist/client/components/navigation";
 
 
 export default function HomePage({username}: {username: string}) {
+    const router = useRouter();
+
     return(
         <HomePageStyled>
             <div className="header-box">
                 <img src="/Ava.svg" alt="Ava" />
                 <span>Hi! {username}</span>
-                <img src="/help.svg" alt="help" className="ml-auto" />
+                <img src="/help.svg" alt="help" className="ml-auto" onClick={() => router.push('/pet-owners/help-center-page')} style={{ cursor: "pointer" }} />
             </div>
             <div className="head-section">
                 <div className="head">My Pets</div>

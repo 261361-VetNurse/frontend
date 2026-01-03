@@ -2,17 +2,9 @@
 
 export default function NotificationsPage() {
   return (
-    <div className="bg-[#f2f2f2] min-h-screen font-sans flex justify-center">
+    <div className="flex justify-center">
       {/* Container จำลองหน้าจอมือถือ */}
-      <div className="w-full max-w-md bg-[#f2f2f2] min-h-screen relative shadow-lg">
-        
-        {/* Header Section */}
-        <div className="bg-white px-4 py-4 flex flex-col items-center relative border-b border-gray-100">
-          <h1 className="text-gray-800 font-bold text-[16px] tracking-tight">PetCare+</h1>
-          <p className="text-[10px] text-gray-400 mt-[-2px]">www.petcare.cmu.ac.th</p>
-          <button className="absolute right-5 top-5 text-gray-400">
-          </button>
-        </div>
+      <div className="w-full min-h-screen relative">
 
         <div className="p-4 space-y-6">
           {/* TODAY SECTION */}
@@ -72,52 +64,6 @@ export default function NotificationsPage() {
             </div>
           </section>
         </div>
-
-       {/* Bottom Navigation Bar จำลอง */}
-        <div className="absolute bottom-0 w-full bg-white border-t border-gray-100 py-2 flex justify-around items-center">
-        
-        {/* Home */}
-        <div className="flex flex-col items-center text-gray-400">
-            <div className="w-6 h-6 mb-1">
-            <img src="/images/home.png" alt="Home" className="w-full h-full object-contain opacity-40" />
-            </div>
-            <span className="text-[9px]">Home</span>
-        </div>
-
-        {/* Calendar */}
-        <div className="flex flex-col items-center text-gray-400">
-            <div className="w-6 h-6 mb-1">
-            <img src="/images/calendar.png" alt="Calendar" className="w-full h-full object-contain opacity-40" />
-            </div>
-            <span className="text-[9px]">Calendar</span>
-        </div>
-
-        {/* My pets */}
-        <div className="flex flex-col items-center text-gray-400">
-            <div className="w-6 h-6 mb-1">
-            <img src="/images/my-pets.png" alt="My pets" className="w-full h-full object-contain opacity-40" />
-            </div>
-            <span className="text-[9px]">My pets</span>
-        </div>
-
-        {/* Medication */}
-        <div className="flex flex-col items-center text-gray-400">
-            <div className="w-6 h-6 mb-1">
-            <img src="/images/medication.png" alt="Medication" className="w-full h-full object-contain opacity-40" />
-            </div>
-            <span className="text-[9px]">Medication</span>
-        </div>
-
-        {/* Notifications (Active State) */}
-        <div className="flex flex-col items-center text-[#00AAFF]">
-            <div className="w-6 h-6 mb-1">
-            <img src="/images/Notifications.png" alt="Notifications" className="w-full h-full object-contain" />
-            </div>
-            <span className="text-[9px] font-bold">Notifications</span>
-        </div>
-
-        </div>
-
       </div>
     </div>
   );

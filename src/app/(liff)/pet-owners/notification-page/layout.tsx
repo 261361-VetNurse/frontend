@@ -1,3 +1,4 @@
+import NavBar from '@/components/pet-owners/common/NavBar';
 import Container from '@/components/pet-owners/common/Container';
 
 export default function OwnersLayout({
@@ -13,6 +14,7 @@ export default function OwnersLayout({
           {children}
         </main>
       </Container>
+      <NavBar />
     </div>
     
   );
