@@ -9,6 +9,7 @@ const ReminBox = styled.div`
     padding: 16px;
     background-color: #FFF;
     cursor: pointer;
+    border-radius: 8px;
 
     &:active{
         background-color: #F0F0F0;
