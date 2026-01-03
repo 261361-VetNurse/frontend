@@ -22,6 +22,11 @@ type Appointment = {
     pid?: string;
 };
 
+const PET_META: Record<string, { pid?: string; image?: string }> = {
+    cat: { pid: "098765345", image: "/pets-example/pet-ex1.svg" },
+    dog: { image: "/pets-example/pet-ex1.svg" },
+};
+
 const AppointmentPageStyled = styled.div`
     width: 100%;
     height: calc(100vh - 60px);
@@ -101,7 +106,18 @@ export const AppointmentPage = () => {
         location: string;
     }) => {
         const dateKey = dayjs(date).format("YYYY-MM-DD");
-        setAppointments((prev) => ([...prev, { dateKey, pet, time, location }]));
+        const petMeta = PET_META[pet];
+        setAppointments((prev) => ([
+            ...prev,
+            {
+                dateKey,
+                pet,
+                time,
+                location,
+                petImage: petMeta?.image,
+                pid: petMeta?.pid,
+            },
+        ]));
     }
     const handleOpenAppointment = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
@@ -125,11 +141,12 @@ export const AppointmentPage = () => {
         const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
         appointments.forEach((appointment) => {
             if (!map.has(appointment.pet)) {
+                const petMeta = PET_META[appointment.pet];
                 map.set(appointment.pet, {
                     id: appointment.pet,
                     name: appointment.pet,
-                    image: appointment.petImage,
-                    pid: appointment.pid,
+                    image: appointment.petImage ?? petMeta?.image,
+                    pid: appointment.pid ?? petMeta?.pid,
                 });
             }
         });

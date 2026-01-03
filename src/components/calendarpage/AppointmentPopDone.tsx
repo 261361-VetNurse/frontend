@@ -176,7 +176,7 @@ export default class AppointmentPopDone extends React.Component<AppointmentPopDo
     let appointment = this.props.appointment
     let statusText = appointment.status ? appointment.status : "Active"
     let isCanceled = statusText.toLowerCase() === "canceled" || statusText.toLowerCase() === "cancelled"
-    let pidText = appointment.pid ? appointment.pid : "098765345"
+    let pidText = appointment.pid ? appointment.pid : "-"
 
     return (
       <AppointmentPopDone.Overlay onClick={this.handleOverlayClick}>

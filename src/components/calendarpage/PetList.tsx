@@ -36,6 +36,8 @@ const BoxWrap = styled.div`
         display: flex;
         flex-direction: column;
         gap: 2px;
+        align-items: flex-start;
+        text-align: left;
     }
 
     .ListBoxIcon{
@@ -120,6 +122,23 @@ const BoxWrap = styled.div`
         font-weight: 400;
         color: #000;
     }
+
+    .row{
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .name{
+        font-size: 16px;
+        font-weight: 400;
+    }
+
+    .sub{
+        font-size: 12px;
+        color: #000;
+        font-weight: 275;
+    }
 `;
 
 type PetOption = {
@@ -195,8 +214,10 @@ export default function PetList({
                     </div>
                     <div className="ListBoxTextGroup">
                         <span className="ListBoxText">{selectedLabel}</span>
-                        {selectedPid ? (
-                            <span className="ListBoxSubText">PID: {selectedPid}</span>
+                        {selectedPet ? (
+                            <span className="ListBoxSubText">
+                                PID: {selectedPid ?? "-"}
+                            </span>
                         ) : null}
                     </div>
                 </div>
