@@ -66,6 +66,7 @@ export const AppointmentPage = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedPetId, setSelectedPetId] = useState("all");
     const isRecordTab = activeParam === 'record';
     const isAppointmentTab = !isRecordTab;
     const today = dayjs();
@@ -120,8 +121,32 @@ export const AppointmentPage = () => {
         );
         setSelectedAppointment(appointment);
     }
+    const petOptions = React.useMemo(() => {
+        const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
+        appointments.forEach((appointment) => {
+            if (!map.has(appointment.pet)) {
+                map.set(appointment.pet, {
+                    id: appointment.pet,
+                    name: appointment.pet,
+                    image: appointment.petImage,
+                    pid: appointment.pid,
+                });
+            }
+        });
+        return Array.from(map.values());
+    }, [appointments]);
+    React.useEffect(() => {
+        if (selectedPetId !== "all" && !petOptions.some((pet) => pet.id === selectedPetId)) {
+            setSelectedPetId("all");
+        }
+    }, [petOptions, selectedPetId]);
+    const filteredAppointments = React.useMemo(() => {
+        return appointments.filter(
+            (appointment) => selectedPetId === "all" || appointment.pet === selectedPetId
+        );
+    }, [appointments, selectedPetId]);
     const upcomingAppointments = React.useMemo(() => {
-        return appointments
+        return filteredAppointments
             .filter((appointment) => appointment.dateKey >= todayKey)
             .sort((a, b) => {
                 if (a.dateKey === b.dateKey) {
@@ -129,7 +154,7 @@ export const AppointmentPage = () => {
                 }
                 return a.dateKey.localeCompare(b.dateKey);
             });
-    }, [appointments, todayKey]);
+    }, [filteredAppointments, todayKey]);
     const upcomingAppointmentsByDate = React.useMemo(() => {
         const map: Record<string, typeof appointments> = {};
         upcomingAppointments.forEach((appointment) => {
@@ -181,7 +206,11 @@ export const AppointmentPage = () => {
                 <Tabs data={appointmentTabs} queryKey={'tab'} onChangeAction={handleChangeTab}/>
                 {isAppointmentTab ? (
                     <>
-                        <PetList/>
+                        <PetList
+                            pets={petOptions}
+                            selectedPetId={selectedPetId}
+                            onSelectPet={setSelectedPetId}
+                        />
                         <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
                         <div className="head-text">Upcoming appointments</div>
                         {upcomingAppointmentsByDate.map(({ dateKey, items }) => (
