@@ -41,9 +41,10 @@ const Proflie = styled.div<{ $size: number, $color: string }>`
         svg{
             width: 70%;
             height: 70%;
+            color: #FFF;
         }
     }
-    .name{
+    .name {
         color: #000;
         text-align: center;
         font-size: 13px;

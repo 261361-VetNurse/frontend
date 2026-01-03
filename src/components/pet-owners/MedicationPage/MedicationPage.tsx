@@ -4,6 +4,7 @@ import { useState } from 'react';
 import CreateMedicationPopup from './add-medication-popup';
 import MedicationDetailPopup from './medication-detail-popup';
 import EditMedicationPopup from './edit-medication-popup';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import Image from 'next/image';
 import {
   Page,
@@ -12,10 +13,10 @@ import {
   TabButton,
   Header,
   CardList,
-  FabButton,
 } from '../../../styles/medication.styled';
 import { Pets, ExpandMore, Add } from '@mui/icons-material';
 import { theme } from '@/styles/theme';
+import { QuickDialButton } from '../common/QuickDialButton';
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';
@@ -449,10 +450,13 @@ export default function Medication({
         )}
         </CardList>
 
-      {/* Floating action button */}
-      <FabButton onClick={handleAdd}>
-        <Add />
-      </FabButton>
+      <QuickDialButton
+          iconColor='#fff'
+          position={'bottom-right'}
+          icon={<AddRoundedIcon/>}
+          color={'#09BFF8'}
+          onClickAction={handleAdd}
+        />
 
       {/* Create Medication Popup */}
       <CreateMedicationPopup

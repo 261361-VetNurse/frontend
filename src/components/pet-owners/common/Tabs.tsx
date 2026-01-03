@@ -7,15 +7,13 @@ const TabStyled = styled.nav`
     width: 100%;
     display: flex;
     align-items: center;
-    height: 40px;
-    min-height: 40px;
-    border-radius: 50px;
+    height: 30px;
+    border-radius: 100px;
     overflow: hidden;
     padding: 0;
     gap: 10px;
     background-color: #FFFFFF;
     .tab-item {
-        all: unset;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -29,7 +27,7 @@ const TabStyled = styled.nav`
         cursor: pointer;
         background: transparent;
         border: none;
-        border-radius: 24px;
+        border-radius: 100px;
         span{
             white-space: nowrap;
             max-width: 100%;
@@ -40,8 +38,7 @@ const TabStyled = styled.nav`
     .tab-item.active {
         background: #09BFF8;
         color: #FFFFFF;
-        border-radius: 50px;
-        
+        border-radius: 100px;
     }
 `;
 export type TabItem = {

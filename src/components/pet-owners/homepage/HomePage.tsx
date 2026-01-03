@@ -18,8 +18,10 @@ export default function HomePage({username}: {username: string}) {
                 <img src="/help.svg" alt="help" className="ml-auto" onClick={() => router.push('/pet-owners/help-center-page')} style={{ cursor: "pointer" }} />
             </div>
             <div className="head-section">
-                <div className="head">My Pets</div>
-                <div className="flex items-center gap-[4px]">
+                <div className="head-right">My Pets</div>
+                <div 
+                    className="head-left"
+                    onClick={() => router.push('/pet-owners/my-pets-page')}>
                     <div className="sub">show all</div>
                     <img src="/next-icon.svg" alt="next-icon" />
                 </div>
@@ -32,13 +34,15 @@ export default function HomePage({username}: {username: string}) {
                 <PetProflie petName="New Pet"/>
             </div>
             <div className="head-section">
-                <div className="head">Reminder</div>
-                <div className="flex items-center gap-[4px]">
+                <div className="head-right">Reminder</div>
+                <div 
+                    className="head-left"
+                    onClick={() => router.push('/pet-owners/calendar-page?tab=record')}>
                     <div className="sub">show all</div>
                     <img src="/next-icon.svg" alt="next-icon" />
                 </div>
             </div>
-            <div className="flex flex-col rounded-[8px] gap-[2px] overflow-hidden">
+            <div className="reminder-box">
                 <ReminderBox/>
                 <ReminderBox/>
                 <ReminderBox/>
@@ -46,13 +50,15 @@ export default function HomePage({username}: {username: string}) {
                 <ReminderBox/>
             </div>
             <div className="head-section">
-                <div className="head">Upcoming appointments</div>
-                <div className="flex items-center gap-[4px]">
+                <div className="head-right">Upcoming appointments</div>
+                <div 
+                    className="head-left"
+                    onClick={() => router.push('/pet-owners/calendar-page?tab=appointment')}>
                     <div className="sub">show all</div>
                     <img src="/next-icon.svg" alt="next-icon" />
                 </div>
             </div>
-            <div className="flex flex-col gap-[8px]">
+            <div className="appoint-box">
                 <AppointmentBox/>
                 <AppointmentBox/>
             </div>

@@ -3,10 +3,10 @@ import { theme } from './theme';
 
 // Styled components
 export const Page = styled.div`
+  position: relative; 
   padding: 8px 24px;
   display: flex;
   flex-direction: column;
-  margin-bottom: 60px;
   min-height: 100vh;
   gap: 10px;
 `;

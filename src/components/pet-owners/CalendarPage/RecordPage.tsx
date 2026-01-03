@@ -13,7 +13,8 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 const RecordPageStyled = styled.div`
     width: 100%;
-    height: calc(100vh - 60px);
+    height: 100%;
+    min-height: 100vh;
     overflow: hidden;
     position: relative;
 
@@ -23,7 +24,7 @@ const RecordPageStyled = styled.div`
         display: flex;
         flex-direction: column;
         row-gap: 10px;
-        padding: 16px;
+        padding: 8px 24px;
     }
     .head-text{
         color: #000;

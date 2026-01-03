@@ -8,13 +8,13 @@ export const RegisterContainer = styled.div`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: 24px;
 `;
 
 export const RegisterCard = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  padding: 24px;
   gap: 36px;
 `;
 

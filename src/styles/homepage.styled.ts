@@ -29,16 +29,24 @@ export const HomePageStyled = styled.div `
         justify-content: space-between;
         color: #000;
 
-        .head {
+        .head-right {
             color: #000;
             font-size: 18px;
             font-weight: 500;
         }
 
-        .sub {
-            color: #000000ae;
-            font-size: 14px;
-            font-weight: 500;
+        .head-left {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            cursor: pointer;
+            .sub {
+                color: #000000ae;
+                font-size: 14px;
+                font-weight: 500;
+            }
         }
     }
     .pet-list{
@@ -47,5 +55,21 @@ export const HomePageStyled = styled.div `
         align-items: center;
         justify-content: space-between;
         background-color: #F7F7F7;
+    }
+
+    .reminder-box{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .appoint-box{
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
     }
 `;

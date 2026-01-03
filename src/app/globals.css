@@ -1,4 +1,4 @@
-@import "tw-animate-css/dist/index.css";
+@import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -52,6 +52,7 @@ body {
 /* ให้ทุก element ใช้ font เดียวกัน */
 * {
   font-family: inherit;
+  box-sizing: border-box;
 }
 
 /* Performance optimizations */

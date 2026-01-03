@@ -26,13 +26,13 @@ const positionStyles = (position: Position) => {
       `;
         case "bottom-left":
             return `
-        bottom: 24px;
+        bottom: 80px;
         left: 24px;
       `;
         case "bottom-right":
         default:
             return `
-        bottom: 24px;
+        bottom: 80px;
         right: 24px;
       `;
     }

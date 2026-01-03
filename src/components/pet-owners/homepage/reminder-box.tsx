@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ProflieCom from "@/components/pet-owners/homepage/pet-profile";
+import ProflieCom from "@/components/pet-owners/HomePage/pet-profile";
 
 const ReminBox = styled.div`
     width: 100%;
@@ -9,8 +9,7 @@ const ReminBox = styled.div`
     padding: 16px;
     background-color: #FFF;
     cursor: pointer;
-    border-radius: 8px;
-
+    
     &:active{
         background-color: #F0F0F0;
     }

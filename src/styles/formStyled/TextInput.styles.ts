@@ -1,5 +1,10 @@
 import styled from 'styled-components';
 
+export const InputWrapper = styled.div`
+  position: relative;
+  width: 100%;
+`;
+
 export const StyledInput = styled.input<{ $error?: boolean }>`
   width: 100%;
   border: 1px solid #d1d5db;
@@ -12,6 +17,8 @@ export const StyledInput = styled.input<{ $error?: boolean }>`
   color: #303030ff;
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  appearance: none;
+  cursor: pointer;
 
   &::placeholder {
     color: #9ca3af;

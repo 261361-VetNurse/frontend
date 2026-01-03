@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Tabs } from "@/components/pet-owners/common/Tabs";
 import PetList from "@/components/pet-owners/CalendarPage/PetList";
 import Calendar from "@/components/pet-owners/CalendarPage/Calendar";
-import AppointmentBox from "@/components/pet-owners/homepage/appoint-box";
+import AppointmentBox from "@/components/pet-owners/HomePage/appoint-box";
 import {QuickDialButton} from "@/components/pet-owners/common/QuickDialButton";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PopUp } from "@/components/pet-owners/CalendarPage/AppointmentPopUp";
@@ -41,16 +41,18 @@ const appointmentTabs = [
 
 const AppointmentPageStyled = styled.div`
     width: 100%;
-    height: calc(100vh - 60px);
+    height: 100%;
+    min-height: 100vh;
     overflow: hidden;
     position: relative;
+    
     .scroll-area {
         height: 100%;
         overflow: auto;
         display: flex;
         flex-direction: column;
         row-gap: 10px;
-        padding: 16px;
+        padding: 8px 24px;
     }
     .head-text{
         color: #000;
@@ -257,7 +259,6 @@ export const AppointmentPage = () => {
                     </React.Fragment>
                 ))}
             </div>
-
         </AppointmentPageStyled>
     );
 };
