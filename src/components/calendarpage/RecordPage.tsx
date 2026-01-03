@@ -6,6 +6,7 @@ import { Tabs } from "@/components/common/Tabs";
 import PetList from "@/components/calendarpage/PetList";
 import Calendar from "@/components/calendarpage/Calendar";
 import RecordModal from "@/components/calendarpage/RecordModal";
+import RecordPopUp from "@/components/calendarpage/RecordPopUp";
 import { QuickDialButton } from "../common/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
@@ -73,8 +74,9 @@ const recordSamples = [
 
 export const RecordPage = () => {
     const [selectedPetId, setSelectedPetId] = useState("all");
+    const [isRecordPopUpOpen, setIsRecordPopUpOpen] = useState(false);
     const handleClick = () => {
-        console.log("handleClick");
+        setIsRecordPopUpOpen(true);
     };
 
     return (
@@ -104,7 +106,14 @@ export const RecordPage = () => {
                     </button>
                 ))}
             </div>
-            <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
+            <QuickDialButton
+                iconColor="#fff"
+                position="bottom-right"
+                icon={<AddRoundedIcon />}
+                color="#09BFF8"
+                onClickAction={handleClick}
+            />
+            <RecordPopUp open={isRecordPopUpOpen} onClose={() => setIsRecordPopUpOpen(false)} />
         </RecordPageStyled>
     );
 };
