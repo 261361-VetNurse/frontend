@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ProflieCom from "./pet-proflie";
+import ProflieCom from "./pet-profile";
 
 const AppointBox = styled.div`
     width: 100%;

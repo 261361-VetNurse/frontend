@@ -6,6 +6,7 @@ import styled from "styled-components"
 const DATE_FORMAT = "DD/MM/YYYY"
 
 type RecordDetail = {
+  id: string;
   dateKey: string
   pet: string
   time: string

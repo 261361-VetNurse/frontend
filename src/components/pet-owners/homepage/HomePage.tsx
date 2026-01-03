@@ -1,7 +1,7 @@
 "use client";
 
 import { HomePageStyled } from "@/styles/homepage.styled";
-import PetProflie from "./pet-proflie";
+import PetProflie from "./pet-profile";
 import ReminderBox from "./reminder-box";
 import AppointmentBox from "./appoint-box";
 import { useRouter } from "next/dist/client/components/navigation";

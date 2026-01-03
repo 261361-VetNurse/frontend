@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import ProflieCom from "@/components/pet-owners/HomePage/pet-proflie";
+import ProflieCom from "@/components/pet-owners/homepage/pet-profile";
 
 const ReminBox = styled.div`
     width: 100%;

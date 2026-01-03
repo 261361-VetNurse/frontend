@@ -165,7 +165,7 @@ export default function RecordPopUp({
                         captionLayout="dropdown"
                         fromYear={fromYear}
                         toYear={toYear}
-                        onSelect={(selectedDate) => {
+                        onSelect={(selectedDate : any) => {
                           setDate(selectedDate);
                           if (errors.date) {
                             setErrors((prev) => ({ ...prev, date: "" }));

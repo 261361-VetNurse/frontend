@@ -165,7 +165,7 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
                         captionLayout="dropdown"
                         fromYear={fromYear}
                         toYear={toYear}
-                        onSelect={(date) => {
+                        onSelect={(date : any) => {
                           setDate(date)
                           if (errors.date) {
                             setErrors((prev) => ({ ...prev, date: "" }))
