@@ -91,7 +91,7 @@ export const RecordPage = () => {
                 <div className="date-text">
                     {dayjs("2026-01-03").format("ddd, DD/MM/YYYY")}
                 </div>
-                <div className="line"> .</div>
+                <div className="line"> </div>
                 {recordSamples.map((record) => (
                     <button key={record.id} type="button" className="record-card">
                         <RecordModal

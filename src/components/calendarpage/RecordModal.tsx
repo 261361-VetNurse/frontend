@@ -4,37 +4,38 @@ import styled from "styled-components";
 
 const RecordCard = styled.div`
     width: 100%;
+    min-height: 140px;
     border-radius: 18px;
     background: #fff;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-    padding: 16px 18px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+    padding: 18px 20px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 
     .time{
         align-self: flex-end;
-        color: #000;
+        color: #2b2b2b;
         font-size: 16px;
-        font-weight: 500;
+        font-weight: 400;
         letter-spacing: 0.2px;
     }
 
     .divider{
         width: 100%;
         height: 1px;
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.18);
     }
 
     .content{
         display: flex;
         align-items: center;
-        gap: 16px;
+        gap: 18px;
     }
 
     .avatar{
-        width: 64px;
-        height: 64px;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         object-fit: cover;
         background: #f1f1f1;
@@ -45,29 +46,29 @@ const RecordCard = styled.div`
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 4px;
         min-width: 0;
     }
 
     .name{
-        font-size: 20px;
-        font-weight: 600;
+        font-size: 22px;
+        font-weight: 500;
         color: #000;
     }
 
     .note{
-        font-size: 14px;
+        font-size: 16px;
         font-weight: 400;
-        color: #4a4a4a;
-        line-height: 1.35;
+        color: #5a5a5a;
+        line-height: 1.4;
         white-space: pre-line;
     }
 
     .attachment{
-        width: 76px;
-        height: 76px;
-        border-radius: 16px;
-        background: #cfcfcf;
+        width: 72px;
+        height: 72px;
+        border-radius: 14px;
+        background: #c9c9c9;
         position: relative;
         flex: 0 0 auto;
         display: flex;
@@ -78,8 +79,8 @@ const RecordCard = styled.div`
 
     .attachment-dot{
         position: absolute;
-        top: 12px;
-        left: 12px;
+        top: 10px;
+        left: 10px;
         width: 12px;
         height: 12px;
         border-radius: 999px;
@@ -88,17 +89,17 @@ const RecordCard = styled.div`
 
     .attachment-icon{
         position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 44px;
-        height: 44px;
-        opacity: 0.65;
+        bottom: 6px;
+        right: 6px;
+        width: 40px;
+        height: 40px;
+        opacity: 0.6;
     }
 
     .attachment-count{
-        font-size: 22px;
+        font-size: 24px;
         font-weight: 500;
-        color: #5f5f5f;
+        color: #4d4d4d;
     }
 `;
 
