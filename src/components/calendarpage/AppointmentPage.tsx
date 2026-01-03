@@ -12,6 +12,16 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PopUp } from "@/components/calendarpage/AppointmentPopUp";
 import AppointmentPopDone from "@/components/calendarpage/AppointmentPopDone";
 
+type Appointment = {
+    dateKey: string;
+    pet: string;
+    time: string;
+    location: string;
+    status?: string;
+    petImage?: string;
+    pid?: string;
+};
+
 const AppointmentPageStyled = styled.div`
     width: 100%;
     height: calc(100vh - 60px);
@@ -53,18 +63,8 @@ export const AppointmentPage = () => {
     const searchParams = useSearchParams();
     const activeParam = searchParams.get('tab');
     const [isPopUpOpen, setIsPopUpOpen] = useState(false);
-    const [appointments, setAppointments] = useState<{
-        dateKey: string;
-        pet: string;
-        time: string;
-        location: string;
-    }[]>([]);
-    const [selectedAppointment, setSelectedAppointment] = useState<{
-        dateKey: string;
-        pet: string;
-        time: string;
-        location: string;
-    } | null>(null);
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const isRecordTab = activeParam === 'record';
     const isAppointmentTab = !isRecordTab;
@@ -102,24 +102,23 @@ export const AppointmentPage = () => {
         const dateKey = dayjs(date).format("YYYY-MM-DD");
         setAppointments((prev) => ([...prev, { dateKey, pet, time, location }]));
     }
-    const handleOpenAppointment = (appointment: {
-        dateKey: string;
-        pet: string;
-        time: string;
-        location: string;
-    }) => {
+    const handleOpenAppointment = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
         setIsDetailOpen(true);
     }
-    const handleDeleteAppointment = (appointment: {
-        dateKey: string;
-        pet: string;
-        time: string;
-        location: string;
-    }) => {
+    const handleDeleteAppointment = (appointment: Appointment) => {
         setAppointments((prev) => prev.filter((item) => item !== appointment));
         setIsDetailOpen(false);
         setSelectedAppointment(null);
+    }
+    const handleEditAppointment = (appointment: Appointment) => {
+        if (!selectedAppointment) {
+            return;
+        }
+        setAppointments((prev) =>
+            prev.map((item) => (item === selectedAppointment ? appointment : item))
+        );
+        setSelectedAppointment(appointment);
     }
     const upcomingAppointments = React.useMemo(() => {
         return appointments
@@ -173,6 +172,7 @@ export const AppointmentPage = () => {
                         appointment={selectedAppointment || undefined}
                         onClose={() => setIsDetailOpen(false)}
                         onDelete={handleDeleteAppointment}
+                        onEdit={handleEditAppointment}
                     />
                     <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
                 </>
