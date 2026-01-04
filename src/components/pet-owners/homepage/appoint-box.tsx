@@ -19,10 +19,13 @@ const AppointBox = styled.div`
         display: flex;
         flex-direction: column;
         gap: 3px;
+        min-width: 0;
         .name{
             color: #000;
             font-size: 16px;
             font-weight: 500;
+            overflow-wrap: anywhere;
+            word-break: break-word;
         }
 
         .data-row{
@@ -31,6 +34,7 @@ const AppointBox = styled.div`
             gap: 4px;
             color: #666;
             font-size: 16px;
+            min-width: 0;
 
            .data-icon{
                 width: 16px;
@@ -40,6 +44,10 @@ const AppointBox = styled.div`
                 color: #3C3C3C;
                 font-size: 13px;
                 font-weight: 275;
+                flex: 1;
+                min-width: 0;
+                overflow-wrap: anywhere;
+                word-break: break-word;
             }
         }
     }

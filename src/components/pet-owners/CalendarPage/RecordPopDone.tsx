@@ -55,6 +55,11 @@ export default class RecordPopDone extends React.Component<RecordPopDoneProps> {
     position: relative;
     display: grid;
     gap: 16px;
+    min-width: 0;
+
+    > * {
+      min-width: 0;
+    }
   `
   static Title = styled.div`
     font-size: 18px;
@@ -117,13 +122,19 @@ export default class RecordPopDone extends React.Component<RecordPopDoneProps> {
     line-height: 1.45;
   `
   static ImageGrid = styled.div`
-    display: grid;
-    grid-template-columns: 1.35fr 1fr;
+    display: flex;
     gap: 14px;
     margin-top: 8px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    padding-bottom: 6px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   `
   static ImageCard = styled.div`
-    height: 150px;
+    width: 180px;
+    height: 180px;
     border-radius: 16px;
     background: #cfcfcf;
     display: flex;
@@ -131,6 +142,7 @@ export default class RecordPopDone extends React.Component<RecordPopDoneProps> {
     justify-content: center;
     overflow: hidden;
     position: relative;
+    flex: 0 0 auto;
 
     img {
       width: 100%;
@@ -175,10 +187,8 @@ export default class RecordPopDone extends React.Component<RecordPopDoneProps> {
 
     const record = this.props.record
     const pidText = record.pid ? record.pid : "098765345"
-    const displayImages = [
-      record.images?.[0] ?? "",
-      record.images?.[1] ?? "",
-    ]
+    const displayImages =
+      record.images && record.images.length ? record.images : [""]
 
     return (
       <RecordPopDone.Overlay onClick={this.handleOverlayClick}>

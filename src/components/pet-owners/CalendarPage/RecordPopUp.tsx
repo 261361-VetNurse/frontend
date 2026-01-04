@@ -75,6 +75,17 @@ export default function RecordPopUp({
   const isFormComplete = Boolean(pet && date && note.trim()) && isTimeValid;
   const hasErrors = Object.values(errors).some(Boolean);
 
+  const resetForm = () => {
+    setPet("");
+    setDate(undefined);
+    setTime("00:00");
+    setNote("");
+    setImagePreviews([]);
+    setImageError("");
+    setErrors({});
+    setIsCalendarOpen(false);
+  };
+
   const validateForm = () => {
     const newErrors: typeof errors = {};
 
@@ -109,6 +120,7 @@ export default function RecordPopUp({
 
     if (date) {
       onCreateRecord({ date, pet, time, note, images: imagePreviews });
+      resetForm();
       onOpenChange(false);
     }
   };
