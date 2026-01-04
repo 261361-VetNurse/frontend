@@ -91,12 +91,15 @@ const RecordCard = styled.div`
         height: 100%;
         object-fit: cover;
         opacity: 0.85;
+        z-index: 0;
     }
 
     .attachment-count{
         font-size: 24px;
         font-weight: 500;
         color: #4d4d4d;
+        position: relative;
+        z-index: 1;
     }
 `;
 

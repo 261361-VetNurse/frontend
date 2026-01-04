@@ -98,8 +98,16 @@ export const RecordPage = () => {
     const [isRecordPopUpOpen, setIsRecordPopUpOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState<RecordEntry | null>(null);
     const [isRecordDetailOpen, setIsRecordDetailOpen] = useState(false);
+    const [editingRecord, setEditingRecord] = useState<RecordEntry | null>(null);
     const handleClick = () => {
+        setEditingRecord(null);
         setIsRecordPopUpOpen(true);
+    };
+    const handleRecordPopUpChange = (open: boolean) => {
+        setIsRecordPopUpOpen(open);
+        if (!open) {
+            setEditingRecord(null);
+        }
     };
     const handleOpenRecord = (record: RecordEntry) => {
         setSelectedRecord(record);
@@ -113,7 +121,7 @@ export const RecordPage = () => {
         setIsRecordDetailOpen(false);
         setSelectedRecord(null);
     };
-    const handleCreateRecord = ({
+    const handleSaveRecord = ({
         date,
         pet,
         time,
@@ -129,7 +137,31 @@ export const RecordPage = () => {
         const normalizedPet = pet.trim().toLowerCase();
         const dateKey = dayjs(date).format("YYYY-MM-DD");
         const petMeta = PET_META[normalizedPet];
+        const nextRecord: RecordEntry = {
+            id: editingRecord?.id ?? `record-${Date.now()}`,
+            dateKey,
+            pet: normalizedPet,
+            time,
+            note: note.trim(),
+            petImage: petMeta?.image ?? editingRecord?.petImage,
+            pid: petMeta?.pid ?? editingRecord?.pid,
+            images,
+            attachmentCount: images.length,
+        };
         setRecords((prev) => {
+            if (editingRecord) {
+                const hasSameSlot = prev.some(
+                    (item) =>
+                        item.id !== editingRecord.id &&
+                        item.pet.trim().toLowerCase() === normalizedPet &&
+                        item.dateKey === dateKey &&
+                        item.time === time
+                );
+                if (hasSameSlot) {
+                    return prev;
+                }
+                return prev.map((item) => (item.id === editingRecord.id ? nextRecord : item));
+            }
             const hasSameSlot = prev.some(
                 (item) =>
                     item.pet.trim().toLowerCase() === normalizedPet &&
@@ -139,21 +171,17 @@ export const RecordPage = () => {
             if (hasSameSlot) {
                 return prev;
             }
-            return [
-                ...prev,
-                {
-                    id: `record-${Date.now()}`,
-                    dateKey,
-                    pet: normalizedPet,
-                    time,
-                    note: note.trim(),
-                    petImage: petMeta?.image,
-                    pid: petMeta?.pid,
-                    images,
-                    attachmentCount: images.length,
-                },
-            ];
+            return [...prev, nextRecord];
         });
+        if (editingRecord) {
+            setSelectedRecord(nextRecord);
+        }
+    };
+    const handleEditRecord = (record: RecordEntry) => {
+        setSelectedRecord(record);
+        setEditingRecord(record);
+        setIsRecordDetailOpen(false);
+        setIsRecordPopUpOpen(true);
     };
     const petOptions = React.useMemo(() => {
         const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
@@ -263,14 +291,29 @@ export const RecordPage = () => {
             />
             <RecordPopUp
                 open={isRecordPopUpOpen}
-                onOpenChange={setIsRecordPopUpOpen}
-                onCreateRecord={handleCreateRecord}
+                onOpenChange={handleRecordPopUpChange}
+                onCreateRecord={handleSaveRecord}
+                initialValues={
+                    editingRecord
+                        ? {
+                              date: dayjs(editingRecord.dateKey).toDate(),
+                              pet: editingRecord.pet,
+                              time: editingRecord.time,
+                              note: editingRecord.note,
+                              images: editingRecord.images ?? [],
+                              petImage: editingRecord.petImage,
+                          }
+                        : undefined
+                }
+                isEditing={Boolean(editingRecord)}
+                petOptions={petOptions}
             />
             <RecordPopDone
                 open={isRecordDetailOpen}
                 record={selectedRecord ?? undefined}
                 onClose={handleCloseRecord}
                 onDelete={handleDeleteRecord}
+                onEdit={handleEditRecord}
             />
         </RecordPageStyled>
     );

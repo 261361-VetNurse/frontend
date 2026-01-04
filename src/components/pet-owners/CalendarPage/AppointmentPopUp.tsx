@@ -28,15 +28,37 @@ import {
 type PopUpProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreateAppointment: (appointment: { date: Date; pet: string; time: string; location: string }) => void
+  onCreateAppointment: (appointment: {
+    date: Date
+    pet: string
+    time: string
+    location: string
+    status?: string
+  }) => void
+  initialValues?: {
+    date?: Date
+    pet?: string
+    time?: string
+    location?: string
+    status?: string
+    petImage?: string
+  }
+  isEditing?: boolean
 }
 
-export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
+export function PopUp({
+  open,
+  onOpenChange,
+  onCreateAppointment,
+  initialValues,
+  isEditing = false,
+}: PopUpProps) {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false)
   const [pet, setPet] = React.useState("")
   const [date, setDate] = React.useState<Date | undefined>(undefined)
   const [time, setTime] = React.useState("00:00")
   const [location, setLocation] = React.useState("")
+  const [isCanceled, setIsCanceled] = React.useState(false)
   const [errors, setErrors] = React.useState<{
     pet?: string
     date?: string
@@ -49,6 +71,36 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
   const dateTextClass = date ? "text-foreground" : "text-muted-foreground"
   const isTimeValid = Boolean(time) && time >= "00:00" && time <= "23:59"
   const isFormComplete = Boolean(pet && date && location.trim()) && isTimeValid
+  const titleText = isEditing ? "Edit Appointment" : "Create Appointment"
+  const submitText = isEditing ? "Save" : "Add New Appointment"
+  const editAvatarSrc = initialValues?.petImage ?? "/pets-example/pet-ex1.svg"
+
+  const resetForm = React.useCallback(() => {
+    setPet("")
+    setDate(undefined)
+    setTime("00:00")
+    setLocation("")
+    setIsCanceled(false)
+    setErrors({})
+    setIsCalendarOpen(false)
+  }, [])
+
+  React.useEffect(() => {
+    if (!open) {
+      return
+    }
+    if (initialValues) {
+      setPet(initialValues.pet ?? "")
+      setDate(initialValues.date)
+      setTime(initialValues.time ?? "00:00")
+      setLocation(initialValues.location ?? "")
+      setIsCanceled((initialValues.status ?? "").toLowerCase() === "canceled")
+      setErrors({})
+      setIsCalendarOpen(false)
+      return
+    }
+    resetForm()
+  }, [open, initialValues, resetForm])
 
   const validateForm = () => {
     const newErrors: typeof errors = {}
@@ -83,7 +135,13 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
     }
 
     if (date) {
-      onCreateAppointment({ date, pet, time, location })
+      onCreateAppointment({
+        date,
+        pet,
+        time,
+        location,
+        status: isCanceled ? "Canceled" : "Upcoming",
+      })
       onOpenChange(false)
     }
   }
@@ -96,11 +154,24 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
       >
         <form onSubmit={handleSubmit} className="grid gap-5">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-lg font-semibold">Create Appointment</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{titleText}</DialogTitle>
             <DialogDescription asChild>
               <div className="flex items-center gap-4 text-foreground">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/20">
-                  <img src="/pet-paw.svg" alt="pet-paw" className="h-7 w-7" />
+                <div
+                  className={`flex h-14 w-14 items-center justify-center rounded-full ${isEditing ? "bg-black/10 overflow-hidden" : "bg-black/20"}`}
+                >
+                  {isEditing ? (
+                    <img
+                      src={editAvatarSrc}
+                      alt={`${pet || "pet"} avatar`}
+                      className="h-full w-full object-cover"
+                      onError={(event) => {
+                        event.currentTarget.src = "/pets-example/pet-ex1.svg"
+                      }}
+                    />
+                  ) : (
+                    <img src="/pet-paw.svg" alt="pet-paw" className="h-7 w-7" />
+                  )}
                 </div>
                 <div className="flex-1 space-y-2">
                   <Label htmlFor="pet" className="text-[16px] font-[400] text-black">
@@ -239,13 +310,24 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
               ) : null}
             </div>
           </div>
+          {isEditing ? (
+            <label className="flex items-center gap-3 text-[16px] font-[600] text-black">
+              <input
+                type="checkbox"
+                checked={isCanceled}
+                onChange={(event) => setIsCanceled(event.target.checked)}
+                className="h-5 w-5 rounded-[4px] border-2 border-black accent-black"
+              />
+              Canceled
+            </label>
+          ) : null}
           <DialogFooter className="pt-1">
             <Button
               type="submit"
               disabled={!isFormComplete}
               className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md enabled:hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Add New Appointment
+              {submitText}
             </Button>
           </DialogFooter>
         </form>

@@ -83,29 +83,77 @@ export const AppointmentPage = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
     const [selectedPetId, setSelectedPetId] = useState("all");
     const today = dayjs();
     const todayKey = today.format("YYYY-MM-DD");
+    const editInitialValues = React.useMemo(() => {
+        if (!editingAppointment) {
+            return undefined;
+        }
+        return {
+            date: dayjs(editingAppointment.dateKey).toDate(),
+            pet: editingAppointment.pet,
+            time: editingAppointment.time,
+            location: editingAppointment.location,
+            status: editingAppointment.status,
+            petImage: editingAppointment.petImage,
+        };
+    }, [editingAppointment]);
 
     const handleClick = () => {
         console.log('handleClick');
+        setEditingAppointment(null);
         setIsPopUpOpen(true);
     }
-    const handleCreateAppointment = ({
+    const handlePopUpChange = (open: boolean) => {
+        setIsPopUpOpen(open);
+        if (!open) {
+            setEditingAppointment(null);
+        }
+    };
+    const handleSaveAppointment = ({
         date,
         pet,
         time,
         location,
+        status,
     }: {
         date: Date;
         pet: string;
         time: string;
         location: string;
+        status?: string;
     }) => {
         const normalizedPet = pet.trim().toLowerCase();
         const dateKey = dayjs(date).format("YYYY-MM-DD");
         const petMeta = PET_META[normalizedPet];
+        const nextAppointment: Appointment = {
+            ...(editingAppointment ?? {}),
+            dateKey,
+            pet: normalizedPet,
+            time,
+            location,
+            status: status ?? editingAppointment?.status,
+            petImage: petMeta?.image ?? editingAppointment?.petImage,
+            pid: petMeta?.pid ?? editingAppointment?.pid,
+        };
         setAppointments((prev) => {
+            if (editingAppointment) {
+                const hasSameSlot = prev.some(
+                    (item) =>
+                        item !== editingAppointment &&
+                        item.pet.trim().toLowerCase() === normalizedPet &&
+                        item.dateKey === dateKey &&
+                        item.time === time
+                );
+                if (hasSameSlot) {
+                    return prev;
+                }
+                return prev.map((item) =>
+                    item === editingAppointment ? nextAppointment : item
+                );
+            }
             const hasSameSlot = prev.some(
                 (item) =>
                     item.pet.trim().toLowerCase() === normalizedPet &&
@@ -115,18 +163,11 @@ export const AppointmentPage = () => {
             if (hasSameSlot) {
                 return prev;
             }
-            return [
-                ...prev,
-                {
-                    dateKey,
-                    pet: normalizedPet,
-                    time,
-                    location,
-                    petImage: petMeta?.image,
-                    pid: petMeta?.pid,
-                },
-            ];
+            return [...prev, nextAppointment];
         });
+        if (editingAppointment) {
+            setSelectedAppointment(nextAppointment);
+        }
     }
     const handleOpenAppointment = (appointment: Appointment) => {
         setSelectedAppointment(appointment);
@@ -138,13 +179,10 @@ export const AppointmentPage = () => {
         setSelectedAppointment(null);
     }
     const handleEditAppointment = (appointment: Appointment) => {
-        if (!selectedAppointment) {
-            return;
-        }
-        setAppointments((prev) =>
-            prev.map((item) => (item === selectedAppointment ? appointment : item))
-        );
         setSelectedAppointment(appointment);
+        setEditingAppointment(appointment);
+        setIsDetailOpen(false);
+        setIsPopUpOpen(true);
     }
     const petOptions = React.useMemo(() => {
         const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
@@ -214,8 +252,10 @@ export const AppointmentPage = () => {
             <>
                 <PopUp
                     open={isPopUpOpen}
-                    onOpenChange={setIsPopUpOpen}
-                    onCreateAppointment={handleCreateAppointment}
+                    onOpenChange={handlePopUpChange}
+                    onCreateAppointment={handleSaveAppointment}
+                    initialValues={editInitialValues}
+                    isEditing={Boolean(editingAppointment)}
                 />
                 <AppointmentPopDone
                     open={isDetailOpen}

@@ -36,6 +36,18 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
+type PetOption = {
+  id: string;
+  name: string;
+  image?: string;
+  pid?: string;
+};
+
+const DEFAULT_PET_OPTIONS: PetOption[] = [
+  { id: "dog", name: "Dog" },
+  { id: "cat", name: "Cat" },
+];
+
 type RecordPopUpProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -46,12 +58,25 @@ type RecordPopUpProps = {
     note: string;
     images: string[];
   }) => void;
+  initialValues?: {
+    date?: Date;
+    pet?: string;
+    time?: string;
+    note?: string;
+    images?: string[];
+    petImage?: string;
+  };
+  isEditing?: boolean;
+  petOptions?: PetOption[];
 };
 
 export default function RecordPopUp({
   open,
   onOpenChange,
   onCreateRecord,
+  initialValues,
+  isEditing = false,
+  petOptions,
 }: RecordPopUpProps) {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const [pet, setPet] = React.useState("");
@@ -74,8 +99,25 @@ export default function RecordPopUp({
   const isTimeValid = Boolean(time) && time >= "00:00" && time <= "23:59";
   const isFormComplete = Boolean(pet && date && note.trim()) && isTimeValid;
   const hasErrors = Object.values(errors).some(Boolean);
+  const titleText = isEditing ? "Edit Record" : "Create Record";
+  const submitText = isEditing ? "Save" : "Add New Record";
+  const editAvatarSrc = initialValues?.petImage ?? "/pets-example/pet-ex1.svg";
+  const availablePets = React.useMemo(() => {
+    const baseOptions =
+      petOptions && petOptions.length ? petOptions : DEFAULT_PET_OPTIONS;
+    if (!pet) {
+      return baseOptions;
+    }
+    const hasPet = baseOptions.some(
+      (option) => option.id.toLowerCase() === pet.toLowerCase()
+    );
+    if (hasPet) {
+      return baseOptions;
+    }
+    return [...baseOptions, { id: pet, name: pet }];
+  }, [petOptions, pet]);
 
-  const resetForm = () => {
+  const resetForm = React.useCallback(() => {
     setPet("");
     setDate(undefined);
     setTime("00:00");
@@ -84,7 +126,25 @@ export default function RecordPopUp({
     setImageError("");
     setErrors({});
     setIsCalendarOpen(false);
-  };
+  }, []);
+
+  React.useEffect(() => {
+    if (!open) {
+      return;
+    }
+    if (initialValues) {
+      setPet(initialValues.pet ?? "");
+      setDate(initialValues.date);
+      setTime(initialValues.time ?? "00:00");
+      setNote(initialValues.note ?? "");
+      setImagePreviews(initialValues.images ?? []);
+      setImageError("");
+      setErrors({});
+      setIsCalendarOpen(false);
+      return;
+    }
+    resetForm();
+  }, [open, initialValues, resetForm]);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -196,10 +256,17 @@ export default function RecordPopUp({
       >
         <form onSubmit={handleSubmit} className="grid w-full min-w-0 grid-cols-1 gap-5">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-lg font-semibold">Create Record</DialogTitle>
+            <DialogTitle className="text-lg font-semibold">{titleText}</DialogTitle>
             <div className="flex items-center gap-4 text-foreground">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-black/20">
-                <img src="/pet-paw.svg" alt="pet-paw" className="h-7 w-7" />
+              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-full bg-black/20">
+                <img
+                  src={isEditing ? editAvatarSrc : "/pet-paw.svg"}
+                  alt={isEditing ? pet || "pet avatar" : "pet-paw"}
+                  className={isEditing ? "h-full w-full object-cover" : "h-7 w-7"}
+                  onError={(event) => {
+                    event.currentTarget.src = "/pets-example/pet-ex1.svg";
+                  }}
+                />
               </div>
               <div className="flex-1 space-y-2">
                 <Label htmlFor="pet" className="text-[16px] font-[400] text-black">
@@ -226,8 +293,11 @@ export default function RecordPopUp({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="dog">Dog</SelectItem>
-                    <SelectItem value="cat">Cat</SelectItem>
+                    {availablePets.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.pet ? <p className="text-xs text-destructive">{errors.pet}</p> : null}
@@ -389,7 +459,7 @@ export default function RecordPopUp({
                 isFormComplete ? "hover:bg-sky-600" : "cursor-not-allowed opacity-60"
               }`}
             >
-              Add New Record
+              {submitText}
             </Button>
           </DialogFooter>
         </form>
