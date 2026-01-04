@@ -24,10 +24,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"];
+const MAX_IMAGE_SIZE_MB = 5;
+const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const MAX_IMAGE_COUNT = 5;
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => resolve("");
+    reader.readAsDataURL(file);
+  });
+
 type RecordPopUpProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateRecord: (record: { date: Date; pet: string; time: string; note: string }) => void;
+  onCreateRecord: (record: {
+    date: Date;
+    pet: string;
+    time: string;
+    note: string;
+    images: string[];
+  }) => void;
 };
 
 export default function RecordPopUp({
@@ -40,6 +58,9 @@ export default function RecordPopUp({
   const [date, setDate] = React.useState<Date | undefined>(undefined);
   const [time, setTime] = React.useState("00:00");
   const [note, setNote] = React.useState("");
+  const [imagePreviews, setImagePreviews] = React.useState<string[]>([]);
+  const [imageError, setImageError] = React.useState("");
+  const imageInputRef = React.useRef<HTMLInputElement | null>(null);
   const [errors, setErrors] = React.useState<{
     pet?: string;
     date?: string;
@@ -52,6 +73,7 @@ export default function RecordPopUp({
   const dateTextClass = date ? "text-foreground" : "text-muted-foreground";
   const isTimeValid = Boolean(time) && time >= "00:00" && time <= "23:59";
   const isFormComplete = Boolean(pet && date && note.trim()) && isTimeValid;
+  const hasErrors = Object.values(errors).some(Boolean);
 
   const validateForm = () => {
     const newErrors: typeof errors = {};
@@ -86,8 +108,71 @@ export default function RecordPopUp({
     }
 
     if (date) {
-      onCreateRecord({ date, pet, time, note });
+      onCreateRecord({ date, pet, time, note, images: imagePreviews });
       onOpenChange(false);
+    }
+  };
+
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const files = Array.from(input.files ?? []);
+
+    if (!files.length) {
+      return;
+    }
+
+    const validFiles: File[] = [];
+    let hasInvalidType = false;
+    let hasOversize = false;
+
+    files.forEach((file) => {
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        hasInvalidType = true;
+        return;
+      }
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+        hasOversize = true;
+        return;
+      }
+      validFiles.push(file);
+    });
+
+    if (validFiles.length) {
+      const previews = (await Promise.all(validFiles.map(readFileAsDataUrl))).filter(Boolean);
+      if (previews.length) {
+        setImagePreviews((prev) => {
+          const remainingSlots = Math.max(0, MAX_IMAGE_COUNT - prev.length);
+          const nextPreviews = previews.slice(0, remainingSlots);
+          if (previews.length > remainingSlots) {
+            setImageError(`You can upload up to ${MAX_IMAGE_COUNT} images.`);
+          }
+          return [...prev, ...nextPreviews];
+        });
+      }
+    }
+
+    if (hasInvalidType || hasOversize) {
+      const messages: string[] = [];
+      if (hasInvalidType) {
+        messages.push("Only JPG or PNG images are allowed.");
+      }
+      if (hasOversize) {
+        messages.push(`Each image must be ${MAX_IMAGE_SIZE_MB}MB or smaller.`);
+      }
+      setImageError(messages.join(" "));
+    } else {
+      if (imagePreviews.length < MAX_IMAGE_COUNT) {
+        setImageError("");
+      }
+    }
+
+    input.value = "";
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, itemIndex) => itemIndex !== index));
+    if (imageError) {
+      setImageError("");
     }
   };
 
@@ -95,9 +180,9 @@ export default function RecordPopUp({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[420px] rounded-2xl border border-black/10 p-6 shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
+        className="min-w-0 grid-cols-1 overflow-hidden sm:max-w-[420px] rounded-2xl border border-black/10 p-6 shadow-[0_8px_20px_rgba(0,0,0,0.2)]"
       >
-        <form onSubmit={handleSubmit} className="grid gap-5">
+        <form onSubmit={handleSubmit} className="grid w-full min-w-0 grid-cols-1 gap-5">
           <DialogHeader className="text-center">
             <DialogTitle className="text-lg font-semibold">Create Record</DialogTitle>
             <div className="flex items-center gap-4 text-foreground">
@@ -230,20 +315,67 @@ export default function RecordPopUp({
               <Label htmlFor="record-image" className="text-[16px] font-[600]">
                 Image
               </Label>
-              <div
+              <input
+                ref={imageInputRef}
                 id="record-image"
-                className="flex h-[180px] w-[180px] items-center justify-center rounded-xl border border-black/10 bg-white"
-                aria-label="Upload image"
-              >
-                <span className="text-4xl font-light text-muted-foreground">+</span>
+                type="file"
+                accept={ACCEPTED_IMAGE_TYPES.join(",")}
+                multiple
+                onChange={handleImageChange}
+                className="sr-only"
+              />
+              <div className="flex w-full max-w-full min-w-0 items-center gap-3 overflow-x-scroll overflow-y-hidden pb-2">
+                {imagePreviews.map((preview, index) => (
+                  <div
+                    key={`record-preview-${index}`}
+                    className="relative flex h-[180px] w-[180px] shrink-0 items-center justify-center overflow-hidden rounded-xl border border-black/10 bg-white"
+                  >
+                    <img
+                      src={preview}
+                      alt={`Uploaded image preview ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(index)}
+                      aria-label={`Remove image ${index + 1}`}
+                      className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-sm font-semibold text-black shadow-sm transition hover:bg-white"
+                    >
+                      <img src="/cross.svg" alt="cross" />
+                    </button>
+                  </div>
+                ))}
+                {imagePreviews.length < MAX_IMAGE_COUNT ? (
+                <button
+                  type="button"
+                  onClick={() => imageInputRef.current?.click()}
+                  aria-label={imagePreviews.length ? "Add another image" : "Upload images"}
+                  aria-describedby={imageError ? "record-image-error" : undefined}
+                  className="group flex h-[180px] w-[180px] shrink-0 items-center justify-center rounded-xl border border-black/10 bg-white text-left transition hover:border-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/20"
+                >
+                  <span className="text-4xl font-light text-muted-foreground">+</span>
+                </button>
+                ) : null}
               </div>
+              {imageError ? (
+                <p id="record-image-error" className="text-xs text-destructive">
+                  {imageError}
+                </p>
+              ) : null}
             </div>
           </div>
+          {hasErrors && !isFormComplete ? (
+            <p className="text-xs text-center text-destructive">
+              Please complete all required fields before saving.
+            </p>
+          ) : null}
           <DialogFooter className="pt-1">
             <Button
               type="submit"
-              disabled={!isFormComplete}
-              className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-disabled={!isFormComplete}
+              className={`h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md ${
+                isFormComplete ? "hover:bg-sky-600" : "cursor-not-allowed opacity-60"
+              }`}
             >
               Add New Record
             </Button>

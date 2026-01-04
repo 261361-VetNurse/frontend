@@ -24,7 +24,7 @@ const RecordPageStyled = styled.div`
         display: flex;
         flex-direction: column;
         row-gap: 10px;
-        padding: 8px 24px;
+        padding: 8px 24px 96px;
     }
     .head-text{
         color: #000;
@@ -71,6 +71,7 @@ type RecordEntry = {
     note: string;
     petImage?: string;
     pid?: string;
+    images?: string[];
     attachmentCount?: number;
 };
 
@@ -117,11 +118,13 @@ export const RecordPage = () => {
         pet,
         time,
         note,
+        images,
     }: {
         date: Date;
         pet: string;
         time: string;
         note: string;
+        images: string[];
     }) => {
         const normalizedPet = pet.trim().toLowerCase();
         const dateKey = dayjs(date).format("YYYY-MM-DD");
@@ -146,6 +149,8 @@ export const RecordPage = () => {
                     note: note.trim(),
                     petImage: petMeta?.image,
                     pid: petMeta?.pid,
+                    images,
+                    attachmentCount: images.length,
                 },
             ];
         });
@@ -236,13 +241,14 @@ export const RecordPage = () => {
                                 className="record-card"
                                 onClick={() => handleOpenRecord(record)}
                             >
-                                <RecordModal
-                                    timeText={record.time}
-                                    petName={record.pet}
-                                    noteText={record.note}
-                                    petImage={record.petImage}
-                                    attachmentCount={record.attachmentCount}
-                                />
+                            <RecordModal
+                                timeText={record.time}
+                                petName={record.pet}
+                                noteText={record.note}
+                                petImage={record.petImage}
+                                attachmentCount={record.attachmentCount}
+                                attachmentImage={record.images?.[0]}
+                            />
                             </button>
                         ))}
                     </React.Fragment>

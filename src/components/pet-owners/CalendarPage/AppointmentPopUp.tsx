@@ -47,6 +47,8 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
   const fromYear = currentYear - 100
   const toYear = currentYear + 100
   const dateTextClass = date ? "text-foreground" : "text-muted-foreground"
+  const isTimeValid = Boolean(time) && time >= "00:00" && time <= "23:59"
+  const isFormComplete = Boolean(pet && date && location.trim()) && isTimeValid
 
   const validateForm = () => {
     const newErrors: typeof errors = {}
@@ -61,7 +63,7 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
 
     if (!time) {
       newErrors.time = "Please select a time"
-    } else if (time < "00:00" || time > "23:59") {
+    } else if (!isTimeValid) {
       newErrors.time = "Time must be between 00:00 and 23:59"
     }
 
@@ -240,7 +242,8 @@ export function PopUp({ open, onOpenChange, onCreateAppointment }: PopUpProps) {
           <DialogFooter className="pt-1">
             <Button
               type="submit"
-              className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md hover:bg-sky-600 cursor-pointer"
+              disabled={!isFormComplete}
+              className="h-11 w-full rounded-full bg-[#09BFF8] text-base font-semibold text-white shadow-md enabled:hover:bg-sky-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
               Add New Appointment
             </Button>

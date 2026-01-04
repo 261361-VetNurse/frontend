@@ -86,11 +86,11 @@ const RecordCard = styled.div`
 
     .attachment-icon{
         position: absolute;
-        bottom: 6px;
-        right: 6px;
-        width: 40px;
-        height: 40px;
-        opacity: 0.6;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.85;
     }
 
     .attachment-count{
@@ -106,6 +106,7 @@ type RecordModalProps = {
     noteText?: string;
     noteLines?: string[];
     petImage?: string;
+    attachmentImage?: string;
     attachmentCount?: number;
 };
 
@@ -115,6 +116,7 @@ export default function RecordModal({
     noteText,
     noteLines = ["มีอาการซึมไม่อยากอาหาร", "มีอาเจียนเล็กน้อย"],
     petImage = "/pets-example/pet-ex1.svg",
+    attachmentImage,
     attachmentCount = 3,
 }: RecordModalProps) {
     const detailText = noteText ?? noteLines.join("\n");
@@ -137,8 +139,16 @@ export default function RecordModal({
                     <div className="note">{detailText}</div>
                 </div>
                 <div className="attachment" aria-label={`+${attachmentCount} attachments`}>
-                    <span className="attachment-dot" aria-hidden="true" />
-                    <img className="attachment-icon" src="/record-example.svg" alt="record-example" aria-hidden="true" />
+                
+                    <img
+                        className="attachment-icon"
+                        src={attachmentImage || "/record-example.svg"}
+                        alt="record-example"
+                        aria-hidden="true"
+                        onError={(event) => {
+                            event.currentTarget.src = "/record-example.svg";
+                        }}
+                    />
                     <span className="attachment-count">+{attachmentCount}</span>
                 </div>
             </div>
