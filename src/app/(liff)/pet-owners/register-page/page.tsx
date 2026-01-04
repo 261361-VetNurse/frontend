@@ -1,4 +1,4 @@
-import RegisterPage from "@/components/pet-owners/RegisterPage";
+import RegisterPage from "@/components/pet-owners/MainPage/RegisterPage";
 
 export default function PetOwnersHomePage() {
     return(

@@ -2,14 +2,24 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+
 import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
+
 import SymptomCalendar from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCalendar";
 import SymptomDateSection from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDateSection";
 import SymptomCard from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCard";
-import AddSymptomPopup, { SymptomFab } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/AddSymptomPopup";
-import SymptomDetailPopup, { type SymptomDetailRecord } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDetailPopup";
-import EditSymptomPopup, { type EditSymptomPayload } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/EditSymptomPopup";
+import AddSymptomPopup, {
+  SymptomFab,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/AddSymptomPopup";
+
+import SymptomDetailPopup, {
+  type SymptomDetailRecord,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDetailPopup";
+import EditSymptomPopup, {
+  type EditSymptomPayload,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/EditSymptomPopup";
+
 import { mockPetInformationById } from "@/mocks/petInformation";
 
 type PetOption = {

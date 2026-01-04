@@ -1,4 +1,4 @@
-import Container from '@/components/pet-owners/common/Container';
+import Container from '@/components/pet-owners/layout/Container';
 
 export default function OwnersLayout({
   children,

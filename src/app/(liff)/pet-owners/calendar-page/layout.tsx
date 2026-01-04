@@ -1,5 +1,5 @@
-import Container from '@/components/pet-owners/common/Container';
-import NavBar from '@/components/pet-owners/common/NavBar';
+import Container from '@/components/pet-owners/layout/Container';
+import NavBar from '@/components/pet-owners/layout/NavBar';
 
 export default function OwnersLayout({
   children,
