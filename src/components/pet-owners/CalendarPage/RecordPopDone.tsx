@@ -56,6 +56,10 @@ export default class RecordPopDone extends React.Component<RecordPopDoneProps> {
     display: grid;
     gap: 16px;
     min-width: 0;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
 
     > * {
       min-width: 0;
