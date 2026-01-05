@@ -7,6 +7,7 @@ import Image from "next/image";
 import { mockPets } from "@/mocks/pets";
 import type { Pet } from "@/types/Pet";
 import { formatAge } from "@/app/lib/pets/age";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 
 type Sex = "Male" | "Female" | "Unknown";
 type YesNo = "yes" | "no";
@@ -90,26 +91,15 @@ export default function EditBasicInfo() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7]">
+    <div>
       {/* Header */}
-      <div className="relative px-6 pb-3 pt-2">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="absolute left-4 top-2 h-9 w-9 grid place-items-center"
-          aria-label="Back"
-          title="Back"
-        >
-          <Image src="/back.svg" alt="Back" width={22} height={22} />
-        </button>
-
-        <h1 className="text-center text-[18px] font-semibold text-zinc-900">
-          Edit Basic Information
-        </h1>
-      </div>
+      <TopBar
+        title="Edit Basic Information"
+        onBack={() => router.push(`/pet-owners/my-pets-page`)}
+      />
 
       {/* Content */}
-      <div className="px-6 pb-28">
+      <div className="pt-4 pb-28">
         {/* Avatar */}
         <div className="flex justify-center py-2">
           <div className="relative">

@@ -220,10 +220,10 @@ export default function SymptomRecord() {
 
   return (
     <>
-      <TopBar title="Pet Symptom Record" onBack={() => router.back()} />
+      <TopBar title="Pet Symptom Record" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
       {/* Pet selector */}
-      <div className="px-4 mt-4">
+      <div className="mt-4">
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}
           pid={selectedPet?.pid ?? "-"}
@@ -235,7 +235,7 @@ export default function SymptomRecord() {
       </div>
 
       {/* Calendar */}
-      <div className="px-4 mt-4">
+      <div className="mt-4">
         <SymptomCalendar
           value={selectedDate}
           onChange={setSelectedDate}
@@ -244,7 +244,7 @@ export default function SymptomRecord() {
       </div>
 
       {/* List */}
-      <div className="px-4 mt-4 space-y-4">
+      <div className="mt-4 space-y-4">
         <div className="space-y-2">
           <div className="font-semibold text-zinc-900">{listTitle}</div>
 

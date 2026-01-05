@@ -18,7 +18,7 @@ export const StyledInput = styled.input<{ $error?: boolean }>`
   outline: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   appearance: none;
-  cursor: pointer;
+  cursor: text;
 
   &::placeholder {
     color: #9ca3af;

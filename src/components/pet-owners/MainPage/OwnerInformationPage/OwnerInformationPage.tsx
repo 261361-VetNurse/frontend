@@ -50,7 +50,7 @@ const OwnerInformationPage = () => {
             <InfoOutlinedIcon />
             Basic Information
           </SectionTitle>
-          <EditLink onClick={() => router.push('/pet-owners/owner-information-page/edit')}>Edit</EditLink>
+          <EditLink onClick={() => router.push('/pet-owners/owner-info-page/edit')}>Edit</EditLink>
         </SectionHeader>
         <InfoList>
           <InfoItem>

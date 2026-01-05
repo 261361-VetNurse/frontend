@@ -5,6 +5,7 @@ import PetProflie from "./PetProfile";
 import ReminderBox from "./ReminderBox";
 import AppointmentBox from "./AppointBox";
 import { useRouter } from "next/dist/client/components/navigation";
+import NewPetButton from "@/components/pet-owners/MainPage/MyPetsPage/NewPet";
 
 
 export default function HomePage({username}: {username: string}) {
@@ -31,7 +32,7 @@ export default function HomePage({username}: {username: string}) {
                 <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
                 <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
                 <PetProflie petName="Lee" petImage="/pets-example/pet-ex1.svg"/>
-                <PetProflie petName="New Pet"/>
+                <NewPetButton />
             </div>
             <div className="head-section">
                 <div className="head-right">Reminder</div>

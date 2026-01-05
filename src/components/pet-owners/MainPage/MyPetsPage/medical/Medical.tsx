@@ -121,10 +121,10 @@ export default function Medical() {
 
   return (
     <>
-      <TopBar title="Medical History" onBack={() => router.back()} />
+      <TopBar title="Medical History" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
       {/* Pet selector */}
-      <div className="px-4 mt-4">
+      <div className="mt-4">
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}
           pid={selectedPet?.pid ?? "-"}
@@ -140,7 +140,7 @@ export default function Medical() {
       </div>
 
       {/* List */}
-      <div className="px-4 mt-6 space-y-6">
+      <div className="mt-6 space-y-6">
         {grouped.length === 0 ? (
           <div className="text-sm text-zinc-500">No medical history</div>
         ) : (

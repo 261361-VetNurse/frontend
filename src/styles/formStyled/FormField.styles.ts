@@ -15,6 +15,7 @@ export const Label = styled.label`
 export const InputContainer = styled.div`
   display: flex;
   flex-direction: column;
+  cursor: ;
 `;
 
 export const ErrorMessage = styled.span`

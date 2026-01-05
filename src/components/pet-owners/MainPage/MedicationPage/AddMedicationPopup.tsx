@@ -95,6 +95,7 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
   const [medName, setMedName] = useState('');
   const [dose, setDose] = useState('');
   const [times, setTimes] = useState('');
+  const [startDate, setStartDate] = useState('');
   const [note, setNote] = useState('');
 
   if (!open) return null;
@@ -149,6 +150,9 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
             <TextInput id="times-input" value={times} onChange={e => setTimes(e.target.value)} />
           </FormField>
         </Row>
+        <FormField label="Start Date" htmlFor="start-date-input">
+          <TextInput id="start-date-input" value={medName} onChange={e => setStartDate(e.target.value)} placeholder="" />
+        </FormField>
         <FormField label="Note" htmlFor="note-area">
           <NoteArea id="note-area" value={note} onChange={e => setNote(e.target.value)} placeholder="" />
         </FormField>

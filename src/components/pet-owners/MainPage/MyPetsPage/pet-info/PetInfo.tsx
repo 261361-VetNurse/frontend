@@ -75,7 +75,7 @@ export default function PetInfo() {
     <Page>
       <TopBar
         title="Pet Information"
-        onBack={() => router.back()}
+        onBack={() => router.push(`/pet-owners/my-pets-page`)}
       />
 
       {/* Pet selector card */}
