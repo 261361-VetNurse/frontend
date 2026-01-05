@@ -1,16 +1,17 @@
-export default function OwnersLayout({
+
+export default function RegisterLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-zinc-50">
-      <header className="bg-white border-b border-zinc-200 p-4">
-        <h1 className="text-lg font-semibold">Owners</h1>
-      </header>
-      <main className="p-4">
-        {children}
-      </main>
+    <div className='w-full' style={{backgroundColor: '#F7F7F7'}}>
+        <main style={{
+            display: 'flex',
+            justifyContent: 'center',
+        }}>
+          {children}
+        </main>
     </div>
   );
 }
