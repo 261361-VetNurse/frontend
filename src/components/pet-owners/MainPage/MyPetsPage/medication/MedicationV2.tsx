@@ -21,7 +21,7 @@ import {
   Header,
   CardList,
   FabButton,
-} from "../../../../styles/medication.styled";
+} from "../../../../../styles/medication.styled";
 
 import { Add } from "@mui/icons-material";
 

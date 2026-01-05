@@ -63,7 +63,7 @@ const EditOwnerInformationPage = () => {
       <div className="relative flex flex-col items-center justify-center py-4">
         <div className="relative w-24 h-24 rounded-full border-2 border-white shadow-md">
           <div className="relative w-24 h-24 rounded-full overflow-hidden">
-            <img src="/logo-optimized.png" alt="Owner Avatar" className="w-full h-full object-cover" />
+            <img src="/images/profile-test.png" alt="Owner Avatar" className="w-[96px] h-[96px] object-cover" />
           </div>
           <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white cursor-pointer" style={{ backgroundColor: theme.colors.primary }}>
             <EditIcon style={{ fontSize: '16px', color: 'white' }} />

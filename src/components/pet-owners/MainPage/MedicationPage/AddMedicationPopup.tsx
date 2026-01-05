@@ -14,6 +14,7 @@ const Overlay = styled.div`
   width: 100vw;
   height: 100vh;
   background: rgba(0,0,0,0.2);
+  padding: 0 16px;
   z-index: 1000;
   display: flex;
   align-items: center;
@@ -22,14 +23,14 @@ const Overlay = styled.div`
 
 const PopupCard = styled.div`
   display: flex;
+  position: relative;
   flex-direction: column;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.10);
   padding: 24px;
   width: 100%;
-  max-width: 400px;
-  position: relative;
+  max-width: 393px;
   gap: 16px;
 `;
 

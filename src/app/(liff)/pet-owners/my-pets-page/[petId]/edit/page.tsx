@@ -1,4 +1,4 @@
-import EditBasicInfo from "@/components/pet-owners/mypets/pet-info/EditBasicInfo";
+import EditBasicInfo from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/EditBasicInfo";
 
 export default function Page() {
   return <EditBasicInfo />;

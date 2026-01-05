@@ -1,4 +1,4 @@
-import MyPets from "@/components/pet-owners/mypets/MyPets";
+import MyPets from "@/components/pet-owners/MainPage/MyPetsPage/MyPets";
 
 export default function PetsPage() {
   return <MyPets />;

@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyledButton, Spinner, SpinnerCircle, ButtonText } from '@/styles/formStyled/PrimaryButton.styles';
+import { is } from 'date-fns/locale';
 
 interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'lg' | 'md' | 'sm';
@@ -9,19 +10,21 @@ interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 export const PrimaryButton: React.FC<PrimaryButtonProps> = ({
   children,
-  size = 'lg',
+  size = 'md',
   fullWidth = true,
   loading = false,
   disabled,
   className,
   ...props
 }) => {
+  const isDisabled = !!disabled || !!loading;
+
   return (
     <StyledButton
       $size={size}
       $fullWidth={fullWidth}
       $loading={loading}
-      disabled={disabled || loading}
+      $disabled={isDisabled}
       className={className}
       {...props}
     >

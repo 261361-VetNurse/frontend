@@ -1,20 +1,27 @@
 "use client";
 
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type OwnerHeaderCardProps = {
   name: string;
   ownerId: string;
   avatarUrl?: string;
+  OwnerPageUrl?: string;
 };
 
 export default function OwnerHeaderCard({
   name,
   ownerId,
   avatarUrl = "/Ava.svg",
+  OwnerPageUrl
 }: OwnerHeaderCardProps) {
+  const router = useRouter();
+
   return (
-    <div className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-3 flex items-center gap-3">
+    <div 
+      className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-3 flex items-center gap-3"
+      onClick={() => { if (OwnerPageUrl) router.push(OwnerPageUrl) }}>
       {/* Avatar */}
       <div className="h-12 w-12 rounded-full overflow-hidden bg-zinc-100 shrink-0">
         <Image

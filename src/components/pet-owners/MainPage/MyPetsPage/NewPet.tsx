@@ -9,7 +9,7 @@ export default function NewPetButton() {
   return (
     <button
       type="button"
-      onClick={() => router.push("/pet-owners/mypets/new")}
+      onClick={() => router.push("/pet-owners/my-pets-page/add-new-pet")}
       className="flex flex-col items-center gap-1 transition active:scale-[0.97]"
       aria-label="Add new pet"
       title="Add new pet"

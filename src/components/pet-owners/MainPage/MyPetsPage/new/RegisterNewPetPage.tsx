@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/PetAvatarPicker";
 import { formatAge } from "@/app/lib/pets/age";
-import { Calendar } from "lucide-react";
 
 type Sex = "Male" | "Female" | "Unknown";
 type YesNo = "yes" | "no";

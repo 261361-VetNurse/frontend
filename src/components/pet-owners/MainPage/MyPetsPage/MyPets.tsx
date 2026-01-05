@@ -1,11 +1,11 @@
 "use client";
 
-import OwnerHeaderCard from "@/components/pet-owners/mypets/OwnerHeaderCard";
-import StatCard from "@/components/pet-owners/mypets/StatCard";
-import NewPetButton from "@/components/pet-owners/mypets/NewPet";
-import PetCard from "@/components/pet-owners/mypets/PetCard";
+import OwnerHeaderCard from "@/components/pet-owners/MainPage/MyPetsPage/OwnerHeaderCard";
+import StatCard from "@/components/pet-owners/MainPage/MyPetsPage/StatCard";
+import NewPetButton from "@/components/pet-owners/MainPage/MyPetsPage/NewPet";
+import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import NavBar from "@/components/pet-owners/layout/NavBar";
-
+import { useRouter } from "next/navigation";
 import { mockPets } from "@/mocks/pets";
 import { mockOwner } from "@/mocks/owner";
 import { Pet } from "@/types/Pet";
@@ -14,6 +14,7 @@ export default function MyPets() {
   const pets: Pet[] = mockPets;
   const allPetsCount = pets.length;
   const inMedicalCount = 0;
+  const router = useRouter();
 
   return (
     <>
@@ -23,6 +24,7 @@ export default function MyPets() {
             name={mockOwner.name}
             ownerId={mockOwner.id}
             avatarUrl={mockOwner.avatarUrl ?? "/Ava.svg"}
+            OwnerPageUrl="/pet-owners/owner-info-page"
           />
 
           <div className="pt-2">

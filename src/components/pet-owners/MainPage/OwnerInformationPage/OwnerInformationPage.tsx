@@ -36,7 +36,7 @@ const OwnerInformationPage = () => {
       </TopHeader>
       <Header>
         <AvatarWrapper>
-          <AvatarImg src="/logo-optimized.png" alt="Owner Avatar" />
+          <AvatarImg src="/images/profile-test.png" alt="Owner Avatar" width={50} height={50} />
         </AvatarWrapper>
         <div>
           <OwnerName>Y JH</OwnerName>
@@ -50,7 +50,7 @@ const OwnerInformationPage = () => {
             <InfoOutlinedIcon />
             Basic Information
           </SectionTitle>
-          <EditLink onClick={() => router.push('/pet-owners/owner-information/edit')}>Edit</EditLink>
+          <EditLink onClick={() => router.push('/pet-owners/owner-information-page/edit')}>Edit</EditLink>
         </SectionHeader>
         <InfoList>
           <InfoItem>

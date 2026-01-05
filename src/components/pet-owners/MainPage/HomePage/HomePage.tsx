@@ -13,7 +13,7 @@ export default function HomePage({username}: {username: string}) {
     return(
         <HomePageStyled>
             <div className="header-box">
-                <img src="/Ava.svg" alt="Ava" />
+                <img src="/Ava.svg" alt="Ava" onClick={() => router.push('/pet-owners/owner-info-page')} />
                 <span>Hi! {username}</span>
                 <img src="/help.svg" alt="help" className="ml-auto" onClick={() => router.push('/pet-owners/help-center-page')} style={{ cursor: "pointer" }} />
             </div>

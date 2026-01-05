@@ -3,6 +3,15 @@
 import styled from 'styled-components';
 import { theme } from './theme';
 
+export const Container = styled.div`
+  background: #f5f5f5;
+  min-height: 100vh;
+  width: 100%;
+  padding: 16px 24px;
+  diasplay: flex;
+  flex-direction: column;
+`;
+
 export const TopHeader = styled.div`
   display: flex;
   align-items: center;
@@ -38,11 +47,6 @@ export const PageTitle = styled.div`
 `;
 
 
-export const Container = styled.div`
-  background: #f5f5f5;
-  min-height: 100vh;
-  padding: 0 0 40px 0;
-`;
 
 export const Header = styled.div`
   display: flex;
