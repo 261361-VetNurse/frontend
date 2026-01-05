@@ -6,6 +6,9 @@ export default function Home() {
           Frontend Ready
           Hiiiiiii
         </h1>
+        <p className="mt-4 text-center text-lg text-black dark:text-zinc-50">
+          สวัสดีครับ นี่คือหน้าแรกของแอปพลิเคชัน Next.js ของคุณ!
+        </p>
       </main>
     </div>
   );
