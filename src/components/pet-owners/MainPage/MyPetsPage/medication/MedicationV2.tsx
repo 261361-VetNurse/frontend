@@ -199,7 +199,7 @@ export default function MedicationPageV2() {
 
   return (
     <>
-      <TopBar title="Medication" onBack={() => router.back()} />
+      <TopBar title="Medication" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
       <div style={{ marginTop: 8 }}>
         <PetSelectorCard

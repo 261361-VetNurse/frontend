@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { K2D } from "next/font/google";
 import "./globals.css";
+import StyledComponentsRegistry from "./lib/registry";
 
 const k2d = K2D({
   weight: ["300", "400", "500", "600", "700"],
@@ -26,7 +27,9 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
       </head>
       <body className={`${k2d.variable} antialiased`}>
-        {children}
+        <StyledComponentsRegistry>
+          {children}
+        </StyledComponentsRegistry>
       </body>
     </html>
   );

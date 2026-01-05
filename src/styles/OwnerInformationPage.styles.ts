@@ -7,7 +7,6 @@ export const Container = styled.div`
   background: #f5f5f5;
   min-height: 100vh;
   width: 100%;
-  padding: 8px 24px;
   diasplay: flex;
   flex-direction: column;
 `;

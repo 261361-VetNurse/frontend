@@ -8,7 +8,6 @@ export const RegisterContainer = styled.div`
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  padding: 8px 24px;
 `;
 
 export const RegisterCard = styled.div`
