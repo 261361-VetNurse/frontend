@@ -3,19 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-
-import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
-
 import AddMedicationPopupV2, { type AddMedicationPayloadV2 } from "./AddMedicationPopupV2";
 import EditMedicationPopupV2, {type EditMedicationPayload,} from "./EditMedicationPopupV2";
-
 import MedicationDetailPopupV2 from "./MedicationDetailPopupV2";
-
 import { mockPetInformationById } from "@/mocks/petInformation";
-
 import {
-  Page,
   TabsWrap,
   TabButton,
   Header,
@@ -204,8 +198,8 @@ export default function MedicationPageV2() {
   const [editRecord, setEditRecord] = useState<MedicationRecordV2 | null>(null);
 
   return (
-    <Page>
-      <PetInfoTopBar title="Medication" onBack={() => router.back()} />
+    <>
+      <TopBar title="Medication" onBack={() => router.back()} />
 
       <div style={{ marginTop: 8 }}>
         <PetSelectorCard
@@ -216,7 +210,7 @@ export default function MedicationPageV2() {
           selectedId={selectedPetId}
           onSelect={(id) => {
             setSelectedPetId(id);
-            router.push(`/pet-owners/mypets/${id}/medications`);
+            router.push(`/pet-owners/my-pets-page/${id}/medications`);
           }}
         />
       </div>
@@ -433,6 +427,6 @@ export default function MedicationPageV2() {
           setEditRecord(null);
         }}
       />
-    </Page>
+    </>
   );
 }

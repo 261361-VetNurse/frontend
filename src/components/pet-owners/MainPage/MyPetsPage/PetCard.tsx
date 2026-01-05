@@ -49,7 +49,7 @@ export default function PetCard({ pet }: { pet: Pet }) {
     return (
     <button
       type="button"
-      onClick={() => router.push(`/pet-owners/mypets/${pet.id}`)}
+      onClick={() => router.push(`/pet-owners/my-pets-page/${pet.id}`)}
       className="w-full text-left"
     >
       <div className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-4 hover:bg-zinc-50 active:scale-[0.99] transition">

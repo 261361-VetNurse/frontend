@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/PetAvatarPicker";
 import { formatAge } from "@/app/lib/pets/age";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 
 type Sex = "Male" | "Female" | "Unknown";
 type YesNo = "yes" | "no";
@@ -62,29 +63,10 @@ export default function RegisterNewPetPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F7F7F7]">
+    <>
       {/* Page header */}
-      <div className="relative px-6 pb-3">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="absolute left-4 top-0 h-9 w-9 rounded-full hover:bg-zinc-200/60 active:scale-[0.98] transition grid place-items-center"
-          aria-label="Back"
-          title="Back"
-        >
-          <img
-            src="/back.svg"
-            alt="Back"
-            className="h-5 w-5"
-          />
-        </button>
-
-        <h1 className="text-center text-[18px] font-semibold text-zinc-900">
-          Register New Pet
-        </h1>
-      </div>
-
-
+      <TopBar title="Register New Pet" onBack={() => router.back()} />
+          
       {/* Content */}
       <div className="px-6 pb-28">
         {/* Avatar */}
@@ -254,6 +236,6 @@ export default function RegisterNewPetPage() {
           Add New Pet
         </button>
       </div>
-    </div>
+    </>
   );
 }

@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
 import SymptomCalendar from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCalendar";
 import SymptomDateSection from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDateSection";
@@ -11,6 +10,7 @@ import AddSymptomPopup, { SymptomFab } from "@/components/pet-owners/MainPage/My
 import SymptomDetailPopup, { type SymptomDetailRecord } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDetailPopup";
 import EditSymptomPopup, { type EditSymptomPayload } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/EditSymptomPopup";
 import { mockPetInformationById } from "@/mocks/petInformation";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 
 type PetOption = {
   id: string;
@@ -219,8 +219,8 @@ export default function SymptomRecord() {
   }
 
   return (
-    <div className="pb-24">
-      <PetInfoTopBar title="Pet Symptom Record" onBack={() => router.back()} />
+    <>
+      <TopBar title="Pet Symptom Record" onBack={() => router.back()} />
 
       {/* Pet selector */}
       <div className="px-4 mt-4">
@@ -324,6 +324,6 @@ export default function SymptomRecord() {
         onSave={handleSaveEdit}
         maxImages={4}
       />
-    </div>
+    </>
   );
 }

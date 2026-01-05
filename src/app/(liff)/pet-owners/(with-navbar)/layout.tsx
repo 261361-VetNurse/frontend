@@ -1,5 +1,5 @@
-import NavBar from '@/components/pet-owners/layout/NavBar';
 import Container from '@/components/pet-owners/layout/Container';
+import NavBar from '@/components/pet-owners/layout/NavBar';
 
 export default function OwnersLayout({
   children,
@@ -8,7 +8,7 @@ export default function OwnersLayout({
 }) {
 
   return (
-    <div className='flex flex-col items-center justify-center'>
+    <div>
       <Container width={"393px"}>
         <main>
           {children}

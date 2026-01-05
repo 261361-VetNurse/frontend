@@ -86,7 +86,7 @@ export default function EditBasicInfo() {
 
     console.log("UPDATE PET:", payload);
 
-    router.push(`/pet-owners/mypets/${currentPet.id}`);
+    router.push(`/pet-owners/my-pets-page/${currentPet.id}`);
   }
 
   return (

@@ -2,23 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-
-import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
-
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
 import AppointmentTabs, {
   type AppointmentTabKey,
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
-
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import { mockPetInformationById } from "@/mocks/petInformation";
-
 import type { Appointment } from "@/types/Appointment";
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
-
-import { FabButton, Page } from "@/styles/appointments.styled";
+import { FabButton } from "@/styles/appointments.styled";
 import { Add } from "@mui/icons-material";
 
 type PetOption = {
@@ -85,8 +80,8 @@ export default function Appointments() {
   };
 
   return (
-    <Page>
-      <PetInfoTopBar title="Appointment" onBack={() => router.back()} />
+    <>
+      <TopBar title="Appointment" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
       <div style={{ marginTop: 8 }}>
         <PetSelectorCard
@@ -97,7 +92,7 @@ export default function Appointments() {
           selectedId={selectedPetId}
           onSelect={(id) => {
             setSelectedPetId(id);
-            router.push(`/pet-owners/mypets/${id}/appointments`);
+            router.push(`/pet-owners/my-pets-page/${id}/appointments`);
           }}
         />
       </div>
@@ -146,7 +141,7 @@ export default function Appointments() {
           avatarUrl: selectedPet?.imageUrl,
         }}
       />
-    </Page>
+    </>
   );
 }
 

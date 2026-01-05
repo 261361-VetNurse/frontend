@@ -8,13 +8,12 @@ export default function OwnersLayout({
 }) {
 
   return (
-    <div className='flex flex-col items-center justify-center min-h-screen'>
+    <div>
       <Container width={"393px"}>
         <main>
           {children}
         </main>
       </Container>
-      <NavBar />
     </div>
     
   );

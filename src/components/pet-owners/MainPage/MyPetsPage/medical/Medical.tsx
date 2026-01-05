@@ -2,16 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-
-import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
-
 import MedicalDateSection from "./MedicalDateSection";
 import MedicalItem from "./MedicalItem";
 import AddMedicalPopup, { type AddMedicalPayload } from "./AddMedicalPopup";
 import { MedicalFab } from "./AddMedicalPopup";
 
 import { mockPetInformationById } from "@/mocks/petInformation";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 
 type PetOption = {
   id: string;
@@ -122,8 +120,8 @@ export default function Medical() {
   }
 
   return (
-    <div className="pb-24">
-      <PetInfoTopBar title="Medical History" onBack={() => router.back()} />
+    <>
+      <TopBar title="Medical History" onBack={() => router.back()} />
 
       {/* Pet selector */}
       <div className="px-4 mt-4">
@@ -136,7 +134,7 @@ export default function Medical() {
           onSelect={(id) => {
             setSelectedPetId(id);
             setEditingDate(null); 
-            router.push(`/pet-owners/mypets/${id}/medical`);
+            router.push(`/pet-owners/my-pets-page/${id}/medical`);
           }}
         />
       </div>
@@ -193,6 +191,6 @@ export default function Medical() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

@@ -13,8 +13,15 @@ interface StyledContainerProps {
 }
 
 const StyledContainer = styled.div<StyledContainerProps>`
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
+  min-height: 100vh;
   box-sizing: border-box;
-  margin: 0 auto;
+  padding: 8px 24px;
+  margin-bottom: 60px;
   width: ${props => props.$width};
 `;
 

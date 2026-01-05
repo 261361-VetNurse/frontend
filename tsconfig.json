@@ -30,6 +30,6 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
     "**/*.mts"
-, "src/app/(liff)/pet-owners/my-pets-page/[petId]/id"  ],
+, "src/app/(liff)/pet-owners/(with-navbar)/my-pets-page/[petId]/id"  ],
   "exclude": ["node_modules"]
 }

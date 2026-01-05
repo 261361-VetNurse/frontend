@@ -2,16 +2,14 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-
 import { mockPets } from "@/mocks/pets";
 import type { Pet } from "@/types/Pet";
-
-import PetInfoTopBar from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfoTopBar";
+import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
-
 import { formatAge } from "@/app/lib/pets/age";
+import { Page } from "@/styles/myPetsPage.styled";
 
 export default function PetInfo() {
   const router = useRouter();
@@ -54,41 +52,41 @@ export default function PetInfo() {
     {
       iconSrc: "/calendar-app.svg",
       title: "Appointment",
-      href: `/pet-owners/mypets/${currentPet.id}/appointments`,
+      href: `/pet-owners/my-pets-page/${currentPet.id}/appointments`,
     },
     {
       iconSrc: "/medication.svg",
       title: "Medication",
-      href: `/pet-owners/mypets/${currentPet.id}/medications`,
+      href: `/pet-owners/my-pets-page/${currentPet.id}/medications`,
     },
     {
       iconSrc: "/record.svg",
       title: "Pet Symptom Record",
-      href: `/pet-owners/mypets/${currentPet.id}/symptoms`,
+      href: `/pet-owners/my-pets-page/${currentPet.id}/symptoms`,
     },
     {
       iconSrc: "/history.svg",
       title: "Medical History",
-      href: `/pet-owners/mypets/${currentPet.id}/medical`,
+      href: `/pet-owners/my-pets-page/${currentPet.id}/medical`,
     },
   ];
 
   return (
-    <div className="pb-8">
-      <PetInfoTopBar
+    <Page>
+      <TopBar
         title="Pet Information"
         onBack={() => router.back()}
       />
 
       {/* Pet selector card */}
-      <div className="px-4 mt-4 relative z-10">
+      <div className="mt-4 relative z-10">
         <PetSelectorCard
           name={currentPet.name}
           pid={currentPet.pid ?? currentPet.id}
           imageUrl={currentPet.imageUrl}
           selectedId={currentPet.id}
           options={options}
-          onSelect={(id) => router.push(`/pet-owners/mypets/${id}`)}
+          onSelect={(id) => router.push(`/pet-owners/my-pets-page/${id}`)}
         />
       </div>
 
@@ -102,7 +100,7 @@ export default function PetInfo() {
             aria-label="Close pet selector"
           />
 
-          <div className="absolute left-0 right-0 bottom-0 rounded-t-3xl bg-white shadow-xl border-t border-zinc-100 p-4">
+          <div className="absolute left-0 right-0 bottom-0 rounded-t-3xl bg-white shadow-xl border-t border-zinc-100">
             <div className="flex items-center justify-between">
               <div className="text-base font-semibold text-zinc-900">
                 Select Pet
@@ -119,7 +117,7 @@ export default function PetInfo() {
                     type="button"
                     onClick={() => {
                       setIsSelectorOpen(false);
-                      router.push(`/pet-owners/mypets/${p.id}`);
+                      router.push(`/pet-owners/my-pets-page/${p.id}`);
                     }}
                     className={[
                       "w-full text-left rounded-2xl border px-4 py-3 flex items-center justify-between",
@@ -161,7 +159,7 @@ export default function PetInfo() {
       <div className="mt-4 border-t border-zinc-100" />
 
       {/* Basic Information */}
-      <div className="px-4 mt-4">
+      <div className="mt-4">
         <BasicInfoCard
           name={currentPet.name}
           species={currentPet.species ?? "-"}
@@ -171,12 +169,12 @@ export default function PetInfo() {
           sex={currentPet.gender}
           color={currentPet.color ?? "-"}
           previousClinic={currentPet.previousClinicOrHospital ?? "-"}
-          onEdit={() => router.push(`/pet-owners/mypets/${currentPet.id}/edit`)}
+          onEdit={() => router.push(`/pet-owners/my-pets-page/${currentPet.id}/edit`)}
         />
       </div>
 
       {/* Menu list */}
-      <div className="px-4 mt-4 space-y-3">
+      <div className="mt-4 space-y-3">
         {menus.map((m) => (
           <MenuItem
             key={m.title}
@@ -188,7 +186,7 @@ export default function PetInfo() {
       </div>
 
       {/* Delete button */}
-      <div className="px-4 mt-6">
+      <div className="mt-6">
         <button
           type="button"
           className="w-full rounded-2xl bg-red-600 text-white py-3 font-semibold hover:bg-red-700 active:scale-[0.99] transition"
@@ -197,6 +195,6 @@ export default function PetInfo() {
           Delete
         </button>
       </div>
-    </div>
+    </Page>
   );
 }

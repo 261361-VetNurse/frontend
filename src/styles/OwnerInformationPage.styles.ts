@@ -7,7 +7,7 @@ export const Container = styled.div`
   background: #f5f5f5;
   min-height: 100vh;
   width: 100%;
-  padding: 16px 24px;
+  padding: 8px 24px;
   diasplay: flex;
   flex-direction: column;
 `;
@@ -17,8 +17,8 @@ export const TopHeader = styled.div`
   align-items: center;
   background: #f5f5f5;
   padding: 0 0 0 0;
-  height: 56px;
   position: relative;
+  margin-bottom: 16px;
 `;
 
 export const BackButton = styled.button`
