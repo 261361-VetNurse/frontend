@@ -17,7 +17,7 @@ export default function HelpCenterPage() {
     <div className="min-h-screen flex justify-center">
       <div className="w-full min-h-screen relative pb-10">
 
-        <div className="p-5">
+        <div>
           {/* Help Center Title with Back Button */}
           <div className="flex items-center mb-5">
             <button className="text-gray-800 mr-4" onClick={() => window.history.back()}>
