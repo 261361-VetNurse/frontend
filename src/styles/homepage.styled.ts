@@ -7,7 +7,6 @@ export const HomePageStyled = styled.div `
     gap: 16px;
     width: 100%;
     height: 100%;
-    padding: 8px 24px;
     margin-bottom: 60px;
 
     .header-box{

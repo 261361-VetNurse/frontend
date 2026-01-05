@@ -24,7 +24,6 @@ const RecordPageStyled = styled.div`
         display: flex;
         flex-direction: column;
         row-gap: 10px;
-        padding: 8px 24px 96px;
     }
     .head-text{
         color: #000;

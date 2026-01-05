@@ -80,22 +80,20 @@ export default function Appointments() {
   };
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <TopBar title="Appointment" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
-      <div style={{ marginTop: 8 }}>
-        <PetSelectorCard
-          name={selectedPet?.name ?? "-"}
-          pid={selectedPet?.pid ?? "-"}
-          imageUrl={selectedPet?.imageUrl}
-          options={petOptions}
-          selectedId={selectedPetId}
-          onSelect={(id) => {
-            setSelectedPetId(id);
-            router.push(`/pet-owners/my-pets-page/${id}/appointments`);
-          }}
-        />
-      </div>
+      <PetSelectorCard
+        name={selectedPet?.name ?? "-"}
+        pid={selectedPet?.pid ?? "-"}
+        imageUrl={selectedPet?.imageUrl}
+        options={petOptions}
+        selectedId={selectedPetId}
+        onSelect={(id) => {
+          setSelectedPetId(id);
+          router.push(`/pet-owners/my-pets-page/${id}/appointments`);
+        }}
+      />
 
       <div style={{ marginTop: 8 }}>
         <AppointmentTabs value={tab} onChange={setTab} />
@@ -141,7 +139,7 @@ export default function Appointments() {
           avatarUrl: selectedPet?.imageUrl,
         }}
       />
-    </>
+    </div>
   );
 }
 

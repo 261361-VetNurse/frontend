@@ -10,7 +10,7 @@ export default function OwnersLayout({
   return (
     <div>
       <Container width={"393px"}>
-        <main>
+        <main style={{ width: '100%' }}>
           {children}
         </main>
       </Container>

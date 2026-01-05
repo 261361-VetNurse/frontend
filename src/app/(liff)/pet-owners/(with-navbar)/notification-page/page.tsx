@@ -6,7 +6,7 @@ export default function NotificationsPage() {
       {/* Container จำลองหน้าจอมือถือ */}
       <div className="w-full min-h-screen relative">
 
-        <div className="p-4 space-y-6">
+        <div className="space-y-6">
           {/* TODAY SECTION */}
           <section>
             <h2 className="text-gray-400 text-[12px] font-medium mb-3 ml-1 uppercase tracking-wider">Today</h2>

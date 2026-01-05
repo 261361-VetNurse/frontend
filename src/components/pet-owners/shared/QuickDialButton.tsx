@@ -17,23 +17,23 @@ const positionStyles = (position: Position) => {
         case "top-left":
             return `
         top: 24px;
-        left: 24px;
+        left: 0;
       `;
         case "top-right":
             return `
         top: 24px;
-        right: 24px;
+        right: 0;
       `;
         case "bottom-left":
             return `
         bottom: 80px;
-        left: 24px;
+        left: 0;
       `;
         case "bottom-right":
         default:
             return `
         bottom: 80px;
-        right: 24px;
+        right: 0;
       `;
     }
 };

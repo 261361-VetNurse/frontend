@@ -18,33 +18,35 @@ export default function MyPets() {
 
   return (
     <Page>
-      <OwnerHeaderCard
-        name={mockOwner.name}
-        ownerId={mockOwner.id}
-        avatarUrl={mockOwner.avatarUrl ?? "/Ava.svg"}
-        OwnerPageUrl="/pet-owners/owner-info-page"
-      />
+      <div className="flex flex-col gap-4">
+        <OwnerHeaderCard
+          name={mockOwner.name}
+          ownerId={mockOwner.id}
+          avatarUrl={mockOwner.avatarUrl ?? "/Ava.svg"}
+          OwnerPageUrl="/pet-owners/owner-info-page"
+        />
 
-      <div className="pt-2">
-        <div className="text-lg font-semibold text-zinc-900">My Pets</div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="flex-1 grid grid-cols-2 gap-3">
-          <StatCard title="All Pets" value={allPetsCount} />
-          <StatCard title="In Medical" value={inMedicalCount} />
+        <div>
+          <div className="text-lg font-semibold text-zinc-900">My Pets</div>
         </div>
-        <NewPetButton />
-      </div>
 
-      <div className="space-y-3">
-        {pets.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
-            No pets yet. Click “New Pet” to add one.
+        <div className="flex items-center gap-3">
+          <div className="flex-1 grid grid-cols-2 gap-3">
+            <StatCard title="All Pets" value={allPetsCount} />
+            <StatCard title="In Medical" value={inMedicalCount} />
           </div>
-        ) : (
-          pets.map((pet) => <PetCard key={pet.id} pet={pet} />)
-        )}
+          <NewPetButton />
+        </div>
+
+        <div className="space-y-3">
+          {pets.length === 0 ? (
+            <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
+              No pets yet. Click “New Pet” to add one.
+            </div>
+          ) : (
+            pets.map((pet) => <PetCard key={pet.id} pet={pet} />)
+          )}
+        </div>
       </div>
     </Page>
   );
