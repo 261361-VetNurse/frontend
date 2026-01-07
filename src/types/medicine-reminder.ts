@@ -9,15 +9,32 @@ export type MedicineReminderVM = {
 
     medicine: {
         id: string;
-        name: string;
-        dosage: string;
+        name: string;      // Medicine Name
+        dosage: string;    // เช่น "150mg" หรือ "1 capsule"
     };
 
     schedule: {
-        date: string; // YYYY-MM-DD
-        time: string; // HH:mm
-        datetime: string; // ISO
+        frequency: {
+            key: "everyday" | "interval_hours" | "custom";
+            label: string; // เช่น "Everyday"
+            interval_hours?: number; // ถ้าเป็น interval_hours
+            days_of_week?: Array<"mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun">; // ถ้าเป็น custom
+        };
+
+        reminders: Array<{
+            id: string;       // id ของช่องเตือน (สำหรับ render/edit/delete)
+            time: string;     // HH:mm เช่น "00:00"
+            is_taken: boolean;
+            taken_at?: string; // ISO (optional)
+        }>;
+
+        measurement_times_per_day: number; // Measurement: "2 times"
+        starting_date: string;            // YYYY-MM-DD (Starting)
     };
 
-    is_read: boolean;
+    medication_status: {
+        is_stopped: boolean;  // สถานะหยุดยาแทน finish
+        stopped_at?: string;  // ISO
+        reason?: string;      // optional
+    };
 };

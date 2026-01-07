@@ -36,18 +36,6 @@ const readFileAsDataUrl = (file: File) =>
     reader.readAsDataURL(file);
   });
 
-type PetOption = {
-  id: string;
-  name: string;
-  image?: string;
-  pid?: string;
-};
-
-const DEFAULT_PET_OPTIONS: PetOption[] = [
-  { id: "dog", name: "Dog" },
-  { id: "cat", name: "Cat" },
-];
-
 type RecordPopUpProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -67,7 +55,6 @@ type RecordPopUpProps = {
     petImage?: string;
   };
   isEditing?: boolean;
-  petOptions?: PetOption[];
 };
 
 export default function RecordPopUp({
@@ -76,7 +63,6 @@ export default function RecordPopUp({
   onCreateRecord,
   initialValues,
   isEditing = false,
-  petOptions,
 }: RecordPopUpProps) {
   const [isCalendarOpen, setIsCalendarOpen] = React.useState(false);
   const [pet, setPet] = React.useState("");
@@ -102,20 +88,6 @@ export default function RecordPopUp({
   const titleText = isEditing ? "Edit Record" : "Create Record";
   const submitText = isEditing ? "Save" : "Add New Record";
   const editAvatarSrc = initialValues?.petImage ?? "/pets-example/pet-ex1.svg";
-  const availablePets = React.useMemo(() => {
-    const baseOptions =
-      petOptions && petOptions.length ? petOptions : DEFAULT_PET_OPTIONS;
-    if (!pet) {
-      return baseOptions;
-    }
-    const hasPet = baseOptions.some(
-      (option) => option.id.toLowerCase() === pet.toLowerCase()
-    );
-    if (hasPet) {
-      return baseOptions;
-    }
-    return [...baseOptions, { id: pet, name: pet }];
-  }, [petOptions, pet]);
 
   const resetForm = React.useCallback(() => {
     setPet("");
@@ -293,11 +265,8 @@ export default function RecordPopUp({
                     />
                   </SelectTrigger>
                   <SelectContent>
-                    {availablePets.map((option) => (
-                      <SelectItem key={option.id} value={option.id}>
-                        {option.name}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="dog">Dog</SelectItem>
+                    <SelectItem value="cat">Cat</SelectItem>
                   </SelectContent>
                 </Select>
                 {errors.pet ? <p className="text-xs text-destructive">{errors.pet}</p> : null}

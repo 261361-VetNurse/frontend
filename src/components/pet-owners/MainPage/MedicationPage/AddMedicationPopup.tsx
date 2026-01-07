@@ -4,8 +4,11 @@ import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
-import { Pets } from '@mui/icons-material';
+import { Pets, Add, Remove } from '@mui/icons-material';
 import { theme } from '@/styles/theme';
+import { MedicineReminderVM } from '@/types/medicine-reminder';
+import IconButton from "@mui/material/IconButton";
+import CloseIcon from "@mui/icons-material/Close";
 
 const Overlay = styled.div`
   position: fixed;
@@ -32,6 +35,8 @@ const PopupCard = styled.div`
   width: 100%;
   max-width: 393px;
   gap: 16px;
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 
 const SelectPet = styled.div`
@@ -54,6 +59,12 @@ const PetIconWrap = styled.div`
   flex-shrink: 0;
 `;
 
+const TopPopup = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-item: center;
+`
+
 const Title = styled.div`
   font-size: 16px;
   font-weight: bold;
@@ -66,37 +77,126 @@ const Row = styled.div`
   gap: 12px;
 `;
 
-const NoteArea = styled.textarea`
-  width: 100%;
-  min-height: 70px;
-  border-radius: 10px;
-  border: 1px solid #e0e0e0;
-  padding: 10px;
-  font-size: 1rem;
-  margin-top: 4px;
-  resize: vertical;
+const RemindersSection = styled.div`
+  border-top: 1px solid #e0e0e0;
+  padding-top: 16px;
+  margin-top: 8px;
 `;
 
-type Petss = {
+const SectionTitle = styled.h4`
+  font-size: 16px;
+  font-weight: 600;
+  color: ${theme.colors.textPrimary};
+  margin: 0 0 12px 0;
+`;
+
+const ReminderItem = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+`;
+
+const TimeInput = styled.input`
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  
+  &:focus {
+    outline: none;
+    border-color: ${theme.colors.primary};
+  }
+`;
+
+const RemoveButton = styled.button`
+  background: none;
+  border: none;
+  color: #f44336;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  
+  &:hover {
+    background-color: #ffebee;
+  }
+`;
+
+const AddReminderButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px dashed ${theme.colors.primary};
+  background: none;
+  color: ${theme.colors.primary};
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  
+  &:hover {
+    background-color: #E3F2FD;
+  }
+`;
+
+const ButtonRow = styled.div`
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+`;
+
+const SecondaryButton = styled.button`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: #fff;
+  color: ${theme.colors.textPrimary};
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  &:hover {
+    background-color: #f5f5f5;
+  }
+`;
+
+type Pet = {
   id: string;
   name: string;
   avatarUrl?: string;
 };
 
+type ReminderTime = {
+  id: string;
+  time: string;
+};
+
 type CreateMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: { petId: string; medName: string; dose: string; times: string; note: string }) => void;
+  onSubmit?: (medicineReminder: MedicineReminderVM) => void;
   pets: Pet[];
 };
 
-export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}: CreateMedicationPopupProps) {
+export default function CreateMedicationPopup({ 
+  open, 
+  onClose, 
+  onSubmit, 
+  pets 
+}: CreateMedicationPopupProps) {
   const [petId, setPetId] = useState('');
-  const [medName, setMedName] = useState('');
-  const [dose, setDose] = useState('');
-  const [times, setTimes] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [note, setNote] = useState('');
+  const [medicineName, setMedicineName] = useState('');
+  const [dosage, setDosage] = useState('');
+  const [frequency, setFrequency] = useState('everyday');
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [reminders, setReminders] = useState<ReminderTime[]>([
+    { id: 'r1', time: '08:00' }
+  ]);
 
   if (!open) return null;
 
@@ -106,27 +206,120 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
     }
   };
 
+  const addReminder = () => {
+    const newId = `r${reminders.length + 1}`;
+    setReminders([...reminders, { id: newId, time: '08:00' }]);
+  };
+
+  const removeReminder = (id: string) => {
+    if (reminders.length > 1) {
+      setReminders(reminders.filter(r => r.id !== id));
+    }
+  };
+
+  const updateReminderTime = (id: string, time: string) => {
+    setReminders(reminders.map(r => 
+      r.id === id ? { ...r, time } : r
+    ));
+  };
+
+  const handleSubmit = () => {
+    if (!petId || !medicineName || !dosage || reminders.length === 0) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    const selectedPet = pets.find(p => p.id === petId);
+    if (!selectedPet) {
+      alert('Please select a pet');
+      return;
+    }
+
+    // Generate unique IDs
+    const notificationId = `med_${Date.now()}`;
+    const medicineId = `medicine_${Date.now()}`;
+
+    const frequencyLabels: Record<string, string> = {
+      everyday: 'Everyday',
+      twice_daily: 'Twice daily',
+      three_times_daily: 'Three times daily',
+      custom: 'Custom schedule'
+    };
+
+    const newMedicineReminder: MedicineReminderVM = {
+      notification_id: notificationId,
+      pet: {
+        id: selectedPet.id,
+        name: selectedPet.name,
+        image_url: selectedPet.avatarUrl || '/pets-example/pet-ex1.svg',
+      },
+      medicine: {
+        id: medicineId,
+        name: medicineName,
+        dosage: dosage,
+      },
+      schedule: {
+        frequency: {
+          key: frequency as "everyday" | "interval_hours" | "custom",
+          label: frequencyLabels[frequency] || 'Everyday',
+        },
+        reminders: reminders.map(reminder => ({
+          id: reminder.id,
+          time: reminder.time,
+          is_taken: false,
+        })),
+        measurement_times_per_day: reminders.length,
+        starting_date: startDate,
+      },
+      medication_status: {
+        is_stopped: false,
+      },
+    };
+
+    onSubmit?.(newMedicineReminder);
+    
+    // Reset form
+    setPetId('');
+    setMedicineName('');
+    setDosage('');
+    setFrequency('everyday');
+    setStartDate(new Date().toISOString().split('T')[0]);
+    setReminders([{ id: 'r1', time: '08:00' }]);
+    
+    onClose();
+  };
+
+  const selectedPet = pets.find(p => p.id === petId);
+
   return (
     <Overlay onClick={handleOverlayClick}>
       <PopupCard>
-        <Title>Create Medication</Title>
+        <TopPopup>
+          <Title>Add New Medication</Title>
+          <IconButton
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <CloseIcon sx={{ fontSize: 22 }} />
+          </IconButton>
+        </TopPopup>
+        
+
         <SelectPet>
           <PetIconWrap>
-            {petId
-              ? (
-                  <img
-                    src={pets.find((p: Pet) => p.id === petId)?.avatarUrl || ''}
-                    alt={pets.find((p: Pet) => p.id === petId)?.name || ''}
-                    width={40}
-                    height={40}
-                    style={{ borderRadius: '50%', objectFit: 'cover' }}
-                  />
-                )
-              : (
-                  <Pets style={{ fontSize: 40, color: '#888' }} />
-                )}
+            {selectedPet?.avatarUrl ? (
+              <img
+                src={selectedPet.avatarUrl}
+                alt={selectedPet.name}
+                width={40}
+                height={40}
+                style={{ borderRadius: '50%', objectFit: 'cover' }}
+              />
+            ) : (
+              <Pets style={{ fontSize: 40, color: '#888' }} />
+            )}
           </PetIconWrap>
-          <FormField label="Petss" htmlFor="pet-select">
+          <FormField label="Pet" htmlFor="pet-select">
             <SelectInput
               id="pet-select"
               value={petId}
@@ -139,27 +332,84 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
           </FormField>
         </SelectPet>
         
-        <FormField label="Medicine Name" htmlFor="med-name-input">
-          <TextInput id="med-name-input" value={medName} onChange={e => setMedName(e.target.value)} placeholder="" />
+        <FormField label="Medicine Name" htmlFor="medicine-name-input">
+          <TextInput 
+            id="medicine-name-input" 
+            value={medicineName} 
+            onChange={e => setMedicineName(e.target.value)} 
+            placeholder="e.g., Amoxicillin" 
+          />
         </FormField>
+
         <Row>
-          <FormField label="Dose/Time" htmlFor="dose-input">
-            <TextInput id="dose-input" value={dose} onChange={e => setDose(e.target.value)} />
+          <FormField label="Dosage" htmlFor="dosage-input">
+            <TextInput 
+              id="dosage-input" 
+              value={dosage} 
+              onChange={e => setDosage(e.target.value)} 
+              placeholder="e.g., 250mg, 1 tablet"
+            />
           </FormField>
-          <FormField label="Times/Day" htmlFor="times-input">
-            <TextInput id="times-input" value={times} onChange={e => setTimes(e.target.value)} />
+          <FormField label="Frequency" htmlFor="frequency-select">
+            <SelectInput
+              id="frequency-select"
+              value={frequency}
+              onChange={e => setFrequency(e.target.value)}
+              options={[
+                { value: 'everyday', label: 'Everyday' },
+                { value: 'twice_daily', label: 'Twice daily' },
+                { value: 'three_times_daily', label: 'Three times daily' },
+                { value: 'custom', label: 'Custom' }
+              ]}
+            />
           </FormField>
         </Row>
+
         <FormField label="Start Date" htmlFor="start-date-input">
-          <TextInput id="start-date-input" value={medName} onChange={e => setStartDate(e.target.value)} placeholder="" />
+          <TextInput 
+            id="start-date-input" 
+            type="date"
+            value={startDate} 
+            onChange={e => setStartDate(e.target.value)} 
+          />
         </FormField>
-        <FormField label="Note" htmlFor="note-area">
-          <NoteArea id="note-area" value={note} onChange={e => setNote(e.target.value)} placeholder="" />
-        </FormField>
-        <PrimaryButton size={'md'} style={{ width: '100%' }} onClick={() => onSubmit?.({ petId, medName, dose, times, note })}>
-          Add New Medication
-        </PrimaryButton>
-        <div style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', fontSize: 22, color: theme.colors.textPrimary }} onClick={onClose}>×</div>
+
+        <RemindersSection>
+          <SectionTitle>Reminder Times</SectionTitle>
+          {reminders.map((reminder, index) => (
+            <ReminderItem key={reminder.id}>
+              <span style={{ minWidth: '60px', fontSize: '14px', color: theme.colors.textSecondary }}>
+                Time {index + 1}:
+              </span>
+              <TimeInput
+                type="time"
+                value={reminder.time}
+                onChange={e => updateReminderTime(reminder.id, e.target.value)}
+              />
+              {reminders.length > 1 && (
+                <RemoveButton onClick={() => removeReminder(reminder.id)}>
+                  <Remove fontSize="small" />
+                </RemoveButton>
+              )}
+            </ReminderItem>
+          ))}
+          
+          <AddReminderButton onClick={addReminder}>
+            <Add fontSize="small" />
+            Add Another Time
+          </AddReminderButton>
+        </RemindersSection>
+
+        <ButtonRow>
+          <SecondaryButton onClick={onClose}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton size={'md'} style={{ flex: 1 }} onClick={handleSubmit}>
+            Add Medication
+          </PrimaryButton>
+        </ButtonRow>
+
+        
       </PopupCard>
     </Overlay>
   );

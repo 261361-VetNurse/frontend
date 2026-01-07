@@ -2,7 +2,7 @@
 
 import OwnerHeaderCard from "@/components/pet-owners/MainPage/MyPetsPage/OwnerHeaderCard";
 import StatCard from "@/components/pet-owners/MainPage/MyPetsPage/StatCard";
-import NewPetButton from "@/components/pet-owners/MainPage/MyPetsPage/NewPet";
+import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 import { mockPets } from "@/mocks/pets";

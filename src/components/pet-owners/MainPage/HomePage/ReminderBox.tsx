@@ -1,4 +1,3 @@
-import React from "react";
 import styled from "styled-components";
 
 const ReminBox = styled.div`
@@ -27,6 +26,7 @@ const ReminderText = styled.div`
   display: flex;
   flex-direction: column;
   gap: 6px;
+  flex: 1;
 
   .title {
     color: rgba(0, 0, 0, 0.9);
@@ -53,6 +53,12 @@ const ReminderText = styled.div`
   }
 `;
 
+const StatusIcon = styled.img`
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+`;
+
 export type ReminderBoxProps = {
     petName: string;
     petImageUrl: string; // เช่น "/pets-example/pet-ex1.svg" หรือ url จริง
@@ -61,6 +67,9 @@ export type ReminderBoxProps = {
     // เลือกได้ 2 แบบ:
     dateLabel: string; // เช่น "Today," / "Mon," / "12 Jan,"
     timeLabel: string; // เช่น "9:45 AM."
+
+    // สถานะการทานยา
+    is_taken: boolean;
 
     // optional
     petImageSize?: number; // default 40
@@ -73,6 +82,7 @@ export default function ReminderBox({
                                         medicineName,
                                         dateLabel,
                                         timeLabel,
+                                        is_taken,
                                         petImageSize = 40,
                                         onClick,
                                     }: ReminderBoxProps) {
@@ -90,6 +100,10 @@ export default function ReminderBox({
                     <span>{timeLabel}</span>
                 </div>
             </ReminderText>
+            
+            {is_taken && (
+                <StatusIcon src="/complete.svg" alt="completed" />
+            )}
         </ReminBox>
     );
 }

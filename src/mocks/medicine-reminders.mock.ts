@@ -1,51 +1,153 @@
-import { MedicineReminderVM } from "@/types/medicine-reminder";
+import {MedicineReminderVM} from "@/types/medicine-reminder";
 
-export const mockMedicineReminders: MedicineReminderVM[] = [
+export const mockMedicineReminderVMs: MedicineReminderVM[] = [
     {
-        notification_id: "65f1a9c2b0f3c1a2d3e4fa02",
-
+        notification_id: "65f1a9c2b0f3c1a2d3e4fa10",
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f601",
             name: "Mochi",
-            image_url: "/pets-example/pet-ex1.svg",
+            image_url: "https://picsum.photos/seed/mochi/200/200",
         },
-
         medicine: {
-            id: "65f1a9c2b0f3c1a2d3e4f801",
-            name: "Cetirizine",
-            dosage: "1/2 tab",
+            id: "65f1a9c2b0f3c1a2d3e4f811",
+            name: "Probiotics Capsule",
+            dosage: "150mg",
         },
-
         schedule: {
-            date: "Today",
-            time: "20:00",
-            datetime: "2026-01-06T20:00:00.000Z",
+            frequency: { key: "everyday", label: "Everyday" },
+            reminders: [
+                {
+                    id: "r1",
+                    time: "08:00",
+                    is_taken: false,
+                },
+                {
+                    id: "r2",
+                    time: "20:00",
+                    is_taken: true,
+                    taken_at: "2026-01-07T20:03:00.000Z",
+                },
+            ],
+            measurement_times_per_day: 2,
+            starting_date: "2025-11-15",
         },
-
-        is_read: false,
+        medication_status: {
+            is_stopped: false,
+        },
     },
 
     {
-        notification_id: "65f1a9c2b0f3c1a2d3e4fa04",
-
+        notification_id: "65f1a9c2b0f3c1a2d3e4fa11",
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f602",
             name: "Taro",
-            image_url: "/pets-example/pet-ex2.svg",
+            image_url: "https://picsum.photos/seed/taro/200/200",
         },
-
         medicine: {
-            id: "65f1a9c2b0f3c1a2d3e4f802",
+            id: "65f1a9c2b0f3c1a2d3e4f812",
             name: "Amoxicillin",
             dosage: "5 ml",
         },
-
         schedule: {
-            date: "Today",
-            time: "04:00",
-            datetime: "2026-01-06T04:00:00.000Z",
+            frequency: { key: "interval_hours", label: "Every 8 hours", interval_hours: 8 },
+            reminders: [
+                { id: "r1", time: "06:00", is_taken: true, taken_at: "2026-01-07T06:05:00.000Z" },
+                { id: "r2", time: "14:00", is_taken: false },
+                { id: "r3", time: "22:00", is_taken: false },
+            ],
+            measurement_times_per_day: 3,
+            starting_date: "2026-01-01",
         },
+        medication_status: {
+            is_stopped: false,
+        },
+    },
 
-        is_read: true,
+    {
+        notification_id: "65f1a9c2b0f3c1a2d3e4fa12",
+        pet: {
+            id: "65f1a9c2b0f3c1a2d3e4f603",
+            name: "Luna",
+            image_url: "https://picsum.photos/seed/luna/200/200",
+        },
+        medicine: {
+            id: "65f1a9c2b0f3c1a2d3e4f813",
+            name: "Dewormer",
+            dosage: "1 tab",
+        },
+        schedule: {
+            frequency: {
+                key: "custom",
+                label: "Mon, Thu",
+                days_of_week: ["mon", "thu"],
+            },
+            reminders: [{ id: "r1", time: "09:00", is_taken: true, taken_at: "2026-01-07T09:02:00.000Z" }],
+            measurement_times_per_day: 1,
+            starting_date: "2026-01-02",
+        },
+        medication_status: {
+            is_stopped: true,
+            stopped_at: "2026-01-05T10:00:00.000Z",
+            reason: "Vet stopped medication",
+        },
+    },
+
+    // Additional test cases for home page filtering
+    {
+        notification_id: "65f1a9c2b0f3c1a2d3e4fa13",
+        pet: {
+            id: "65f1a9c2b0f3c1a2d3e4f601",
+            name: "Mochi",
+            image_url: "https://picsum.photos/seed/mochi/200/200",
+        },
+        medicine: {
+            id: "65f1a9c2b0f3c1a2d3e4f814",
+            name: "Vitamin D",
+            dosage: "2 drops",
+        },
+        schedule: {
+            frequency: { key: "everyday", label: "Everyday" },
+            reminders: [
+                {
+                    id: "r1",
+                    time: "12:00", // Noon - should show if within 2 hours
+                    is_taken: false,
+                },
+            ],
+            measurement_times_per_day: 1,
+            starting_date: "2026-01-01",
+        },
+        medication_status: {
+            is_stopped: false,
+        },
+    },
+
+    {
+        notification_id: "65f1a9c2b0f3c1a2d3e4fa14",
+        pet: {
+            id: "65f1a9c2b0f3c1a2d3e4f602",
+            name: "Taro",
+            image_url: "https://picsum.photos/seed/taro/200/200",
+        },
+        medicine: {
+            id: "65f1a9c2b0f3c1a2d3e4f815",
+            name: "Pain Relief",
+            dosage: "1/2 tablet",
+        },
+        schedule: {
+            frequency: { key: "everyday", label: "Everyday" },
+            reminders: [
+                {
+                    id: "r1",
+                    time: "07:00", // Morning - might be overdue depending on current time
+                    is_taken: false,
+                },
+            ],
+            measurement_times_per_day: 1,
+            starting_date: "2026-01-01",
+        },
+        medication_status: {
+            is_stopped: false,
+        },
     },
 ];
