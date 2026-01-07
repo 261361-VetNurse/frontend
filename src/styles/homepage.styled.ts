@@ -48,13 +48,18 @@ export const HomePageStyled = styled.div `
             }
         }
     }
-    .pet-list{
-        width: 100%;
+    .mypet-section{
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        background-color: #F7F7F7;
+        flex-direction: row;
+        gap: 8px;
+        .pet-list{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 8px;
+        }
     }
+    
 
     .reminder-box{
         width: 100%;

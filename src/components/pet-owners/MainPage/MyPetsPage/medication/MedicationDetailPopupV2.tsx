@@ -63,7 +63,7 @@ export default function MedicationDetailPopupV2({
           </button>
         </div>
 
-        {/* Pet row */}
+        {/* Petss row */}
         <div className="px-6 pb-4 flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full bg-zinc-100 shrink-0">
             {pet.avatarUrl ? (

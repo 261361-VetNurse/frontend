@@ -1,6 +1,6 @@
 export type Gender = "Male" | "Female";
 
-export type Pet = {
+export type Petss = {
   id: string;           
   pid?: string;          
   name: string;
@@ -18,7 +18,7 @@ export type Pet = {
 
 
 export type PetCardModel =
-  Pick<Pet, "id" | "pid" | "name" | "gender" | "verified" | "imageUrl"> & {
+  Pick<Petss, "id" | "pid" | "name" | "gender" | "verified" | "imageUrl"> & {
     ageText: string;    
   };
 

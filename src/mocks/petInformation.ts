@@ -1,4 +1,4 @@
-import type { PetInformation } from "@/types/Pet";
+import type { PetInformation } from "@/types/Petss";
 
 export const mockPetInformationById: Record<string, PetInformation> = {
   "4302459": {

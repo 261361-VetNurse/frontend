@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockPets } from "@/mocks/pets";
-import type { Pet } from "@/types/Pet";
+import type { Petss } from "@/types/Petss";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
@@ -17,7 +17,7 @@ export default function PetInfo() {
 
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
 
-  const pet: Pet | undefined = useMemo(
+  const pet: Petss | undefined = useMemo(
     () => mockPets.find((p) => p.id === String(petId)),
     [petId]
   );
@@ -28,7 +28,7 @@ export default function PetInfo() {
         <button onClick={() => router.back()} className="underline">
           ← 
         </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">Petss not found: {String(petId)}</div>
       </div>
     );
   }
@@ -61,7 +61,7 @@ export default function PetInfo() {
     },
     {
       iconSrc: "/record.svg",
-      title: "Pet Symptom Record",
+      title: "Petss Symptom Record",
       href: `/pet-owners/my-pets-page/${currentPet.id}/symptoms`,
     },
     {
@@ -74,11 +74,11 @@ export default function PetInfo() {
   return (
     <Page>
       <TopBar
-        title="Pet Information"
+        title="Petss Information"
         onBack={() => router.push(`/pet-owners/my-pets-page`)}
       />
 
-      {/* Pet selector card */}
+      {/* Petss selector card */}
       <div className="mt-4 relative z-10">
         <PetSelectorCard
           name={currentPet.name}
@@ -90,7 +90,7 @@ export default function PetInfo() {
         />
       </div>
 
-      {/* Pet selector bottom sheet */}
+      {/* Petss selector bottom sheet */}
       {isSelectorOpen && (
         <div className="fixed inset-0 z-50">
           <button
@@ -103,7 +103,7 @@ export default function PetInfo() {
           <div className="absolute left-0 right-0 bottom-0 rounded-t-3xl bg-white shadow-xl border-t border-zinc-100">
             <div className="flex items-center justify-between">
               <div className="text-base font-semibold text-zinc-900">
-                Select Pet
+                Select Petss
               </div>
             </div>
 

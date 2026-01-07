@@ -220,9 +220,9 @@ export default function SymptomRecord() {
 
   return (
     <>
-      <TopBar title="Pet Symptom Record" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar title="Petss Symptom Record" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
-      {/* Pet selector */}
+      {/* Petss selector */}
       <div className="mt-4">
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}

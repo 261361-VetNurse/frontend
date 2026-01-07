@@ -7,11 +7,11 @@ import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 import { mockPets } from "@/mocks/pets";
 import { mockOwner } from "@/mocks/owner";
-import { Pet } from "@/types/Pet";
+import { Petss } from "@/types/Petss";
 import { Page } from "@/styles/myPetsPage.styled";
 
 export default function MyPets() {
-  const pets: Pet[] = mockPets;
+  const pets: Petss[] = mockPets;
   const allPetsCount = pets.length;
   const inMedicalCount = 0;
   const router = useRouter();

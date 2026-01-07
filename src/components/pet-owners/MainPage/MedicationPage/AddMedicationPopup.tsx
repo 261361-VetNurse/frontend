@@ -77,7 +77,7 @@ const NoteArea = styled.textarea`
   resize: vertical;
 `;
 
-type Pet = {
+type Petss = {
   id: string;
   name: string;
   avatarUrl?: string;
@@ -126,7 +126,7 @@ export default function CreateMedicationPopup({ open, onClose, onSubmit , pets}:
                   <Pets style={{ fontSize: 40, color: '#888' }} />
                 )}
           </PetIconWrap>
-          <FormField label="Pet" htmlFor="pet-select">
+          <FormField label="Petss" htmlFor="pet-select">
             <SelectInput
               id="pet-select"
               value={petId}

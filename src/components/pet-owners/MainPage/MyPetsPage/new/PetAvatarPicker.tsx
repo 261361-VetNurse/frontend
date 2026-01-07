@@ -21,7 +21,7 @@ export default function PetAvatarPicker({
   return (
     <div className="relative">
       <div className="relative h-24 w-24 overflow-hidden rounded-full bg-zinc-200">
-        <Image src={value} alt="Pet avatar" fill className="object-cover" />
+        <Image src={value} alt="Petss avatar" fill className="object-cover" />
       </div>
 
       {/* edit button */}

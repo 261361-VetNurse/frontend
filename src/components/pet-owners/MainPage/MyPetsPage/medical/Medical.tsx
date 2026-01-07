@@ -123,7 +123,7 @@ export default function Medical() {
     <>
       <TopBar title="Medical History" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
 
-      {/* Pet selector */}
+      {/* Petss selector */}
       <div className="mt-4">
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}

@@ -21,7 +21,7 @@ const menuItems: MenuItemType[] = [
     icon: <HomeOutlined />,
   },
   {
-    label: "Pet Owners",
+    label: "Petss Owners",
     href: "/admin/pet-owners",
     icon: <GroupOutlined />,
   },

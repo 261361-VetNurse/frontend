@@ -1,6 +1,6 @@
-import type { Pet } from "@/types/Pet";
+import type { Petss } from "@/types/Petss";
 
-export const mockPets: Pet[] = [
+export const mockPets: Petss[] = [
   {
     id: "4302459",
     pid: "4302459",

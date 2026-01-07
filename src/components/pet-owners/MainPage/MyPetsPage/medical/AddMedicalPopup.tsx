@@ -104,7 +104,7 @@ export default function AddMedicalPopup({
           </button>
         </div>
 
-        {/* Pet row */}
+        {/* Petss row */}
         <div className="px-6 pb-4 flex items-center gap-4">
           <div className="relative h-16 w-16 overflow-hidden rounded-full bg-zinc-100 shrink-0">
             {pet.avatarUrl ? (

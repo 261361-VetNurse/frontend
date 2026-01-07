@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
 import { mockPets } from "@/mocks/pets";
-import type { Pet } from "@/types/Pet";
+import type { Petss } from "@/types/Petss";
 import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
@@ -16,7 +16,7 @@ export default function EditBasicInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const pet: Pet | undefined = useMemo(
+  const pet: Petss | undefined = useMemo(
     () => mockPets.find((p) => p.id === String(petId)),
     [petId]
   );
@@ -27,7 +27,7 @@ export default function EditBasicInfo() {
         <button onClick={() => router.back()} className="underline">
           ← Back
         </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">Petss not found: {String(petId)}</div>
       </div>
     );
   }
@@ -106,7 +106,7 @@ export default function EditBasicInfo() {
             <div className="h-24 w-24 rounded-full overflow-hidden bg-zinc-200">
               <Image
                 src={avatarUrl}
-                alt="Pet avatar"
+                alt="Petss avatar"
                 width={96}
                 height={96}
                 className="h-full w-full object-cover"

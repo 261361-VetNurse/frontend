@@ -245,7 +245,7 @@ export default function Medication({
   };
 
   const handleClosePopup = () => setShowCreatePopup(false);
-  const handleSubmitPopup = (data: any) => {
+  const handleSubmitPopup = (data: unknown) => {
     setShowCreatePopup(false);
   };
 
@@ -262,7 +262,7 @@ export default function Medication({
     setDetailRecord(null);
   };
   const handleCloseEdit = () => setEditRecord(null);
-  const handleSaveEdit = (data: any) => {
+  const handleSaveEdit = (data: unknown) => {
     setEditRecord(null);
   };
   const handleDeleteDetail = () => {
@@ -271,7 +271,7 @@ export default function Medication({
 
   return (
     <Page>
-      {/* Pet selector */}
+      {/* Petss selector */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
         <PetSelectButton onClick={() => setPetDropdownOpen((open) => !open)}>
           <div className='PetIcon'>

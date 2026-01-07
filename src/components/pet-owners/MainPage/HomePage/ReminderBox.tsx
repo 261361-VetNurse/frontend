@@ -1,5 +1,5 @@
+import React from "react";
 import styled from "styled-components";
-import ProflieCom from "@/components/pet-owners/MainPage/HomePage/PetProfile";
 
 const ReminBox = styled.div`
     width: 100%;
@@ -7,46 +7,87 @@ const ReminBox = styled.div`
     align-items: center;
     gap: 16px;
     padding: 16px;
-    background-color: #FFF;
+    background-color: #fff;
     cursor: pointer;
-    
-    &:active{
-        background-color: #F0F0F0;
+
+    &:active {
+        background-color: #f0f0f0;
     }
+`;
+
+const PetImg = styled.img<{ $size: number }>`
+    width: ${({ $size }) => $size}px;
+    height: ${({ $size }) => $size}px;
+    border-radius: 9999px;
+    object-fit: cover;
+    flex: 0 0 auto;
 `;
 
 const ReminderText = styled.div`
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 
-    .title{
-        color: rgba(0, 0, 0, 0.90);
-        font-size: 16px;
-        font-weight: 400;
-    }
-    .time-text{
-        color: rgba(0, 0, 0, 0.70);
-        font-size: 12px;
-        font-weight: 300;
-    }
-    .time-row{
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
+  .title {
+    color: rgba(0, 0, 0, 0.9);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.25;
+  }
+
+  .time-text {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 12px;
+    font-weight: 300;
+  }
+
+  .time-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .icon {
+    width: 16px;
+    height: 16px;
+  }
 `;
 
-export default function ReminderBox() {
-    return(
-        <ReminBox>
-            <ProflieCom petImage="/pets-example/pet-ex1.svg" showName={false} size={40} />
+export type ReminderBoxProps = {
+    petName: string;
+    petImageUrl: string; // เช่น "/pets-example/pet-ex1.svg" หรือ url จริง
+    medicineName: string;
+
+    // เลือกได้ 2 แบบ:
+    dateLabel: string; // เช่น "Today," / "Mon," / "12 Jan,"
+    timeLabel: string; // เช่น "9:45 AM."
+
+    // optional
+    petImageSize?: number; // default 40
+    onClick?: () => void;
+};
+
+export default function ReminderBox({
+                                        petName,
+                                        petImageUrl,
+                                        medicineName,
+                                        dateLabel,
+                                        timeLabel,
+                                        petImageSize = 40,
+                                        onClick,
+                                    }: ReminderBoxProps) {
+    return (
+        <ReminBox onClick={onClick} role={onClick ? "button" : undefined}>
+            <PetImg src={petImageUrl} alt={petName} $size={petImageSize} />
             <ReminderText>
-                <div className="title">Lee อย่าลืมทานยา ABO 250 mg</div>
+                <div className="title">
+                    {petName} อย่าลืมทานยา {medicineName}
+                </div>
+
                 <div className="time-row time-text">
-                    <img src="/clock.svg" alt="clock" />
-                    <span>Today,</span>
-                    <span>9:45 AM.</span>
+                    <img className="icon" src="/clock.svg" alt="clock" />
+                    <span>{dateLabel}</span>
+                    <span>{timeLabel}</span>
                 </div>
             </ReminderText>
         </ReminBox>

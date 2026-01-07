@@ -93,7 +93,7 @@ export default function AddAppointmentPopup({
           </button>
         </div>
 
-        {/* Pet row */}
+        {/* Petss row */}
         <div className="px-5 pb-4 flex items-center gap-3">
           <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
             {pet.avatarUrl ? (
