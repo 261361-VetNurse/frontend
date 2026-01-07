@@ -1,32 +1,13 @@
+import Button from "@/components/admin/shared/Button";
+import AddIcon from '@mui/icons-material/Add'
+
 export default function AdminPage() {
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
-      <h1 className="text-2xl font-bold mb-4">Admin</h1>
-      <p className="text-zinc-600">Desktop admin section with sidebar</p>
+      <Button icon="left">
+        <AddIcon></AddIcon>
+        Add
+      </Button>
     </div>
   );
 }

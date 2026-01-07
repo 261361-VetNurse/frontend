@@ -13,7 +13,7 @@ export default function AdminLayout({
       <div className="admin-main flex flex-1">
         <Sidebar />
         <main className="admin-content flex-1 overflow-auto fade-in">
-          <Container paddingX={24}>
+          <Container width={'100%'}>
             {children}
           </Container>
         </main>
