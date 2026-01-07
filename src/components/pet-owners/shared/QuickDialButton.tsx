@@ -27,13 +27,13 @@ const positionStyles = (position: Position) => {
         case "bottom-left":
             return `
         bottom: 80px;
-        left: 0;
+        left: 10px;
       `;
         case "bottom-right":
         default:
             return `
         bottom: 80px;
-        right: 0;
+        right: 10px;
       `;
     }
 };
@@ -45,7 +45,7 @@ const QuickDialButtonStyled = styled.button<ButtonProps>`
   background: ${({ $bgColor }) => $bgColor};
   border: none;
   cursor: pointer;
-  position: absolute;
+  position: fixed;
   z-index: 10px;
   display: flex;
   align-items: center;

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import CreateMedicationPopup from './AddMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
 import EditMedicationPopup from './EditMedicationPopup';
@@ -14,9 +15,18 @@ import {
   Header,
   CardList,
 } from '../../../../styles/medication.styled';
-import { Pets, ExpandMore, Add } from '@mui/icons-material';
+import { Pets, ExpandMore } from '@mui/icons-material';
 import { theme } from '@/styles/theme';
 import { QuickDialButton } from '../../shared/QuickDialButton';
+import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';
+import { MedicineReminderVM } from '@/types/medicine-reminder';
+import {
+  getTodayReminders,
+  formatTimeForDisplay,
+  updateReminderTakenStatus,
+  updateMedicationStoppedStatus,
+  ReminderOccurrence,
+} from '@/lib/reminder-utils';
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';
@@ -28,250 +38,178 @@ interface Pet {
   avatarUrl?: string;
 }
 
-export interface MedicationRecord {
-  id: string;
-  petId: string;
-  petName: string;
-  medicationName: string;
-  schedule: string;
-  note?: string;
-  avatarUrl?: string;
-  recordDate?: string; 
-}
-
-interface MedicationProps {
-  records?: Record<TabType, MedicationRecord[]>;
-  onAdd?: () => void;
-  onSelectPet?: (petId: PetId) => void;
-  onChangeTab?: (tab: TabType) => void;
-}
-
-// Mock data
+// Mock pets data
 const mockPets: Pet[] = [
-  { id: '1', name: 'Max', avatarUrl: '/pets-example/pet-ex1.svg' },
-  { id: '2', name: 'Luna', avatarUrl: '/pets-example/pet-ex1.svg' },
-  { id: '3', name: 'Charlie', avatarUrl: '/pets-example/pet-ex1.svg' },
+  { id: '65f1a9c2b0f3c1a2d3e4f601', name: 'Mochi', avatarUrl: 'https://picsum.photos/seed/mochi/200/200' },
+  { id: '65f1a9c2b0f3c1a2d3e4f602', name: 'Taro', avatarUrl: 'https://picsum.photos/seed/taro/200/200' },
+  { id: '65f1a9c2b0f3c1a2d3e4f603', name: 'Luna', avatarUrl: 'https://picsum.photos/seed/luna/200/200' },
 ];
 
-const getMockRecords = (): Record<TabType, MedicationRecord[]> => {
-  const today = new Date();
-  const dayAfterTomorrow = new Date(today);
-  dayAfterTomorrow.setDate(today.getDate() + 2);
-  
-  const thirdDay = new Date(today);
-  thirdDay.setDate(today.getDate() + 3);
-
-  const formatDateString = (date: Date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-  return {
-    today: [
-      {
-        id: '1',
-        petId: '1',
-        petName: 'Max',
-        medicationName: 'Amoxicillin 250mg',
-        schedule: 'ครั้งละ 1 ซอง วันละครั้ง',
-        note: 'Note : Give after meal',
-        avatarUrl: '/pets-example/pet-ex1.svg',
-      },
-      {
-        id: '2',
-        petId: '2',
-        petName: 'Luna',
-        medicationName: 'Prednisolone 5mg',
-        schedule: 'ครั้งละ 2 เม็ด วันละสองครั้ง',
-        note: 'Note : Morning and evening',
-        avatarUrl: '/pets-example/pet-ex1.svg',
-      },
-    ],
-    tomorrow: [
-      {
-        id: '3',
-        petId: '3',
-        petName: 'Charlie',
-        medicationName: 'Metronidazole 500mg',
-        schedule: 'ครั้งละ 1 เม็ด วันละครั้ง',
-        note: 'Note : With food',
-        avatarUrl: '/pets-example/pet-ex1.svg',
-      },
-    ],
-    other: [
-      {
-          id: '4',
-          petId: '1',
-          petName: 'Lee',
-          medicationName: 'Samylin Medium Breed',
-          schedule: 'ครั้งละ 1 ซอง วันละครั้ง',
-          note: 'Note : กินผสมอาหาร, ช่วยบำรุงตับ',
-          avatarUrl: '/pets-example/pet-ex1.svg',
-          recordDate: formatDateString(dayAfterTomorrow),
-      },
-      {
-          id: '5',
-          petId: '2',
-          petName: 'Judy',
-          medicationName: 'Samylin Medium Breed',
-          schedule: 'ครั้งละ 1 ซอง วันละครั้ง',
-          note: 'Note : กินผสมอาหาร, ช่วยบำรุงตับ',
-          avatarUrl: '/pets-example/pet-ex1.svg',
-          recordDate: formatDateString(dayAfterTomorrow),
-      },
-      {
-          id: '6',
-          petId: '2',
-          petName: 'Judy',
-          medicationName: 'Samylin Medium Breed',
-          schedule: 'ครั้งละ 1 ซอง วันละครั้ง',
-          note: 'Note : กินผสมอาหาร, ช่วยบำรุงตับ',
-          avatarUrl: '/pets-example/pet-ex1.svg',
-          recordDate: formatDateString(thirdDay),
-      },
-    ],
-  };
-};
-
-const mockRecords = getMockRecords();
-
-// Helper functions
-const formatDate = (tab: TabType): string => {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  
-  const dayAfterTomorrow = new Date(today);
-  dayAfterTomorrow.setDate(today.getDate() + 2);
-  
-  const thirdDay = new Date(today);
-  thirdDay.setDate(today.getDate() + 3);
-  
-  const fourthDay = new Date(today);
-  fourthDay.setDate(today.getDate() + 4);
-
-  const formatDateThai = (date: Date) => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dayName = days[date.getDay()];
-    const day = date.getDate();
-    const month = date.getMonth() + 1;
-    const year = date.getFullYear(); // Buddhist year
-    return `${dayName}, ${day}/${month}/${year}`;
-  };
-
-  switch (tab) {
-    case 'today':
-      return formatDateThai(today);
-    case 'tomorrow':
-      return formatDateThai(tomorrow);
-    case 'other':
-      return `${formatDateThai(dayAfterTomorrow)} ${formatDateThai(thirdDay)} ${formatDateThai(fourthDay)}`;
-    default:
-      return '';
-  }
-};
-
-const formatGroupDate = (isoDate: string) => {
-  const d = new Date(isoDate + 'T00:00:00'); // กัน timezone เพี้ยน
-  const weekday = d.toLocaleDateString('en-US', { weekday: 'short' });
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const yyyy = d.getFullYear();
-  return `${weekday}, ${dd}/${mm}/${yyyy}`;
-};
-
-const groupRecordsByDate = (items: MedicationRecord[]) => {
-  const map = new Map<string, MedicationRecord[]>();
-  for (const r of items) {
-    const key = r.recordDate ?? 'Unknown date';
-    const arr = map.get(key) ?? [];
-    arr.push(r);
-    map.set(key, arr);
-  }
-
-  const entries = Array.from(map.entries()).sort((a, b) => {
-    if (a[0] === 'Unknown date') return 1;
-    if (b[0] === 'Unknown date') return -1;
-    return a[0].localeCompare(b[0]);
-  });
-
-  return entries; 
-};
-
-
-const getHeaderTitle = (tab: TabType): string => {
-  switch (tab) {
-    case 'today':
-      return 'Today record';
-    case 'tomorrow':
-      return 'Tomorrow record';
-    case 'other':
-      return 'Other record';
-    default:
-      return '';
-  }
-};
-
-export default function Medication({
-  records = mockRecords,
-  onAdd,
-  onSelectPet,
-  onChangeTab,
-}: MedicationProps) {
-
+export default function MedicationPage() {
+  const searchParams = useSearchParams();
+  const [medicineReminders, setMedicineReminders] = useState<MedicineReminderVM[]>(mockMedicineReminderVMs);
   const [selectedTab, setSelectedTab] = useState<TabType>('today');
   const [selectedPetId, setSelectedPetId] = useState<PetId>('all');
   const [petDropdownOpen, setPetDropdownOpen] = useState(false);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<MedicationRecord|null>(null);
-  const [editRecord, setEditRecord] = useState<MedicationRecord|null>(null);
+  const [selectedReminder, setSelectedReminder] = useState<{
+    medicineReminder: MedicineReminderVM;
+    highlightedReminderId?: string;
+  } | null>(null);
+  const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
+  const [highlightedOccurrenceId, setHighlightedOccurrenceId] = useState<string | null>(null);
+
+  // Handle deep linking
+  useEffect(() => {
+    const notificationId = searchParams.get('notification_id');
+    const reminderId = searchParams.get('reminder_id');
+    const openMode = searchParams.get('open');
+
+    if (notificationId) {
+      const medicineReminder = medicineReminders.find(
+        mr => mr.notification_id === notificationId
+      );
+
+      if (medicineReminder && !medicineReminder.medication_status.is_stopped) {
+        if (openMode === 'edit') {
+          // Open edit popup directly
+          setEditingReminder(medicineReminder);
+        } else {
+          // Open detail popup
+          setSelectedReminder({
+            medicineReminder,
+            highlightedReminderId: reminderId || undefined,
+          });
+        }
+
+        // Highlight the specific occurrence
+        if (reminderId) {
+          setHighlightedOccurrenceId(`${notificationId}-${reminderId}`);
+        }
+
+        // Clean URL after opening (optional)
+        window.history.replaceState({}, '', '/pet-owners/medication-page');
+      } else if (medicineReminder?.medication_status.is_stopped) {
+        // Show message for stopped medication
+        alert('This medication reminder is no longer active.');
+      }
+    }
+  }, [searchParams, medicineReminders]);
+
+  // Get today's reminders
+  const todayReminders = getTodayReminders(medicineReminders);
+  
+  // Filter by selected pet
+  const filteredReminders = todayReminders.filter(occurrence => 
+    selectedPetId === 'all' || occurrence.pet.id === selectedPetId
+  );
 
   const handleTabChange = (tab: TabType) => {
     setSelectedTab(tab);
-    onChangeTab?.(tab);
   };
 
   const handlePetSelect = (petId: PetId) => {
     setSelectedPetId(petId);
     setPetDropdownOpen(false);
-    onSelectPet?.(petId);
   };
 
   const handleAdd = () => {
     setShowCreatePopup(true);
-    onAdd?.();
   };
 
-  const handleClosePopup = () => setShowCreatePopup(false);
-  const handleSubmitPopup = (data: unknown) => {
+  const handleCloseCreatePopup = () => {
     setShowCreatePopup(false);
   };
 
-  const filteredRecords = records[selectedTab].filter((record: MedicationRecord) => 
-    selectedPetId === 'all' || record.petId === selectedPetId
-  );
+  const handleSubmitCreatePopup = (newMedicineReminder: MedicineReminderVM) => {
+    // Add the new medication to the state
+    setMedicineReminders([...medicineReminders, newMedicineReminder]);
+    setShowCreatePopup(false);
+  };
 
-  const handleCardClick = (record: MedicationRecord) => {
-    setDetailRecord(record);
+  const handleReminderClick = (occurrence: ReminderOccurrence) => {
+    const medicineReminder = medicineReminders.find(
+      mr => mr.notification_id === occurrence.notification_id
+    );
+    
+    if (medicineReminder) {
+      setSelectedReminder({
+        medicineReminder,
+        highlightedReminderId: occurrence.reminder_id,
+      });
+    }
   };
-  const handleCloseDetail = () => setDetailRecord(null);
-  const handleEditDetail = (record: MedicationRecord | null) => {
-    if (record) setEditRecord(record);
-    setDetailRecord(null);
+
+  const handleToggleReminder = (reminderId: string, isTaken: boolean) => {
+    if (!selectedReminder) return;
+    
+    const updatedReminders = updateReminderTakenStatus(
+      medicineReminders,
+      selectedReminder.medicineReminder.notification_id,
+      reminderId,
+      isTaken
+    );
+    
+    setMedicineReminders(updatedReminders);
+    
+    // Update the selected reminder state
+    const updatedMedicineReminder = updatedReminders.find(
+      mr => mr.notification_id === selectedReminder.medicineReminder.notification_id
+    );
+    
+    if (updatedMedicineReminder) {
+      setSelectedReminder({
+        ...selectedReminder,
+        medicineReminder: updatedMedicineReminder,
+      });
+    }
   };
-  const handleCloseEdit = () => setEditRecord(null);
-  const handleSaveEdit = (data: unknown) => {
-    setEditRecord(null);
+
+  const handleEditFromDetail = () => {
+    if (!selectedReminder) return;
+    
+    setEditingReminder(selectedReminder.medicineReminder);
+    setSelectedReminder(null);
   };
-  const handleDeleteDetail = () => {
-    setDetailRecord(null);
+
+  const handleCloseDetail = () => {
+    setSelectedReminder(null);
+    setHighlightedOccurrenceId(null);
+  };
+
+  const handleCloseEdit = () => {
+    setEditingReminder(null);
+  };
+
+  const handleSaveEdit = (data: {
+    medicineReminder: MedicineReminderVM;
+    isStopped: boolean;
+    reason?: string;
+  }) => {
+    const updatedReminders = updateMedicationStoppedStatus(
+      medicineReminders,
+      data.medicineReminder.notification_id,
+      data.isStopped,
+      data.reason
+    );
+    
+    setMedicineReminders(updatedReminders);
+    setEditingReminder(null);
+  };
+
+  const formatDate = (): string => {
+    const today = new Date();
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayName = days[today.getDay()];
+    const day = today.getDate();
+    const month = today.getMonth() + 1;
+    const year = today.getFullYear();
+    return `${dayName}, ${day}/${month}/${year}`;
   };
 
   return (
     <Page>
-      {/* Petss selector */}
+      {/* Pet selector */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
         <PetSelectButton onClick={() => setPetDropdownOpen((open) => !open)}>
           <div className='PetIcon'>
@@ -337,151 +275,141 @@ export default function Medication({
         )}
       </div>
 
-        {/* Tabs */}
-        <TabsWrap>
-          <TabButton
-            $active={selectedTab === 'today'}
-            onClick={() => handleTabChange('today')}
-          >
-            Today
-          </TabButton>
-          <TabButton
-            $active={selectedTab === 'tomorrow'}
-            onClick={() => handleTabChange('tomorrow')}
-          >
-            Tomorrow
-          </TabButton>
-          <TabButton
-            $active={selectedTab === 'other'}
-            onClick={() => handleTabChange('other')}
-          >
-            Other
-          </TabButton>
-        </TabsWrap>
+      {/* Tabs */}
+      <TabsWrap>
+        <TabButton
+          $active={selectedTab === 'today'}
+          onClick={() => handleTabChange('today')}
+        >
+          Today
+        </TabButton>
+        <TabButton
+          $active={selectedTab === 'tomorrow'}
+          onClick={() => handleTabChange('tomorrow')}
+        >
+          Tomorrow
+        </TabButton>
+        <TabButton
+          $active={selectedTab === 'other'}
+          onClick={() => handleTabChange('other')}
+        >
+          Other
+        </TabButton>
+      </TabsWrap>
 
-        {/* Header */}
-        {selectedTab === 'other' ? (
-        <Header>
-            <div className='Title'>{getHeaderTitle(selectedTab)}</div>
-        </Header>
-            ) :     
-        <Header>
-            <div className='Title'>{getHeaderTitle(selectedTab)}</div>
-            <div className='DateText'>{formatDate(selectedTab)}</div>
-        </Header>
-        }
-        
+      {/* Header */}
+      <Header>
+        <div className='Title'>Today's Medication Reminders</div>
+        <div className='DateText'>{formatDate()}</div>
+      </Header>
 
-        {/* Medication cards */}
-        <CardList>
-        {selectedTab === 'other' ? (
-            groupRecordsByDate(filteredRecords).map(([dateKey, items]) => (
-            <div className="DateGroup" key={dateKey}>
-                <div className="GroupHeader">
-                    {dateKey === 'Unknown date' ? 'Unknown date' : formatGroupDate(dateKey)}
-                </div>
-
-                {items.map((record) => (
-                <div className="Card" key={record.id} onClick={() => handleCardClick(record)} style={{ cursor: 'pointer' }}>
-                    <div className="CardTopRow">
-                    <div className="ScheduleText">{record.schedule}</div>
-                    </div>
-
-                    <div className="CardBody">
-                    <div className="AvatarWrap">
-                        {record.avatarUrl ? (
-                        <Image
-                            src={record.avatarUrl}
-                            alt={record.petName}
-                            width={40}
-                            height={40}
-                        />
-                        ) : (
-                        <div
-                            style={{
-                            width: '100%',
-                            height: '100%',
-                            backgroundColor: '#E5E7EB',
-                            borderRadius: '50%',
-                            }}
-                        />
-                        )}
-                    </div>
-
-                    <div className="TextCol">
-                        <div className="PetName">{record.petName}</div>
-                        <div className="MedName">{record.medicationName}</div>
-                        {record.note && <div className="Note">{record.note}</div>}
-                    </div>
-                    </div>
-                </div>
-                ))}
-            </div>
-            ))
-        ) : (
-            filteredRecords.map((record) => (
-            <div className="Card" key={record.id} onClick={() => handleCardClick(record)} style={{ cursor: 'pointer' }}>
+      {/* Reminder cards */}
+      <CardList>
+        {filteredReminders.length > 0 ? (
+          filteredReminders.map((occurrence) => {
+            const isHighlighted = highlightedOccurrenceId === `${occurrence.notification_id}-${occurrence.reminder_id}`;
+            
+            return (
+              <div 
+                className="Card" 
+                key={`${occurrence.notification_id}-${occurrence.reminder_id}`}
+                onClick={() => handleReminderClick(occurrence)}
+                style={{ 
+                  cursor: 'pointer',
+                  border: isHighlighted ? `2px solid ${theme.colors.primary}` : undefined,
+                  backgroundColor: isHighlighted ? '#E3F2FD' : undefined,
+                }}
+              >
                 <div className="CardTopRow">
-                <div className="ScheduleText">{record.schedule}</div>
+                  <div className="ScheduleText">
+                    {formatTimeForDisplay(occurrence.time)} - {occurrence.medicine.dosage}
+                  </div>
+                  <div style={{
+                    padding: '4px 8px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                    fontWeight: '500',
+                    backgroundColor: occurrence.is_taken ? '#4CAF50' : '#FFF3E0',
+                    color: occurrence.is_taken ? '#fff' : '#F57C00',
+                  }}>
+                    {occurrence.is_taken ? 'Taken' : 'Not taken'}
+                  </div>
                 </div>
+                
                 <div className="CardBody">
-                <div className="AvatarWrap">
-                    {record.avatarUrl ? (
-                    <Image src={record.avatarUrl} alt={record.petName} width={40} height={40} />
-                    ) : (
-                    <div
-                        style={{
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: '#E5E7EB',
-                        borderRadius: '50%',
-                        }}
+                  <div className="AvatarWrap">
+                    <Image
+                      src={occurrence.pet.image_url}
+                      alt={occurrence.pet.name}
+                      width={40}
+                      height={40}
                     />
+                  </div>
+                  
+                  <div className="TextCol">
+                    <div className="PetName">{occurrence.pet.name}</div>
+                    <div className="MedName">{occurrence.medicine.name}</div>
+                    {occurrence.taken_at && (
+                      <div className="Note">
+                        Taken at {formatTimeForDisplay(
+                          new Date(occurrence.taken_at).toTimeString().slice(0, 5)
+                        )}
+                      </div>
                     )}
+                  </div>
                 </div>
-                <div className="TextCol">
-                    <div className="PetName">{record.petName}</div>
-                    <div className="MedName">{record.medicationName}</div>
-                    {record.note && <div className="Note">{record.note}</div>}
-                </div>
-                </div>
-            </div>
-            ))
+              </div>
+            );
+          })
+        ) : (
+          <div style={{
+            padding: '32px 16px',
+            textAlign: 'center',
+            color: theme.colors.textSecondary,
+            fontSize: '14px'
+          }}>
+            No medication reminders today.
+          </div>
         )}
-        </CardList>
+      </CardList>
 
       <QuickDialButton
-          iconColor='#fff'
-          position={'bottom-right'}
-          icon={<AddRoundedIcon/>}
-          color={'#09BFF8'}
-          onClickAction={handleAdd}
-        />
+        iconColor='#fff'
+        position={'bottom-right'}
+        icon={<AddRoundedIcon/>}
+        color={'#09BFF8'}
+        onClickAction={handleAdd}
+      />
 
       {/* Create Medication Popup */}
       <CreateMedicationPopup
         open={showCreatePopup}
-        onClose={handleClosePopup}
-        onSubmit={handleSubmitPopup}
+        onClose={handleCloseCreatePopup}
+        onSubmit={handleSubmitCreatePopup}
         pets={mockPets}
       />
 
       {/* Medication Detail Popup */}
-      <MedicationDetailPopup
-        open={!!detailRecord}
-        onClose={handleCloseDetail}
-        record={detailRecord}
-        onEdit={handleEditDetail}
-        onDelete={handleDeleteDetail}
-      />
+      {selectedReminder && (
+        <MedicationDetailPopup
+          medicineReminder={selectedReminder.medicineReminder}
+          highlightedReminderId={selectedReminder.highlightedReminderId}
+          onClose={handleCloseDetail}
+          onToggleReminder={handleToggleReminder}
+          onEdit={handleEditFromDetail}
+        />
+      )}
+
       {/* Edit Medication Popup */}
-      <EditMedicationPopup
-        open={!!editRecord}
-        onClose={handleCloseEdit}
-        record={editRecord}
-        pets={mockPets}
-        onSave={handleSaveEdit}
-      />
+      {editingReminder && (
+        <EditMedicationPopup
+          open={!!editingReminder}
+          onClose={handleCloseEdit}
+          medicineReminder={editingReminder}
+          pets={mockPets}
+          onSave={handleSaveEdit}
+        />
+      )}
     </Page>
   );
 }

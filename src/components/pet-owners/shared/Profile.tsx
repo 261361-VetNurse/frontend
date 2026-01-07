@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import styled, { css } from 'styled-components';
+import {theme} from "@/styles/theme";
 
 export type ProfileSize = number | string;
 
@@ -168,6 +169,7 @@ const Label = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: ${theme.colors.textSecondary} ;
 `;
 
 export default function Profile({
