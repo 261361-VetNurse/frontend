@@ -8,7 +8,7 @@ export type PetLite = {
   name: string;
   avatarUrl?: string;
   pid?: string;
-};
+}; 
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";
