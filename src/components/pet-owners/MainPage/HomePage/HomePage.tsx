@@ -151,7 +151,7 @@ export default function HomePage({username}: {username: string}) {
                         petName={occurrence.pet.name}
                         petImageUrl={occurrence.pet.image_url}
                         medicineName={occurrence.medicine.name}
-                        dateLabel="Today,"
+                        dosage={occurrence.medicine.dosage}
                         timeLabel={formatTimeForDisplay(occurrence.time)}
                         is_taken={occurrence.is_taken}
                         onClick={() => handleReminderClick(occurrence)}

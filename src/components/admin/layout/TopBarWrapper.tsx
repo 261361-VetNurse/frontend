@@ -6,8 +6,8 @@ export default function TopBarWrapper() {
   return (
     <TopBar
       brandText="NOVEL CMU"
-      logoSrc="/logo-optimized.jpg"
-      userAvatar="/logo-optimized.jpg"
+      logoSrc="/logo-optimized.png"
+      userAvatar="/logo-optimized.png"
       userName="Admin User"
       userSubtitle="Administrator"
       onNotificationsClick={() => console.log('Notifications clicked')}

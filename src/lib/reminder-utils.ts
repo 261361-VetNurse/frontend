@@ -3,6 +3,8 @@ import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
 
+type DayKey = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+
 // Initialize dayjs plugins
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -29,6 +31,42 @@ export interface ReminderOccurrence {
     stopped_at?: string;
     reason?: string;
   };
+}
+
+function getDayKeyInUserTz(date: Date): DayKey {
+  const userTz = getUserTimezone();
+  // dayjs().day(): 0=Sun ... 6=Sat
+  const d = dayjs(date).tz(userTz).day();
+  return (["sun","mon","tue","wed","thu","fri","sat"] as DayKey[])[d];
+}
+
+function isOnOrAfterStartingDate(reminder: MedicineReminderVM, date: Date): boolean {
+  const userTz = getUserTimezone();
+  const start = reminder.schedule.starting_date;
+  if (!start) return true;
+
+  const target = dayjs(date).tz(userTz).startOf("day");
+  const starting = dayjs.tz(start, "YYYY-MM-DD", userTz).startOf("day");
+  return target.isSame(starting) || target.isAfter(starting);
+}
+
+function matchesFrequencyOnDate(reminder: MedicineReminderVM, date: Date): boolean {
+  const freq = reminder.schedule.frequency;
+  if (!freq?.key) return true;
+
+  if (freq.key === "custom") {
+    const days = (freq.days_of_week ?? []) as DayKey[];
+    if (days.length === 0) return false;
+    return days.includes(getDayKeyInUserTz(date));
+  }
+
+  // ถ้ามี key แบบอื่น (daily, etc.) ที่ต้องการรองรับค่อยเติมตรงนี้
+  // เช่น freq.key === "daily" => true
+  return true;
+}
+
+function isScheduledOnDate(reminder: MedicineReminderVM, date: Date): boolean {
+  return isOnOrAfterStartingDate(reminder, date) && matchesFrequencyOnDate(reminder, date);
 }
 
 /**
@@ -83,26 +121,32 @@ export function formatTimeForDisplay(timeStr: string): string {
 /**
  * Flatten MedicineReminderVM array into ReminderOccurrence array for today
  */
+export function flattenRemindersForDate(
+  medicineReminders: MedicineReminderVM[],
+  date: Date
+): ReminderOccurrence[] {
+  return medicineReminders
+    .filter(r => !r.medication_status.is_stopped)
+    .filter(r => isScheduledOnDate(r, date))
+    .flatMap(r =>
+      r.schedule.reminders.map(sr => ({
+        notification_id: r.notification_id,
+        reminder_id: sr.id,
+        pet: r.pet,
+        medicine: r.medicine,
+        time: sr.time,
+        is_taken: sr.is_taken,
+        taken_at: sr.taken_at,
+        occurrence_datetime: createOccurrenceDateTime(date, sr.time),
+        medication_status: r.medication_status,
+      }))
+    );
+}
+
 export function flattenRemindersForToday(
   medicineReminders: MedicineReminderVM[]
 ): ReminderOccurrence[] {
-  const today = getTodayInLocalTimezone();
-  
-  return medicineReminders
-    .filter(reminder => !reminder.medication_status.is_stopped) // Exclude stopped medications
-    .flatMap(reminder => 
-      reminder.schedule.reminders.map(scheduleReminder => ({
-        notification_id: reminder.notification_id,
-        reminder_id: scheduleReminder.id,
-        pet: reminder.pet,
-        medicine: reminder.medicine,
-        time: scheduleReminder.time,
-        is_taken: scheduleReminder.is_taken,
-        taken_at: scheduleReminder.taken_at,
-        occurrence_datetime: createOccurrenceDateTime(today, scheduleReminder.time),
-        medication_status: reminder.medication_status,
-      }))
-    );
+  return flattenRemindersForDate(medicineReminders, getTodayInLocalTimezone());
 }
 
 /**
@@ -144,8 +188,7 @@ export function getHomePageReminders(
     const occurrenceTime = reminder.occurrence_datetime;
     
     // Overdue: earlier than now, not taken, and for today
-    const isOverdue = occurrenceTime < now && 
-                     !reminder.is_taken && 
+    const isOverdue = occurrenceTime < now &&
                      dayjs(occurrenceTime).isSame(today, 'day');
     
     // Upcoming within 2 hours: between now and now + 2 hours

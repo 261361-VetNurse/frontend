@@ -1,4 +1,8 @@
 import styled from "styled-components";
+import CheckIcon from '@mui/icons-material/Check';
+import { theme } from "@/styles/theme";
+import { Clock } from "lucide-react";
+import Profile from "../../shared/Profile";
 
 const ReminBox = styled.div`
     width: 100%;
@@ -7,6 +11,7 @@ const ReminBox = styled.div`
     gap: 16px;
     padding: 16px;
     background-color: #fff;
+    transition: all 0.2s ease-in-out;
     cursor: pointer;
 
     &:active {
@@ -25,47 +30,48 @@ const PetImg = styled.img<{ $size: number }>`
 const ReminderText = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   flex: 1;
-
-  .title {
-    color: rgba(0, 0, 0, 0.9);
-    font-size: 16px;
-    font-weight: 400;
-    line-height: 1.25;
+  .pet-name{
+      font-size: 14px;
+      font-weight: 600;
+      color: ${theme.colors.textSecondary};
   }
-
-  .time-text {
-    color: rgba(0, 0, 0, 0.7);
-    font-size: 12px;
-    font-weight: 300;
+  .med-name{
+      font-size: 16px;
+      font-weight: 700;
+      color: ${theme.colors.textPrimary};
   }
-
-  .time-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .icon {
-    width: 16px;
-    height: 16px;
+  .time{
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 14px;
+      color: ${theme.colors.textSecondary};
   }
 `;
 
-const StatusIcon = styled.img`
+const StatusIcon = styled.div`
   width: 24px;
   height: 24px;
-  flex: 0 0 auto;
+  border-radius: 1000px;
+  border: 2px solid ${theme.colors.primary};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  svg{
+    width: 16px;
+    height: 16px;
+    color: ${theme.colors.primary};
+  }
 `;
 
 export type ReminderBoxProps = {
     petName: string;
     petImageUrl: string; // เช่น "/pets-example/pet-ex1.svg" หรือ url จริง
     medicineName: string;
+    dosage?: string;
 
-    // เลือกได้ 2 แบบ:
-    dateLabel: string; // เช่น "Today," / "Mon," / "12 Jan,"
     timeLabel: string; // เช่น "9:45 AM."
 
     // สถานะการทานยา
@@ -80,7 +86,7 @@ export default function ReminderBox({
                                         petName,
                                         petImageUrl,
                                         medicineName,
-                                        dateLabel,
+                                        dosage,
                                         timeLabel,
                                         is_taken,
                                         petImageSize = 40,
@@ -88,21 +94,23 @@ export default function ReminderBox({
                                     }: ReminderBoxProps) {
     return (
         <ReminBox onClick={onClick} role={onClick ? "button" : undefined}>
-            <PetImg src={petImageUrl} alt={petName} $size={petImageSize} />
+            <Profile imageUrl={petImageUrl} size={petImageSize} />
             <ReminderText>
-                <div className="title">
-                    {petName} อย่าลืมทานยา {medicineName}
+                <div className="pet-name">{petName}</div>
+                <div className="med-name">{medicineName} - {dosage}</div>
+                <div className="time">
+                  <Clock size={16} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                  <div>{timeLabel}</div>
                 </div>
-
-                <div className="time-row time-text">
-                    <img className="icon" src="/clock.svg" alt="clock" />
-                    <span>{dateLabel}</span>
-                    <span>{timeLabel}</span>
-                </div>
+                
             </ReminderText>
-            
-            {is_taken && (
-                <StatusIcon src="/complete.svg" alt="completed" />
+
+            {is_taken ? (
+                <StatusIcon>
+                  <CheckIcon />
+                </StatusIcon>
+            ) : (
+                <StatusIcon/>
             )}
         </ReminBox>
     );

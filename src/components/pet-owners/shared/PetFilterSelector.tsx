@@ -19,7 +19,8 @@ export type PetSelectorValue = string | "all";
 type Props = {
   mode?: Mode;
 
-  /** true = มี All Pets, false = ไม่มีตัวเลือก All */
+  /** true = มี All Pets, 
+   * false = ไม่มีตัวเลือก All */
   allowAllPets?: boolean;
 
   size?: Size;
