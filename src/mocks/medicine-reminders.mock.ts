@@ -6,7 +6,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f601",
             name: "Mochi",
-            image_url: "https://picsum.photos/seed/mochi/200/200",
+            image_url: "/pets-example/pet-ex1.svg",
         },
         medicine: {
             id: "65f1a9c2b0f3c1a2d3e4f811",
@@ -18,7 +18,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
             reminders: [
                 {
                     id: "r1",
-                    time: "08:00",
+                    time: "02:00",
                     is_taken: false,
                 },
                 {
@@ -41,7 +41,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f602",
             name: "Taro",
-            image_url: "https://picsum.photos/seed/taro/200/200",
+            image_url: "/pets-example/pet-ex2.svg",
         },
         medicine: {
             id: "65f1a9c2b0f3c1a2d3e4f812",
@@ -68,7 +68,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f603",
             name: "Luna",
-            image_url: "https://picsum.photos/seed/luna/200/200",
+            image_url: "/pets-example/pet-ex3.svg",
         },
         medicine: {
             id: "65f1a9c2b0f3c1a2d3e4f813",
@@ -78,17 +78,15 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         schedule: {
             frequency: {
                 key: "custom",
-                label: "Mon, Thu",
-                days_of_week: ["mon", "thu"],
+                label: "Mon, Fri",
+                days_of_week: ["mon", "fri"],
             },
-            reminders: [{ id: "r1", time: "09:00", is_taken: true, taken_at: "2026-01-07T09:02:00.000Z" }],
+            reminders: [{ id: "r1", time: "02:00", is_taken: false}],
             measurement_times_per_day: 1,
             starting_date: "2026-01-02",
         },
         medication_status: {
-            is_stopped: true,
-            stopped_at: "2026-01-05T10:00:00.000Z",
-            reason: "Vet stopped medication",
+            is_stopped: false
         },
     },
 
@@ -98,7 +96,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f601",
             name: "Mochi",
-            image_url: "https://picsum.photos/seed/mochi/200/200",
+            image_url: "/pets-example/pet-ex1.svg",
         },
         medicine: {
             id: "65f1a9c2b0f3c1a2d3e4f814",
@@ -127,7 +125,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         pet: {
             id: "65f1a9c2b0f3c1a2d3e4f602",
             name: "Taro",
-            image_url: "https://picsum.photos/seed/taro/200/200",
+            image_url: "/pets-example/pet-ex2.svg",
         },
         medicine: {
             id: "65f1a9c2b0f3c1a2d3e4f815",
