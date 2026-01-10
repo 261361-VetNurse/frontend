@@ -3,14 +3,27 @@
 import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
-import SymptomCalendar from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCalendar";
+// ❌ ลบ SymptomCalendar
+// import SymptomCalendar from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCalendar";
+
 import SymptomDateSection from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDateSection";
 import SymptomCard from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomCard";
-import AddSymptomPopup, { SymptomFab } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/AddSymptomPopup";
-import SymptomDetailPopup, { type SymptomDetailRecord } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDetailPopup";
-import EditSymptomPopup, { type EditSymptomPayload } from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/EditSymptomPopup";
+import AddSymptomPopup, {
+  SymptomFab,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/AddSymptomPopup";
+import SymptomDetailPopup, {
+  type SymptomDetailRecord,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/SymptomDetailPopup";
+import EditSymptomPopup, {
+  type EditSymptomPayload,
+} from "@/components/pet-owners/MainPage/MyPetsPage/symptoms/EditSymptomPopup";
 import { mockPetInformationById } from "@/mocks/petInformation";
 import TopBar from "@/components/pet-owners/layout/TopBar";
+
+// ✅ ใช้ shared CalendarModule
+import CalendarModule, {
+  type CalendarDayMeta,
+} from "@/components/pet-owners/shared/CalendarModule";
 
 type PetOption = {
   id: string;
@@ -63,14 +76,26 @@ function formatTime12h(time24: string) {
 
   const suffix = h >= 12 ? "P.M." : "A.M.";
   const hour12 = ((h + 11) % 12) + 1;
-  return `${String(hour12).padStart(2, "0")}.${String(m).padStart(
-    2,
-    "0"
-  )} ${suffix}`;
+  return `${String(hour12).padStart(2, "0")}.${String(m).padStart(2, "0")} ${suffix}`;
 }
 
 function formatTime12hFrom24(time24: string) {
   return formatTime12h(time24);
+}
+
+// --- ✅ helpers สำหรับ CalendarModule (Date <-> ISO string)
+function pad2(n: number) {
+  return String(n).padStart(2, "0");
+}
+function toISODate(d: Date) {
+  const yyyy = d.getFullYear();
+  const mm = pad2(d.getMonth() + 1);
+  const dd = pad2(d.getDate());
+  return `${yyyy}-${mm}-${dd}`;
+}
+function parseISO(iso: string) {
+  const [y, m, d] = iso.split("-").map((x) => Number(x));
+  return new Date(y, (m || 1) - 1, d || 1);
 }
 
 const mockSymptomsSeed: SymptomRecordItem[] = [
@@ -132,14 +157,10 @@ export default function SymptomRecord() {
     petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
 
   const [selectedDate, setSelectedDate] = useState<string>(todayISO());
-  const [symptoms, setSymptoms] = useState<SymptomRecordItem[]>(
-    mockSymptomsSeed
-  );
+  const [symptoms, setSymptoms] = useState<SymptomRecordItem[]>(mockSymptomsSeed);
 
   const [openCreate, setOpenCreate] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<SymptomDetailRecord | null>(
-    null
-  );
+  const [detailRecord, setDetailRecord] = useState<SymptomDetailRecord | null>(null);
   const [editRecord, setEditRecord] = useState<SymptomDetailRecord | null>(null);
 
   // วันที่ที่มี record ของ pet ที่เลือก
@@ -151,17 +172,27 @@ export default function SymptomRecord() {
     return Array.from(set);
   }, [symptoms, selectedPetId]);
 
-  // หัวข้อด้านบน: Today record เฉพาะ "วันนี้จริง"
+  // ✅ แปลง markedDates -> dayMeta สำหรับ CalendarModule
+  const dayMeta: CalendarDayMeta[] = useMemo(() => {
+    // ถ้าอยากให้เป็น “3 จุด” แบบรูปแรก → ใส่ dot 3 อัน
+    return markedDates.map((iso) => ({
+      date: parseISO(iso),
+      markers: [
+        { type: "dot", colorKey: "record" },
+        { type: "dot", colorKey: "record" },
+        { type: "dot", colorKey: "record" },
+      ],
+    }));
+  }, [markedDates]);
+
   const listTitle = useMemo(() => {
     return isTodayISO(selectedDate) ? "Today record" : "Record";
   }, [selectedDate]);
 
-  // ถ้าไม่ใช่วันนี้ ให้โชว์วันที่ที่เลือกเป็นบรรทัดบน
   const headerDateLine = useMemo(() => {
     return isTodayISO(selectedDate) ? null : formatHeaderDate(selectedDate);
   }, [selectedDate]);
 
-  // filter by pet + selected date
   const filtered = useMemo(() => {
     return symptoms
       .filter((r) => {
@@ -169,7 +200,6 @@ export default function SymptomRecord() {
         const okDate = !selectedDate || r.date === selectedDate;
         return okPet && okDate;
       })
-      // (optional) เรียงเวลา
       .sort((a, b) => a.time.localeCompare(b.time));
   }, [symptoms, selectedPetId, selectedDate]);
 
@@ -220,9 +250,12 @@ export default function SymptomRecord() {
 
   return (
     <>
-      <TopBar title="Petss Symptom Record" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar
+        title="Petss Symptom Record"
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+      />
 
-      {/* Petss selector */}
+      {/* Pet selector */}
       <div className="mt-4">
         <PetSelectorCard
           name={selectedPet?.name ?? "-"}
@@ -234,12 +267,22 @@ export default function SymptomRecord() {
         />
       </div>
 
-      {/* Calendar */}
+      {/* ✅ Calendar (shared) */}
       <div className="mt-4">
-        <SymptomCalendar
-          value={selectedDate}
-          onChange={setSelectedDate}
-          markedDates={markedDates}
+        <CalendarModule
+          size="standard"
+          weekStart="sun"
+          showOutsideDays
+          showMarkers
+          maxMarkersPerDay={3}
+          selectedDate={parseISO(selectedDate)}
+          dayMeta={dayMeta}
+          markerPalette={{
+            appointment: "bg-sky-500",
+            medication: "bg-emerald-500",
+            record: "bg-pink-400",
+          }}
+          onSelectDate={(d) => setSelectedDate(toISODate(d))}
         />
       </div>
 
