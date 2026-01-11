@@ -4,20 +4,19 @@ import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 
-import { mockPets } from "@/mocks/pets";
-import type { Petss } from "@/types/Petss";
+import { mockPets } from "@/mocks/pets.mock";
+import { Pet } from "@/types/pet";
 import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
 type Sex = "Male" | "Female" | "Unknown";
-type YesNo = "yes" | "no";
 
 export default function EditBasicInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const pet: Petss | undefined = useMemo(
-    () => mockPets.find((p) => p.id === String(petId)),
+  const pet: Pet | undefined = useMemo(
+    () => mockPets.find((p) => String(p._id) === String(petId)),
     [petId]
   );
 
@@ -27,37 +26,24 @@ export default function EditBasicInfo() {
         <button onClick={() => router.back()} className="underline">
           ← Back
         </button>
-        <div className="mt-4 text-zinc-700">Petss not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
       </div>
     );
   }
 
-  // ✅ ทำให้ TS มั่นใจว่าไม่ undefined
   const currentPet = pet;
 
-  // ค่าเริ่มต้น (prefill)
+  // ✅ 4. ปรับ State ให้ map กับ Field ใหม่ (profile_image, birth_date)
   const [avatarUrl, setAvatarUrl] = useState(
-    currentPet.imageUrl ?? "/pet-placeholder.svg"
+    currentPet.profile_image ?? "/pet-placeholder.svg"
   );
   const [name, setName] = useState(currentPet.name ?? "");
   const [species, setSpecies] = useState(currentPet.species ?? "");
   const [breed, setBreed] = useState(currentPet.breed ?? "");
-  const [dob, setDob] = useState(currentPet.birthDate ?? ""); // yyyy-mm-dd
+  const [dob, setDob] = useState(currentPet.birth_date ?? ""); // ใช้ birth_date
   const [sex, setSex] = useState<Sex>((currentPet.gender as Sex) ?? "Unknown");
+  
   const [color, setColor] = useState(currentPet.color ?? "");
-
-  const initialHasHistory: YesNo =
-    currentPet.previousClinicOrHospital &&
-    currentPet.previousClinicOrHospital.trim() !== ""
-      ? "yes"
-      : "no";
-
-  const [hasPrevHistory, setHasPrevHistory] =
-    useState<YesNo>(initialHasHistory);
-  const [prevClinic, setPrevClinic] = useState(
-    currentPet.previousClinicOrHospital ?? ""
-  );
-
   const computedAge = useMemo(() => (dob ? formatAge(dob) : "-"), [dob]);
 
   const canSubmit = useMemo(() => {
@@ -65,29 +51,26 @@ export default function EditBasicInfo() {
     if (!species.trim()) return false;
     if (!breed.trim()) return false;
     if (!dob) return false;
-    if (hasPrevHistory === "yes" && !prevClinic.trim()) return false;
     return true;
-  }, [name, species, breed, dob, hasPrevHistory, prevClinic]);
+  }, [name, species, breed, dob]);
 
   function onUpdate() {
     if (!canSubmit) return;
 
     const payload = {
-      id: currentPet.id,
+      _id: currentPet._id, 
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
-      birthDate: dob,
+      birth_date: dob, 
       gender: sex,
       color: color.trim(),
-      previousClinicOrHospital:
-        hasPrevHistory === "yes" ? prevClinic.trim() : null,
-      imageUrl: avatarUrl,
+      profile_image: avatarUrl, 
     };
 
     console.log("UPDATE PET:", payload);
 
-    router.push(`/pet-owners/my-pets-page/${currentPet.id}`);
+    router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
   }
 
   return (
@@ -95,7 +78,7 @@ export default function EditBasicInfo() {
       {/* Header */}
       <TopBar
         title="Edit Basic Information"
-        onBack={() => router.push(`/pet-owners/my-pets-page`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet._id}`)}
       />
 
       {/* Content */}
@@ -106,7 +89,7 @@ export default function EditBasicInfo() {
             <div className="h-24 w-24 rounded-full overflow-hidden bg-zinc-200">
               <Image
                 src={avatarUrl}
-                alt="Petss avatar"
+                alt="Pet avatar"
                 width={96}
                 height={96}
                 className="h-full w-full object-cover"
@@ -126,7 +109,7 @@ export default function EditBasicInfo() {
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-6">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
@@ -215,51 +198,6 @@ export default function EditBasicInfo() {
               />
             </div>
           </div>
-
-          {/* Has previous medical history */}
-          <div>
-            <div className="block text-sm font-medium text-zinc-800 mb-2">
-              Has previous medical history?
-            </div>
-
-            <div className="flex items-center gap-10">
-              <label className="flex items-center gap-2 text-sm text-zinc-800">
-                <input
-                  type="radio"
-                  name="prevHistory"
-                  value="yes"
-                  checked={hasPrevHistory === "yes"}
-                  onChange={() => setHasPrevHistory("yes")}
-                />
-                Yes
-              </label>
-
-              <label className="flex items-center gap-2 text-sm text-zinc-800">
-                <input
-                  type="radio"
-                  name="prevHistory"
-                  value="no"
-                  checked={hasPrevHistory === "no"}
-                  onChange={() => setHasPrevHistory("no")}
-                />
-                No
-              </label>
-            </div>
-          </div>
-
-          {/* Previous clinic/hospital (แสดงเฉพาะ Yes) */}
-          {hasPrevHistory === "yes" && (
-            <div>
-              <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Previous clinic / hospital name
-              </label>
-              <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={prevClinic}
-                onChange={(e) => setPrevClinic(e.target.value)}
-              />
-            </div>
-          )}
         </div>
       </div>
 

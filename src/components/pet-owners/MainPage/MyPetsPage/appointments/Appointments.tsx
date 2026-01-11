@@ -3,56 +3,63 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
+
+import PetFilterSelector, {
+  type PetLite,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
 import AppointmentTabs, {
   type AppointmentTabKey,
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
+
+import { mockPets } from "@/mocks/pets.mock"; 
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
-import { mockPetInformationById } from "@/mocks/petInformation";
 import type { Appointment } from "@/types/Appointment";
+
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
 import { FabButton } from "@/styles/appointments.styled";
 import { Add } from "@mui/icons-material";
 
-type PetOption = {
-  id: string;      
-  name: string;
-  pid: string;   
-  imageUrl?: string;
-};
-
 export default function Appointments() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>(); 
+  const { petId } = useParams<{ petId: string }>();
 
-  const petOptions: PetOption[] = useMemo(() => {
-    return Object.values(mockPetInformationById).map((p) => ({
-      id: String(p.header.id),
-      name: p.header.name,
-      pid: p.header.pid,
-      imageUrl: p.header.avatarUrl,
+  const petOptions: PetLite[] = useMemo(() => {
+    return mockPets.map((p) => ({
+      id: String(p._id),   
+      name: p.name,
+      pid: String(p._id), 
+      avatarUrl: p.profile_image,  
     }));
   }, []);
 
-  const [selectedPetId, setSelectedPetId] = useState<string>(
-    String(petId ?? petOptions[0]?.id ?? "")
-  );
+  const [selectedPetId, setSelectedPetId] = useState<string>(() => {
+    const fromUrl = String(petId ?? "");
+    if (fromUrl && petOptions.some((p) => p.id === fromUrl)) return fromUrl;
+    return String(petOptions[0]?.id ?? "");
+  });
 
   useEffect(() => {
-    if (!petId) return;
-    const idFromUrl = String(petId);
+    const fromUrl = String(petId ?? "");
+    if (!fromUrl) return;
 
-    const exists = petOptions.some((p) => p.id === idFromUrl);
-    if (exists) setSelectedPetId(idFromUrl);
+    const exists = petOptions.some((p) => p.id === fromUrl);
+    if (exists) setSelectedPetId(fromUrl);
   }, [petId, petOptions]);
 
-  const selectedPet =
-    petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
+  useEffect(() => {
+    if (!selectedPetId) return;
+    const exists = petOptions.some((p) => p.id === selectedPetId);
+    if (!exists) setSelectedPetId(String(petOptions[0]?.id ?? ""));
+  }, [selectedPetId, petOptions]);
+
+  const selectedPet = useMemo(() => {
+    return petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
+  }, [petOptions, selectedPetId]);
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
-
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const allAppointments: Appointment[] = useMemo(() => {
@@ -81,17 +88,20 @@ export default function Appointments() {
 
   return (
     <div className="flex flex-col gap-4">
-      <TopBar title="Appointment" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar
+        title="Appointment"
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+      />
 
-      <PetSelectorCard
-        name={selectedPet?.name ?? "-"}
-        pid={selectedPet?.pid ?? "-"}
-        imageUrl={selectedPet?.imageUrl}
-        options={petOptions}
-        selectedId={selectedPetId}
-        onSelect={(id) => {
-          setSelectedPetId(id);
-          router.push(`/pet-owners/my-pets-page/${id}/appointments`);
+      <PetFilterSelector
+        mode="filter"
+        allowAllPets={false}
+        pets={petOptions}
+        value={selectedPetId}
+        onChange={(id) => {
+          const nextId = String(id);
+          setSelectedPetId(nextId);
+          router.push(`/pet-owners/my-pets-page/${nextId}/appointments`);
         }}
       />
 
@@ -136,7 +146,7 @@ export default function Appointments() {
           id: selectedPet?.id ?? "",
           name: selectedPet?.name ?? "-",
           pid: selectedPet?.pid ?? "-",
-          avatarUrl: selectedPet?.imageUrl,
+          avatarUrl: selectedPet?.avatarUrl,
         }}
       />
     </div>

@@ -4,14 +4,12 @@ import type React from "react";
 import Image from "next/image";
 
 type Props = {
-  label?: string; // ถ้าไม่ส่ง/ส่งเป็น "" จะไม่โชว์หัวข้อ
+  label?: string; 
   children: React.ReactNode;
 
-  // ✅ เพิ่มเพื่อรองรับปุ่ม edit
   editing?: boolean;
   onToggleEdit?: () => void;
 
-  // ✅ path icon (ถ้าไม่ส่งใช้ค่า default)
   editIconSrc?: string;
 };
 

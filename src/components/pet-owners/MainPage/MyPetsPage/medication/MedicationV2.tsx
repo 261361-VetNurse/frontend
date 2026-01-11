@@ -4,9 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
+// ✅ เปลี่ยนมาใช้ PetFilterSelector (shared)
+import PetFilterSelector, {
+  type PetLite as SharedPetLite,
+  type PetSelectorValue,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
 import AddMedicationPopupV2, { type AddMedicationPayloadV2 } from "./AddMedicationPopupV2";
-import EditMedicationPopupV2, {type EditMedicationPayload,} from "./EditMedicationPopupV2";
+import EditMedicationPopupV2, { type EditMedicationPayload } from "./EditMedicationPopupV2";
 import MedicationDetailPopupV2 from "./MedicationDetailPopupV2";
 import { mockPetInformationById } from "@/mocks/petInformation";
 import {
@@ -26,11 +31,11 @@ export type MedicationRecordV2 = {
   petId: string;
   petName: string;
   medicationName: string;
-  dose: string;  
-  times: string; 
+  dose: string;
+  times: string;
   note?: string;
   avatarUrl?: string;
-  recordDate?: string; 
+  recordDate?: string;
 };
 
 type PetOption = {
@@ -157,6 +162,16 @@ export default function MedicationPageV2() {
     }));
   }, []);
 
+  // ✅ สำหรับ PetFilterSelector
+  const selectorPets: SharedPetLite[] = useMemo(() => {
+    return petOptions.map((p) => ({
+      id: p.id,
+      name: p.name,
+      pid: p.pid,
+      avatarUrl: p.imageUrl,
+    }));
+  }, [petOptions]);
+
   const [selectedPetId, setSelectedPetId] = useState<string>(
     String(petId ?? petOptions[0]?.id ?? "")
   );
@@ -199,16 +214,20 @@ export default function MedicationPageV2() {
 
   return (
     <>
-      <TopBar title="Medication" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar
+        title="Medication"
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+      />
 
+      {/* ✅ เปลี่ยนเฉพาะ select */}
       <div style={{ marginTop: 8 }}>
-        <PetSelectorCard
-          name={selectedPet?.name ?? "-"}
-          pid={selectedPet?.pid ?? "-"}
-          imageUrl={selectedPet?.imageUrl}
-          options={petOptions}
-          selectedId={selectedPetId}
-          onSelect={(id) => {
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets={false}
+          pets={selectorPets}
+          value={selectedPetId as PetSelectorValue}
+          onChange={(v) => {
+            const id = String(v); // allowAllPets=false -> ไม่ควรมี "all"
             setSelectedPetId(id);
             router.push(`/pet-owners/my-pets-page/${id}/medications`);
           }}

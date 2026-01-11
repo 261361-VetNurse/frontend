@@ -2,7 +2,7 @@
 
 import React from "react";
 
-export default function SymptomDateSection({
+export default function RecordDateSection({
   label,
   children,
 }: {
@@ -15,16 +15,12 @@ export default function SymptomDateSection({
     <section>
       {showHeader && (
         <>
-          <div className="text-sm font-semibold text-zinc-900">
-            {label}
-          </div>
+          <div className="text-sm font-semibold text-zinc-900">{label}</div>
           <div className="mt-2 border-b border-zinc-200" />
         </>
       )}
 
-      <div className={showHeader ? "mt-3 space-y-3" : "space-y-3"}>
-        {children}
-      </div>
+      <div className={showHeader ? "mt-3 space-y-3" : "space-y-3"}>{children}</div>
     </section>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
 
 /**
  * CalendarModule (shared)
@@ -50,9 +51,9 @@ export type CalendarProps = {
 
   /**
    * สีของ marker (tailwind class)
-   * ✅ บังคับให้ส่งจาก "ที่เดียว" (theme/const กลาง)
+   * ✅ ไม่ hardcode ในหน้า: ถ้าไม่ส่งมา จะ fallback ไปใช้ไฟล์กลาง CALENDAR_MARKER_PALETTE
    */
-  markerPalette: Record<MarkerColorKey, string>;
+  markerPalette?: Record<MarkerColorKey, string>;
 
   /** optional: กำหนดวันที่ disabled เพิ่มเติม */
   isDateDisabled?: (date: Date) => boolean;
@@ -80,29 +81,29 @@ export default function CalendarModule({
   month,
   dayMeta = [],
   maxMarkersPerDay = 3,
-  markerPalette,
-  isDateDisabled,
 
+  // ✅ สำคัญ: ทำให้ markerPalette ไม่เป็น undefined (แก้ TS error)
+  markerPalette = CALENDAR_MARKER_PALETTE,
+
+  isDateDisabled,
   onSelectDate,
   onMonthChange,
 
   className = "",
   variant = "card",
 }: CalendarProps) {
+  // controlled/uncontrolled month
   const [innerMonth, setInnerMonth] = useState(() => startOfMonth(new Date()));
   const viewMonth = month ? startOfMonth(month) : innerMonth;
 
+  // Map meta by YYYY-MM-DD
   const metaMap = useMemo(() => {
     const map = new Map<string, CalendarDayMeta>();
     for (const m of dayMeta) map.set(dateKey(m.date), m);
     return map;
   }, [dayMeta]);
 
-  const grid: Cell[] = useMemo(
-    () => buildGrid(viewMonth, weekStart),
-    [viewMonth, weekStart]
-  );
-
+  const grid: Cell[] = useMemo(() => buildGrid(viewMonth, weekStart), [viewMonth, weekStart]);
   const monthLabel = useMemo(() => formatMonthYear(viewMonth), [viewMonth]);
 
   const todayKey = dateKey(new Date());
@@ -237,18 +238,13 @@ function DayCell({
   const base = "flex items-center justify-center rounded-xl transition relative w-full";
 
   const todayRing = isToday && !isSelected ? "ring-1 ring-sky-200" : "";
-  const selectedStyle = isSelected
-    ? "bg-white border border-zinc-200 shadow-sm"
-    : "bg-transparent";
-
+  const selectedStyle = isSelected ? "bg-white border border-zinc-200 shadow-sm" : "bg-transparent";
   const hover = disabled ? "cursor-not-allowed opacity-40" : "hover:bg-zinc-50";
 
   const textColor = inMonth ? "text-zinc-800" : "text-zinc-300";
   const font = isToday && !isSelected ? "font-semibold" : "font-normal";
 
-  const hasEventHint =
-    hasEvent && !isSelected && !showMarkers ? "font-semibold" : "";
-
+  const hasEventHint = hasEvent && !isSelected && !showMarkers ? "font-semibold" : "";
   const textSize = size === "compact" ? "text-[13px]" : "text-sm";
 
   return (
@@ -258,9 +254,7 @@ function DayCell({
       className={[base, h, hover, todayRing, selectedStyle, hasEventHint].join(" ")}
       aria-disabled={disabled}
     >
-      <div className={[textSize, textColor, font].join(" ")}>
-        {date.getDate()}
-      </div>
+      <div className={[textSize, textColor, font].join(" ")}>{date.getDate()}</div>
 
       {showMarkers && markers.length > 0 ? (
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
@@ -297,7 +291,6 @@ function DayCell({
 }
 
 /* ---------------- utils ---------------- */
-
 function pad2(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -327,12 +320,12 @@ export function weekdayLabels(weekStart: WeekStart) {
   return weekStart === "mon" ? mon : sun;
 }
 
+/** Build 6-week (42) grid with outside days */
 export function buildGrid(month: Date, weekStart: WeekStart): Cell[] {
   const first = startOfMonth(month);
   const firstDow = first.getDay(); // 0=sun..6=sat
 
-  const shift =
-    weekStart === "mon" ? (firstDow === 0 ? 6 : firstDow - 1) : firstDow;
+  const shift = weekStart === "mon" ? (firstDow === 0 ? 6 : firstDow - 1) : firstDow;
 
   const start = new Date(first);
   start.setDate(first.getDate() - shift);
@@ -346,7 +339,6 @@ export function buildGrid(month: Date, weekStart: WeekStart): Cell[] {
   return cells;
 }
 
-/** ✅ helper ปลอดภัย เวลา parse ISO "YYYY-MM-DD" */
 export function isoToLocalDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);

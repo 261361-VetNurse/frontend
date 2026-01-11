@@ -11,7 +11,7 @@ type Props = {
   onClick?: () => void;
 };
 
-export default function SymptomCard({
+export default function RecordCard({
   petName,
   time,
   note,

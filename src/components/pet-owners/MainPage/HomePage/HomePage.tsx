@@ -121,7 +121,7 @@ export default function HomePage({username}: {username: string}) {
             <div className="mypet-section">
                 <div className="pet-list">
                     {mockPets.map((pet:Pet,index: number) => (
-                        <Profile key={index} imageUrl={pet.image_url} size={60} label={pet.name} showLabel={true} />
+                        <Profile key={index} imageUrl={pet.profile_image} size={60} label={pet.name} showLabel={true} />
                     ))}
                 </div>
                 <NewPetButton />

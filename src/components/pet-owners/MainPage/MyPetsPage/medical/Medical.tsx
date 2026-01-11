@@ -2,14 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
+
+import PetFilterSelector, {
+  type PetLite as SharedPetLite,
+  type PetSelectorValue,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
 import MedicalDateSection from "./MedicalDateSection";
 import MedicalItem from "./MedicalItem";
 import AddMedicalPopup, { type AddMedicalPayload } from "./AddMedicalPopup";
 import { MedicalFab } from "./AddMedicalPopup";
 
-import { mockPetInformationById } from "@/mocks/petInformation";
+import { mockPets } from "@/mocks/pets.mock"; // ใช้ไฟล์นี้ (ถ้า import ผิดให้แก้เป็น @/mocks/pets)
 import TopBar from "@/components/pet-owners/layout/TopBar";
+import { Pet } from "@/types/pet"; // เพิ่ม Type
 
 type PetOption = {
   id: string;
@@ -42,35 +48,56 @@ function formatTimeTH(time24: string) {
   return `${h}.${m} น.`;
 }
 
+// 🟢 แก้ Mock Seed ให้ id ตรงกับ mockPets ใหม่
+// Mochi (_id: 430242), Taro (_id: 430243)
 const mockMedicalSeed: MedicalRecord[] = [
-  { id: "med-001", petId: "4302459", date: "2025-12-17", time: "10:52", note: "เข้าห้องตรวจ" },
-  { id: "med-002", petId: "4302459", date: "2025-12-17", time: "11:02", note: "ฉีดยา" },
-  { id: "med-003", petId: "4302459", date: "2025-12-17", time: "11:15", note: "เรียกรับยา" },
-  { id: "med-004", petId: "4302459", date: "2025-12-16", time: "11:20", note: "เรียกรับยา" },
+  { id: "med-001", petId: "430242", date: "2025-12-17", time: "10:52", note: "เข้าห้องตรวจ" },
+  { id: "med-002", petId: "430242", date: "2025-12-17", time: "11:02", note: "ฉีดยา" },
+  { id: "med-003", petId: "430242", date: "2025-12-17", time: "11:15", note: "เรียกรับยา" },
+  { id: "med-004", petId: "430242", date: "2025-12-16", time: "11:20", note: "เรียกรับยา" },
 ];
 
 export default function Medical() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
+  // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
   const petOptions: PetOption[] = useMemo(() => {
-    return Object.values(mockPetInformationById).map((p) => ({
-      id: p.header.id,
-      name: p.header.name,
-      pid: p.header.pid,
-      imageUrl: p.header.avatarUrl,
+    return (mockPets ?? []).map((p: Pet) => ({
+      id: String(p._id),            // แก้ id -> _id
+      name: p.name ?? "-",
+      pid: String(p._id),           // แก้ pid -> _id (ใช้เลข 6 หลัก)
+      imageUrl: p.profile_image,    // แก้ imageUrl -> profile_image
     }));
   }, []);
 
-  const [selectedPetId, setSelectedPetId] = useState<string>(
-    String(petId ?? petOptions[0]?.id ?? "")
-  );
+  const selectorPets: SharedPetLite[] = useMemo(() => {
+    return petOptions.map((p) => ({
+      id: p.id,
+      name: p.name,
+      pid: p.pid, 
+      avatarUrl: p.imageUrl,
+    }));
+  }, [petOptions]);
+
+  const [selectedPetId, setSelectedPetId] = useState<string>(() => {
+    const fallback = petOptions[0]?.id ?? "";
+    return String(petId ?? fallback);
+  });
 
   useEffect(() => {
-    if (!petId) return;
-    const exists = petOptions.some((p) => p.id === String(petId));
-    if (exists) setSelectedPetId(String(petId));
-  }, [petId, petOptions]);
+    const fallback = petOptions[0]?.id ?? "";
+
+    if (!petId) {
+      if (!selectedPetId && fallback) setSelectedPetId(fallback);
+      return;
+    }
+
+    const idFromUrl = String(petId);
+    const exists = petOptions.some((p) => p.id === idFromUrl);
+    if (exists) setSelectedPetId(idFromUrl);
+    else if (fallback) setSelectedPetId(fallback);
+  }, [petId, petOptions, selectedPetId]);
 
   const selectedPet =
     petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
@@ -96,7 +123,9 @@ export default function Medical() {
     return dates.map((date) => ({
       date,
       label: formatHeaderDate(date),
-      items: (map.get(date) ?? []).slice().sort((a, b) => (a.time < b.time ? -1 : 1)),
+      items: (map.get(date) ?? [])
+        .slice()
+        .sort((a, b) => (a.time < b.time ? -1 : 1)),
     }));
   }, [filtered]);
 
@@ -121,19 +150,24 @@ export default function Medical() {
 
   return (
     <>
-      <TopBar title="Medical History" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar
+        title="Medical History"
+        onBack={() =>
+          router.push(`/pet-owners/my-pets-page/${selectedPet?.id ?? ""}`)
+        }
+      />
 
-      {/* Petss selector */}
+      {/* ✅ select: ใช้ PetFilterSelector + mockPets */}
       <div className="mt-4">
-        <PetSelectorCard
-          name={selectedPet?.name ?? "-"}
-          pid={selectedPet?.pid ?? "-"}
-          imageUrl={selectedPet?.imageUrl}
-          options={petOptions}
-          selectedId={selectedPetId}
-          onSelect={(id) => {
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets={false}
+          pets={selectorPets}
+          value={selectedPetId as PetSelectorValue}
+          onChange={(v) => {
+            const id = String(v);
             setSelectedPetId(id);
-            setEditingDate(null); 
+            setEditingDate(null);
             router.push(`/pet-owners/my-pets-page/${id}/medical`);
           }}
         />
@@ -175,14 +209,14 @@ export default function Medical() {
       <MedicalFab onClick={() => setOpenCreate(true)} />
 
       {/* Add popup */}
-      {selectedPet && (
+      {selectedPet ? (
         <AddMedicalPopup
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
             id: selectedPet.id,
             name: selectedPet.name,
-            pid: selectedPet.pid,
+            pid: selectedPet.pid, 
             avatarUrl: selectedPet.imageUrl,
           }}
           onSubmit={(data) => {
@@ -190,7 +224,7 @@ export default function Medical() {
             setOpenCreate(false);
           }}
         />
-      )}
+      ) : null}
     </>
   );
 }
