@@ -2,8 +2,22 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { MedicationOccurrenceVM, OccurrenceStatus } from "@/types/medication-occurrence";
 
 type DayKey = "sun" | "mon" | "tue" | "wed" | "thu" | "fri" | "sat";
+
+type OccurrenceOverride = {
+  status: OccurrenceStatus;
+  taken_at?: string | null;
+};
+
+// key แบบง่าย: plan + reminder + date (เพราะ reminderId ผูกกับ time slot อยู่แล้ว)
+export function buildOccurrenceKey(notificationId: string, reminderId: string, date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${notificationId}:${reminderId}:${y}-${m}-${d}`;
+}
 
 // Initialize dayjs plugins
 dayjs.extend(utc);
@@ -23,14 +37,49 @@ export interface ReminderOccurrence {
     dosage: string;
   };
   time: string; // HH:mm
+  status: OccurrenceStatus;
   is_taken: boolean;
-  taken_at?: string;
+  taken_at?: string | null;
   occurrence_datetime: Date;
   medication_status: {
     is_stopped: boolean;
     stopped_at?: string;
     reason?: string;
   };
+}
+
+export function buildOccurrenceId(planId: string, dateYYYYMMDD: string, timeHHmm: string) {
+  return `occ_${planId}_${dateYYYYMMDD}_${timeHHmm.replace(":", "")}`;
+}
+
+export function buildOccurrencesForDate(
+  plans: MedicineReminderVM[],
+  date: Date,
+  overrides: Record<string, OccurrenceOverride>
+): MedicationOccurrenceVM[] {
+  const ymd = dayjs(date).tz(getUserTimezone()).format("YYYY-MM-DD");
+
+  return plans
+    .filter(p => !p.medication_status.is_stopped)
+    .filter(p => isScheduledOnDate(p, date))
+    .flatMap(p =>
+      p.schedule.reminders.map(r => {
+        const occurrenceId = buildOccurrenceId(p.notification_id, ymd, r.time);
+        const override = overrides[occurrenceId];
+
+        const status: OccurrenceStatus = override?.status ?? "pending";
+
+        return {
+          occurrence_id: occurrenceId,
+          plan_id: p.notification_id,
+          pet: p.pet,
+          medicine: p.medicine,
+          scheduled_at: `${ymd}T${r.time}:00+07:00`,
+          status,
+          taken_at: override?.taken_at ?? null,
+        };
+      })
+    );
 }
 
 function getDayKeyInUserTz(date: Date): DayKey {
@@ -73,7 +122,7 @@ function isScheduledOnDate(reminder: MedicineReminderVM, date: Date): boolean {
  * Get user's local timezone
  */
 export function getUserTimezone(): string {
-  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return "Asia/Bangkok";
 }
 
 /**
@@ -123,25 +172,38 @@ export function formatTimeForDisplay(timeStr: string): string {
  */
 export function flattenRemindersForDate(
   medicineReminders: MedicineReminderVM[],
-  date: Date
+  date: Date,
+  overrides: Record<string, OccurrenceOverride> = {}
 ): ReminderOccurrence[] {
   return medicineReminders
     .filter(r => !r.medication_status.is_stopped)
     .filter(r => isScheduledOnDate(r, date))
     .flatMap(r =>
-      r.schedule.reminders.map(sr => ({
-        notification_id: r.notification_id,
-        reminder_id: sr.id,
-        pet: r.pet,
-        medicine: r.medicine,
-        time: sr.time,
-        is_taken: sr.is_taken,
-        taken_at: sr.taken_at,
-        occurrence_datetime: createOccurrenceDateTime(date, sr.time),
-        medication_status: r.medication_status,
-      }))
+      r.schedule.reminders.map(sr => {
+        const key = buildOccurrenceKey(r.notification_id, sr.id, date);
+        const ov = overrides[key];
+
+        const status: OccurrenceStatus = ov?.status ?? "pending";
+        const taken_at = status === "taken" ? (ov?.taken_at ?? null) : null;
+
+        return {
+          notification_id: r.notification_id,
+          reminder_id: sr.id,
+          pet: r.pet,
+          medicine: r.medicine,
+          time: sr.time,
+
+          status,
+          is_taken: status === "taken",
+          taken_at,
+
+          occurrence_datetime: createOccurrenceDateTime(date, sr.time),
+          medication_status: r.medication_status,
+        };
+      })
     );
 }
+
 
 export function flattenRemindersForToday(
   medicineReminders: MedicineReminderVM[]
@@ -166,21 +228,7 @@ export function getHomePageReminders(
   const todayReminders = flattenRemindersForToday(medicineReminders);
   
   // Get tomorrow's reminders for cross-midnight check
-  const tomorrowReminders = medicineReminders
-    .filter(reminder => !reminder.medication_status.is_stopped)
-    .flatMap(reminder => 
-      reminder.schedule.reminders.map(scheduleReminder => ({
-        notification_id: reminder.notification_id,
-        reminder_id: scheduleReminder.id,
-        pet: reminder.pet,
-        medicine: reminder.medicine,
-        time: scheduleReminder.time,
-        is_taken: scheduleReminder.is_taken,
-        taken_at: scheduleReminder.taken_at,
-        occurrence_datetime: createOccurrenceDateTime(tomorrow, scheduleReminder.time),
-        medication_status: reminder.medication_status,
-      }))
-    );
+  const tomorrowReminders = flattenRemindersForDate(medicineReminders, tomorrow);
   
   const allReminders = [...todayReminders, ...tomorrowReminders];
   

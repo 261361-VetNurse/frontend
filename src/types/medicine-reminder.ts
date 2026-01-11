@@ -22,10 +22,8 @@ export type MedicineReminderVM = {
         };
 
         reminders: Array<{
-            id: string;       // id ของช่องเตือน (สำหรับ render/edit/delete)
-            time: string;     // HH:mm เช่น "00:00"
-            is_taken: boolean;
-            taken_at?: string; // ISO (optional)
+            id: string;
+            time: string; // HH:mm
         }>;
 
         measurement_times_per_day: number; // Measurement: "2 times"

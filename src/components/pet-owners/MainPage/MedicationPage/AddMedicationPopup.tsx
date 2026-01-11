@@ -62,7 +62,7 @@ const PetIconWrap = styled.div`
 const TopPopup = styled.div`
   display: flex;
   flex-direction: row;
-  align-item: center;
+  align-items: center;
 `
 
 const Title = styled.div`

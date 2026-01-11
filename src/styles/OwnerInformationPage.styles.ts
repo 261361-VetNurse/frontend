@@ -7,7 +7,7 @@ export const Container = styled.div`
   background: #f5f5f5;
   min-height: 100vh;
   width: 100%;
-  diasplay: flex;
+  display: flex;
   flex-direction: column;
 `;
 
@@ -114,6 +114,7 @@ export const SectionTitle = styled.div`
   svg {
     font-size: 24px;
     color: ${theme.colors.textPrimary};
+  }
 `;
 
 export const EditLink = styled.a`
