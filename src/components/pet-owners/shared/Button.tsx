@@ -100,6 +100,11 @@ const StyledButton = styled.button<{
                     ? tokens.danger
                     : 'transparent'};
 
+    box-shadow: ${({ $variant }) =>
+            $variant === 'primary' || $variant === 'danger' || $variant === 'secondary'
+                ? '0 4px 4px rgba(0,0,0,0.25)'
+                : 'none'};
+
   color: ${({ $variant }) =>
         $variant === 'primary' || $variant === 'danger'
             ? tokens.white
