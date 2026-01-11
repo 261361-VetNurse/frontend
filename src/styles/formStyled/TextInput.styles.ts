@@ -37,3 +37,28 @@ export const StyledInput = styled.input<{ $error?: boolean }>`
     }
   `}
 `;
+
+export const StyledTextArea = styled.textarea<{ $size: 'sm' | 'md'; $error?: boolean }>`
+  width: 100%;
+  overflow-wrap: break-word; /* ป้องกันอักษรแตก */
+  resize: vertical;
+  padding: ${({ $size }) => ($size === 'sm' ? '6px 8px' : '10px 12px')};
+  font-size: ${({ $size }) => ($size === 'sm' ? '0.875rem' : '1rem')};
+  border: 1px solid ${({ $error }) => ($error ? '#e5484d' : '#ccc')};
+  border-radius: 6px;
+
+  &:disabled {
+    background: #f4f4f4;
+    cursor: not-allowed;
+  }
+
+  &:read-only {
+    background: #fafafa;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: ${({ $error }) => ($error ? '#e5484d' : '#2684ff')};
+  }
+`;
+
