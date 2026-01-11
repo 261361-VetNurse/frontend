@@ -22,6 +22,8 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
     align?: Align;
 
     loading?: boolean;
+
+    onClick?: React.MouseEventHandler<HTMLButtonElement>;
 }
 
 const minHeightBySize: Record<Size, number> = { sm: 40, md: 44, lg: 48 };
@@ -234,6 +236,7 @@ export default function Button({
     loading = false,
     disabled,
     type = 'button',
+    onClick,
     ...props
 }: ButtonProps) {
     const isDisabled = !!disabled || !!loading;
@@ -262,6 +265,7 @@ export default function Button({
             $iconPx={iconPx}
             disabled={isDisabled}
             aria-label={ariaLabel}
+            onClick={onClick}
             {...props}
         >
             {/* Content stays in DOM to lock width (no jitter) */}
