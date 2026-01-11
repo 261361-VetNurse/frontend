@@ -186,7 +186,7 @@ export const RecordPage = () => {
       id: entry.id,
       petId: entry.petId,
       petName: pet?.name ?? "-",
-      petPid: pet?.pid ?? "-", // ✅ กัน undefined
+      petPid: pet?.pid ?? "-", 
       avatarUrl: pet?.avatarUrl,
       date: entry.dateKey,
       time: entry.time,
@@ -257,7 +257,6 @@ export const RecordPage = () => {
           variant="card"
         />
 
-        {/* ✅ list style เหมือน MyPets (shared/records) */}
         <div className="mt-4 space-y-4">
           <div className="space-y-2">
             <div className="font-semibold text-zinc-900">Record</div>
@@ -279,7 +278,7 @@ export const RecordPage = () => {
                     petName={pet?.name ?? "-"}
                     time={formatTime12h(record.time)}
                     note={record.note}
-                    avatarUrl={pet?.avatarUrl} // ✅ optional อยู่แล้ว ไม่ต้องส่ง ""
+                    avatarUrl={pet?.avatarUrl} 
                     imageUrls={record.images ?? []}
                     onClick={() => openDetailByEntry(record)}
                   />

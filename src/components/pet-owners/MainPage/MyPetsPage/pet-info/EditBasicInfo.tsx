@@ -33,17 +33,20 @@ export default function EditBasicInfo() {
 
   const currentPet = pet;
 
-  // ✅ 4. ปรับ State ให้ map กับ Field ใหม่ (profile_image, birth_date)
   const [avatarUrl, setAvatarUrl] = useState(
     currentPet.profile_image ?? "/pet-placeholder.svg"
   );
   const [name, setName] = useState(currentPet.name ?? "");
   const [species, setSpecies] = useState(currentPet.species ?? "");
   const [breed, setBreed] = useState(currentPet.breed ?? "");
-  const [dob, setDob] = useState(currentPet.birth_date ?? ""); // ใช้ birth_date
+  const [dob, setDob] = useState(currentPet.birth_date ?? "");
   const [sex, setSex] = useState<Sex>((currentPet.gender as Sex) ?? "Unknown");
-  
-  const [color, setColor] = useState(currentPet.color ?? "");
+  const [weight, setWeight] = useState(currentPet.weight_kg ?? "");
+  const [infecund, setInfecund] = useState<boolean>(currentPet.infecund ?? false);
+  const [allergiesInput, setAllergiesInput] = useState(
+    currentPet.allergies ? currentPet.allergies.join(", ") : ""
+  );
+
   const computedAge = useMemo(() => (dob ? formatAge(dob) : "-"), [dob]);
 
   const canSubmit = useMemo(() => {
@@ -57,31 +60,43 @@ export default function EditBasicInfo() {
   function onUpdate() {
     if (!canSubmit) return;
 
+    const allergiesArray = allergiesInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+
     const payload = {
-      _id: currentPet._id, 
+      ...currentPet, // copy ค่าเดิมมาด้วย (เช่น created_at, user_id)
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
-      birth_date: dob, 
+      birth_date: dob,
       gender: sex,
-      color: color.trim(),
-      profile_image: avatarUrl, 
+      weight_kg: weight.trim() === "" ? null : weight,
+      infecund: infecund,
+      allergies: allergiesArray,
+      profile_image: avatarUrl,
     };
 
     console.log("UPDATE PET:", payload);
+
+    // ✅ เพิ่มส่วนนี้: อัปเดตข้อมูลใน mockPets โดยตรง
+    // (เพราะเราไม่ได้ต่อ Database จริง การแก้ที่ตัวแปรนี้จะทำให้หน้าอื่นเห็นข้อมูลใหม่ด้วย)
+    const index = mockPets.findIndex((p) => p._id === currentPet._id);
+    if (index !== -1) {
+      mockPets[index] = payload;
+    }
 
     router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
   }
 
   return (
     <div>
-      {/* Header */}
       <TopBar
         title="Edit Basic Information"
         onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet._id}`)}
       />
 
-      {/* Content */}
       <div className="pt-4 pb-28">
         {/* Avatar */}
         <div className="flex justify-center py-2">
@@ -96,20 +111,17 @@ export default function EditBasicInfo() {
                 unoptimized
               />
             </div>
-
             <button
               type="button"
-              onClick={() => console.log("change avatar")}
-              className="absolute -right-1 -bottom-1 h-8 w-8 rounded-full bg-sky-400 disabled:bg-sky-300 shadow-md grid place-items-center active:scale-[0.98]"
-              aria-label="Edit avatar"
-              title="Edit avatar"
+              className="absolute -right-1 -bottom-1 h-8 w-8 rounded-full bg-sky-500 shadow-md grid place-items-center"
             >
-              <Image src="/edit.svg" alt="" width={18} height={18} />
+              <Image src="/edit.svg" alt="" width={14} height={14} className="invert brightness-0" />
             </button>
           </div>
         </div>
 
-        <div className="space-y-4 px-6">
+        <div className="space-y-4 px-6 mt-4">
+          
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
@@ -120,6 +132,33 @@ export default function EditBasicInfo() {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+          </div>
+
+          {/* Infecund (Sterile) */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-2">
+              Infecund
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input 
+                  type="radio" 
+                  checked={infecund === true} 
+                  onChange={() => setInfecund(true)}
+                  className="accent-sky-500 w-4 h-4"
+                /> 
+                Yes
+              </label>
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input 
+                  type="radio" 
+                  checked={infecund === false} 
+                  onChange={() => setInfecund(false)}
+                  className="accent-sky-500 w-4 h-4"
+                /> 
+                No
+              </label>
+            </div>
           </div>
 
           {/* Species + Breed */}
@@ -159,7 +198,6 @@ export default function EditBasicInfo() {
                 onChange={(e) => setDob(e.target.value)}
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1">
                 Age
@@ -170,11 +208,11 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
-          {/* Sex + Color */}
+          {/* Sex + Weight */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Sex
+                Gender
               </label>
               <select
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
@@ -186,28 +224,41 @@ export default function EditBasicInfo() {
                 <option value="Unknown">Unknown</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Color
+                Weight (kg)
               </label>
               <input
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="e.g. 4.5"
               />
             </div>
           </div>
+
+          {/* Allergies */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-1">
+              Allergies
+            </label>
+            <input
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              value={allergiesInput}
+              onChange={(e) => setAllergiesInput(e.target.value)}
+              placeholder="e.g. Chicken, Beef, Dust (comma separated)"
+            />
+          </div>
+
         </div>
       </div>
 
-      {/* Bottom fixed button */}
       <div className="fixed bottom-0 left-1/2 w-full -translate-x-1/2 px-6 pb-6 max-w-[393px]">
         <button
           type="button"
           onClick={onUpdate}
           disabled={!canSubmit}
-          className="w-full rounded-full py-3 text-white text-sm font-semibold shadow-lg transition active:scale-[0.99] bg-sky-500 disabled:bg-sky-300"
+          className="w-full rounded-full py-3 text-white text-sm font-semibold shadow-lg transition active:scale-[0.99] bg-sky-500 disabled:bg-sky-300 hover:bg-sky-600"
         >
           Update
         </button>

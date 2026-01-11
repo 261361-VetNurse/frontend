@@ -8,7 +8,8 @@ export type Pet = {
   gender: string;    
   birth_date: string;  
   weight_kg: string | null; 
-  allergies: string[]; 
+  allergies: string[];
+  infecund: boolean;
   profile_image: string;  
   created_at: string;     
 };
