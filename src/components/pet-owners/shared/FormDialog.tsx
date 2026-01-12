@@ -1,0 +1,127 @@
+"use client";
+
+import React from "react";
+import { Modal } from "./Modal";
+import Button from "./Button";
+
+export type FormDialogProps = {
+    open: boolean;
+    onClose: () => void;
+
+    title: string;
+    subtitle?: string;
+    illustration?: React.ReactNode;
+
+    layout?: "singleColumn" | "twoColumn";
+    density?: "compact" | "standard";
+
+    dirty?: boolean;
+    submitting?: boolean;
+
+    primaryLabel: string;
+    onPrimary: () => void;
+    primaryActionStyle?: "primary" | "danger";
+
+    secondaryLabel?: string;
+    onSecondary?: () => void;
+    secondaryActionStyle?: "secondary" | "outline";
+
+    children: React.ReactNode;
+};
+
+export function FormDialog({
+    open,
+    onClose,
+
+    title,
+    subtitle,
+    illustration,
+
+    layout = "singleColumn",
+    density = "standard",
+
+    dirty = false,
+    submitting = false,
+
+    primaryLabel,
+    onPrimary,
+    primaryActionStyle = "primary",
+
+    secondaryLabel,
+    onSecondary,
+    secondaryActionStyle = "outline",
+
+    children,
+}: FormDialogProps) {
+    const gap = density === "compact" ? "gap-4" : "gap-5";
+
+    const contentCls =
+        layout === "twoColumn" ? "grid grid-cols-2 gap-4" : `grid grid-cols-1 ${gap}`;
+
+    const primaryCls =
+        primaryActionStyle === "danger"
+            ? "bg-red-600 hover:bg-red-700"
+            : "bg-[#09BFF8] hover:bg-sky-600";
+
+    const secondaryCls =
+        secondaryActionStyle === "secondary"
+            ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-900"
+            : "border border-black/20 hover:bg-black/5 text-zinc-900";
+
+    return (
+        <Modal
+            open={open}
+            onClose={onClose}
+            placement="center"
+            size="md"
+            scroll="inside"
+            radius="lg"
+            overlay="dim"
+            elevation="md"
+            header="titleSubtitle"
+            closeButton="on"
+            footer="actionsSticky"
+            dismissable={submitting ? "none" : "backdrop"}
+            title={title}
+            subtitle={subtitle}
+            dirty={dirty}
+            footerNode={
+                <div className="flex items-center gap-3">
+                    {secondaryLabel && onSecondary ? (
+                        <Button
+                            variant="secondary"
+                            shape="pill"
+                            fullWidth
+                            onClick={onSecondary}
+                            disabled={submitting}
+
+                        >
+                            {secondaryLabel}
+                        </Button>
+                    ) : null}
+
+                    <Button
+                        variant="primary"
+                        shape="pill"
+                        fullWidth
+                        onClick={onPrimary}
+                        disabled={submitting}
+                    >
+                        {submitting ? "Loading..." : primaryLabel}
+                    </Button>
+                </div>
+            }
+        >
+            {/* illustration */}
+            {illustration ? (
+                <div className="flex items-center gap-4 pb-2">
+                    <div className="h-14 w-14 rounded-full bg-black/10 grid place-items-center overflow-hidden">
+                        {illustration}
+                    </div>
+                </div>
+            ) : null}
+
+            <div className={contentCls}>{children}</div>
+        </Modal>
+    );
+}
