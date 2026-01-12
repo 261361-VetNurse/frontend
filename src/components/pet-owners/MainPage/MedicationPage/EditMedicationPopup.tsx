@@ -268,8 +268,8 @@ export default function EditMedicationPopup({
       setReminders(medicineReminder.schedule.reminders.map(r => ({
         id: r.id,
         time: r.time,
-        is_taken: r.is_taken,
-        taken_at: r.taken_at,
+        is_taken: false,
+        taken_at: undefined,
       })));
       setIsStopped(medicineReminder.medication_status.is_stopped);
       setStopReason(medicineReminder.medication_status.reason || '');

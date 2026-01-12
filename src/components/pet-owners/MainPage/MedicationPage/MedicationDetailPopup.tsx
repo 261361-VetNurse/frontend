@@ -1,9 +1,13 @@
 import React from 'react';
 import styled from 'styled-components';
 import { theme } from '@/styles/theme';
-import { ReminderOccurrence } from '@/lib/reminder-utils';
 import { formatTimeForDisplay } from '@/lib/reminder-utils';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
+
 
 const Overlay = styled.div`
   position: fixed;
@@ -206,6 +210,28 @@ interface MedicationDetailPopupProps {
   onEdit: () => void;
 }
 
+type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'skipped';
+
+const getStatus = (reminder: any): OccurrenceStatus => {
+  if (reminder.status) return reminder.status;
+  return reminder.is_taken ? 'taken' : 'pending';
+};
+
+const getStatusMeta = (status: OccurrenceStatus) => {
+  switch (status) {
+    case 'taken':
+      return { label: 'Taken', Icon: CheckCircleIcon };
+    case 'missed':
+      return { label: 'Missed', Icon: ErrorOutlineIcon };
+    case 'skipped':
+      return { label: 'Skipped', Icon: DoNotDisturbOnIcon };
+    case 'pending':
+    default:
+      return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
+  }
+};
+
+
 export default function MedicationDetailPopup({
   medicineReminder,
   highlightedReminderId,
@@ -262,25 +288,35 @@ export default function MedicationDetailPopup({
 
         <RemindersSection>
           <SectionTitle>Today's Reminders</SectionTitle>
-          {medicineReminder.schedule.reminders.map((reminder) => (
-            <ReminderItem 
-              key={reminder.id} 
-              $isHighlighted={reminder.id === highlightedReminderId}
-            >
-              <ReminderTime>{formatTimeForDisplay(reminder.time)}</ReminderTime>
-              <ReminderStatus>
-                <StatusButton
-                  $isTaken={reminder.is_taken}
-                  onClick={() => onToggleReminder(reminder.id, !reminder.is_taken)}
-                >
-                  {reminder.is_taken ? 'Taken' : 'Not taken'}
-                </StatusButton>
-                {reminder.is_taken && reminder.taken_at && (
-                  <TakenTime>{formatTakenTime(reminder.taken_at)}</TakenTime>
-                )}
-              </ReminderStatus>
-            </ReminderItem>
-          ))}
+          {medicineReminder.schedule.reminders.map((reminder: any) => {
+            const status = getStatus(reminder);
+            const { label, Icon } = getStatusMeta(status);
+            const isTaken = status === 'taken';
+
+            return (
+              <ReminderItem
+                key={reminder.id}
+                $isHighlighted={reminder.id === highlightedReminderId}
+              >
+                <ReminderTime>{formatTimeForDisplay(reminder.time)}</ReminderTime>
+
+                <ReminderStatus>
+                  <StatusButton
+                    $isTaken={isTaken}
+                    onClick={() => onToggleReminder(reminder.id, !isTaken)}
+                    title={label}
+                  >
+                    <Icon style={{ width: 16, height: 16 }} />
+                    <span>{label}</span>
+                  </StatusButton>
+
+                  {isTaken && reminder.taken_at && (
+                    <TakenTime>{formatTakenTime(reminder.taken_at)}</TakenTime>
+                  )}
+                </ReminderStatus>
+              </ReminderItem>
+            );
+          })}
         </RemindersSection>
 
         <ActionButtons>

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { HomePageStyled } from "@/styles/homepage.styled";
-import ReminderBox from "./ReminderBox";
+import ReminderBox from "./ReminderCard";
 import AppointmentBox from "./AppointBox";
-import { useRouter } from "next/dist/client/components/navigation";
+import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
 import { mockPets } from "@/mocks/pets.mock"
@@ -107,15 +107,7 @@ export default function HomePage({username}: {username: string}) {
                     className="head-left"
                     onClick={() => router.push('/pet-owners/my-pets-page')}>
                         <div className="sub">show all</div>
-                        <ArrowForwardIosIcon
-                            sx={{
-                                ml: 'auto',
-                                fontSize: 16,
-                                color: theme.colors.textSecondary,
-                                cursor: 'pointer',
-                            }}
-                            onClick={() => router.push('/pet-owners/help-center-page')}
-                        />
+                        <ArrowForwardIosIcon sx={{ ml: 'auto', fontSize: 16, color: theme.colors.textSecondary, cursor: 'pointer' }}/>
                 </div>
             </div>
             <div className="mypet-section">
@@ -132,15 +124,7 @@ export default function HomePage({username}: {username: string}) {
                     className="head-left"
                     onClick={() => router.push('/pet-owners/medication-page')}>
                         <div className="sub">show all</div>
-                        <ArrowForwardIosIcon
-                            sx={{
-                                ml: 'auto',
-                                fontSize: 16,
-                                color: theme.colors.textSecondary,
-                                cursor: 'pointer',
-                            }}
-                            onClick={() => router.push('/pet-owners/help-center-page')}
-                        />
+                        <ArrowForwardIosIcon sx={{ ml: 'auto', fontSize: 16, color: theme.colors.textSecondary, cursor: 'pointer' }}/>
                 </div>
             </div>
             <div className="reminder-box">
@@ -153,7 +137,7 @@ export default function HomePage({username}: {username: string}) {
                         medicineName={occurrence.medicine.name}
                         dosage={occurrence.medicine.dosage}
                         timeLabel={formatTimeForDisplay(occurrence.time)}
-                        is_taken={occurrence.is_taken}
+                        status={occurrence.status}
                         onClick={() => handleReminderClick(occurrence)}
                       />
                     </div>
@@ -191,15 +175,7 @@ export default function HomePage({username}: {username: string}) {
                     className="head-left"
                     onClick={() => router.push('/pet-owners/calendar-page?tab=appointment')}>
                         <div className="sub">show all</div>
-                        <ArrowForwardIosIcon
-                            sx={{
-                                ml: 'auto',
-                                fontSize: 16,
-                                color: theme.colors.textSecondary,
-                                cursor: 'pointer',
-                            }}
-                            onClick={() => router.push('/pet-owners/help-center-page')}
-                        />
+                        <ArrowForwardIosIcon sx={{ ml: 'auto', fontSize: 16, color: theme.colors.textSecondary, cursor: 'pointer' }}/>
                 </div>
             </div>
             <div className="appoint-box">

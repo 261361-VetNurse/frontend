@@ -21,12 +21,13 @@ import { QuickDialButton } from '../../shared/QuickDialButton';
 import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
 import {
-  getTodayReminders,
   formatTimeForDisplay,
   updateReminderTakenStatus,
-  updateMedicationStoppedStatus,
   ReminderOccurrence,
+  flattenRemindersForDate,
+  buildOccurrencesForDate
 } from '@/lib/reminder-utils';
+import MedicineCard from './MedicineCard';
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';
@@ -58,6 +59,7 @@ export default function MedicationPage() {
   } | null>(null);
   const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
   const [highlightedOccurrenceId, setHighlightedOccurrenceId] = useState<string | null>(null);
+  const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, { status: any; taken_at?: string | null }>>({});
 
   // Handle deep linking
   useEffect(() => {
@@ -96,11 +98,44 @@ export default function MedicationPage() {
     }
   }, [searchParams, medicineReminders]);
 
+  const tzToday = new Date();
+  const tzTomorrow = new Date(); tzTomorrow.setDate(tzTomorrow.getDate() + 1);
+
+  const occurrences =
+    selectedTab === "today"
+      ? buildOccurrencesForDate(medicineReminders, tzToday, occurrenceOverrides)
+      : selectedTab === "tomorrow"
+      ? buildOccurrencesForDate(medicineReminders, tzTomorrow, occurrenceOverrides)
+      : []; // other ทำทีหลัง หรือทำ range
+
+  const filtered = occurrences.filter(o => selectedPetId === "all" || o.pet.id === selectedPetId);
+
+
+  const getDateForTab = (tab: TabType): Date => {
+    const today = new Date();
+    if (tab === "today") return today;
+    if (tab === "tomorrow") {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 1);
+      return d;
+    }
+    // other: เอาเป็น “อีก 7 วันถัดไป (ไม่รวมวันนี้/พรุ่งนี้)” ชั่วคราวก่อนต่อ API
+    // เดี๋ยวเฟส B จะเปลี่ยนเป็น occurrences จาก server
+    return today;
+  };
+
   // Get today's reminders
-  const todayReminders = getTodayReminders(medicineReminders);
+  const baseDate = getDateForTab(selectedTab);
+
+  const tabReminders =
+    selectedTab === "other"
+      ? [] // ชั่วคราวก่อน (ถ้าจะทำจริงให้ทำในเฟส B)
+      : flattenRemindersForDate(medicineReminders, baseDate).sort(
+          (a, b) => a.occurrence_datetime.getTime() - b.occurrence_datetime.getTime()
+        );
   
   // Filter by selected pet
-  const filteredReminders = todayReminders.filter(occurrence => 
+  const filteredReminders = tabReminders.filter(occurrence =>
     selectedPetId === 'all' || occurrence.pet.id === selectedPetId
   );
 
@@ -140,30 +175,28 @@ export default function MedicationPage() {
     }
   };
 
-  const handleToggleReminder = (reminderId: string, isTaken: boolean) => {
-    if (!selectedReminder) return;
-    
+  const handleToggleReminder = (notificationId: string, reminderId: string, isTaken: boolean) => {
     const updatedReminders = updateReminderTakenStatus(
       medicineReminders,
-      selectedReminder.medicineReminder.notification_id,
+      notificationId,
       reminderId,
       isTaken
     );
-    
+
     setMedicineReminders(updatedReminders);
-    
-    // Update the selected reminder state
-    const updatedMedicineReminder = updatedReminders.find(
-      mr => mr.notification_id === selectedReminder.medicineReminder.notification_id
-    );
-    
-    if (updatedMedicineReminder) {
-      setSelectedReminder({
-        ...selectedReminder,
-        medicineReminder: updatedMedicineReminder,
-      });
+
+    // sync selectedReminder ถ้ากำลังเปิด detail ของตัวเดียวกัน
+    if (selectedReminder?.medicineReminder.notification_id === notificationId) {
+      const updatedMedicineReminder = updatedReminders.find(mr => mr.notification_id === notificationId);
+      if (updatedMedicineReminder) {
+        setSelectedReminder({
+          ...selectedReminder,
+          medicineReminder: updatedMedicineReminder,
+        });
+      }
     }
   };
+
 
   const handleEditFromDetail = () => {
     if (!selectedReminder) return;
@@ -186,14 +219,21 @@ export default function MedicationPage() {
     isStopped: boolean;
     reason?: string;
   }) => {
-    const updatedReminders = updateMedicationStoppedStatus(
-      medicineReminders,
-      data.medicineReminder.notification_id,
-      data.isStopped,
-      data.reason
-    );
-    
-    setMedicineReminders(updatedReminders);
+    const updated = medicineReminders.map(mr => {
+      if (mr.notification_id !== data.medicineReminder.notification_id) return mr;
+
+      return {
+        ...data.medicineReminder,
+        medication_status: {
+          is_stopped: data.isStopped,
+          // ก่อนต่อ API: อย่าเพิ่ง set stopped_at ด้วย new Date() (ควรเป็น server)
+          // ให้โชว์เฉพาะ flag ไปก่อน
+          ...(data.isStopped ? { reason: data.reason } : {}),
+        },
+      };
+    });
+
+    setMedicineReminders(updated);
     setEditingReminder(null);
   };
 
@@ -299,68 +339,34 @@ export default function MedicationPage() {
 
       {/* Header */}
       <Header>
-        <div className='Title'>Today's Medication Reminders</div>
+        <div className='Title'>
+          {selectedTab === "today" ? "Today's Medication Reminders" :
+          selectedTab === "tomorrow" ? "Tomorrow's Medication Reminders" :
+          "Other Medication Reminders"}
+        </div>
         <div className='DateText'>{formatDate()}</div>
       </Header>
 
       {/* Reminder cards */}
       <CardList>
         {filteredReminders.length > 0 ? (
-          filteredReminders.map((occurrence) => {
-            const isHighlighted = highlightedOccurrenceId === `${occurrence.notification_id}-${occurrence.reminder_id}`;
-            
-            return (
-              <div 
-                className="Card" 
-                key={`${occurrence.notification_id}-${occurrence.reminder_id}`}
-                onClick={() => handleReminderClick(occurrence)}
-                style={{ 
-                  cursor: 'pointer',
-                  border: isHighlighted ? `2px solid ${theme.colors.primary}` : undefined,
-                  backgroundColor: isHighlighted ? '#E3F2FD' : undefined,
-                }}
-              >
-                <div className="CardTopRow">
-                  <div className="ScheduleText">
-                    {formatTimeForDisplay(occurrence.time)} - {occurrence.medicine.dosage}
-                  </div>
-                  <div style={{
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    backgroundColor: occurrence.is_taken ? '#4CAF50' : '#FFF3E0',
-                    color: occurrence.is_taken ? '#fff' : '#F57C00',
-                  }}>
-                    {occurrence.is_taken ? 'Taken' : 'Not taken'}
-                  </div>
-                </div>
-                
-                <div className="CardBody">
-                  <div className="AvatarWrap">
-                    <Image
-                      src={occurrence.pet.image_url}
-                      alt={occurrence.pet.name}
-                      width={40}
-                      height={40}
-                    />
-                  </div>
-                  
-                  <div className="TextCol">
-                    <div className="PetName">{occurrence.pet.name}</div>
-                    <div className="MedName">{occurrence.medicine.name}</div>
-                    {occurrence.taken_at && (
-                      <div className="Note">
-                        Taken at {formatTimeForDisplay(
-                          new Date(occurrence.taken_at).toTimeString().slice(0, 5)
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          filteredReminders.map((occ) => (
+          <MedicineCard
+            key={`${occ.notification_id}-${occ.reminder_id}-${occ.occurrence_datetime.toISOString()}`}
+            petName={occ.pet.name}
+            petImageUrl={occ.pet.image_url}
+            medicineName={occ.medicine.name}
+            dosage={occ.medicine.dosage}
+            timeLabel={formatTimeForDisplay(occ.time)}
+            status={occ.status}
+            isStopped={occ.medication_status?.is_stopped}
+            onOpenDetail={() => handleReminderClick(occ)}
+            onToggleTaken={(next) =>
+              handleToggleReminder(occ.notification_id, occ.reminder_id, next)
+            }
+            onEdit={() => handleEditFromDetail()}
+          />
+        ))
         ) : (
           <div style={{
             padding: '32px 16px',
@@ -395,7 +401,9 @@ export default function MedicationPage() {
           medicineReminder={selectedReminder.medicineReminder}
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={handleCloseDetail}
-          onToggleReminder={handleToggleReminder}
+          onToggleReminder={(reminderId: string, isTaken: boolean) =>
+            handleToggleReminder(selectedReminder.medicineReminder.notification_id, reminderId, isTaken)
+          }
           onEdit={handleEditFromDetail}
         />
       )}

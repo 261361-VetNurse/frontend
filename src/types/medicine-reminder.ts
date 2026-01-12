@@ -21,10 +21,8 @@ export type MedicineReminderVM = {
         };
 
         reminders: Array<{
-            id: string;       
-            time: string;  
-            is_taken: boolean;
-            taken_at?: string; 
+            id: string;
+            time: string; // HH:mm
         }>;
 
         measurement_times_per_day: number; // Measurement: "2 times"

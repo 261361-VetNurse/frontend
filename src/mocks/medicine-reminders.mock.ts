@@ -19,13 +19,10 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 {
                     id: "r1",
                     time: "02:00",
-                    is_taken: false,
                 },
                 {
                     id: "r2",
                     time: "20:00",
-                    is_taken: true,
-                    taken_at: "2026-01-07T20:03:00.000Z",
                 },
             ],
             measurement_times_per_day: 2,
@@ -51,9 +48,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         schedule: {
             frequency: { key: "interval_hours", label: "Every 8 hours", interval_hours: 8 },
             reminders: [
-                { id: "r1", time: "06:00", is_taken: true, taken_at: "2026-01-07T06:05:00.000Z" },
-                { id: "r2", time: "14:00", is_taken: false },
-                { id: "r3", time: "22:00", is_taken: false },
+                { id: "r1", time: "06:00"},
+                { id: "r2", time: "14:00"},
+                { id: "r3", time: "22:00"},
             ],
             measurement_times_per_day: 3,
             starting_date: "2026-01-01",
@@ -81,7 +78,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 label: "Mon, Fri",
                 days_of_week: ["mon", "fri"],
             },
-            reminders: [{ id: "r1", time: "02:00", is_taken: false}],
+            reminders: [{ id: "r1", time: "02:00" }],
             measurement_times_per_day: 1,
             starting_date: "2026-01-02",
         },
@@ -109,7 +106,6 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 {
                     id: "r1",
                     time: "12:00", // Noon - should show if within 2 hours
-                    is_taken: false,
                 },
             ],
             measurement_times_per_day: 1,
@@ -138,7 +134,6 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 {
                     id: "r1",
                     time: "07:00", // Morning - might be overdue depending on current time
-                    is_taken: false,
                 },
             ],
             measurement_times_per_day: 1,
