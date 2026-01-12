@@ -125,3 +125,25 @@ export function FormDialog({
         </Modal>
     );
 }
+{/* <FormDialog
+    open={open}
+    onClose={() => setOpen(false)}
+    title="Add New Medication"
+    primaryLabel="Save"
+    secondaryLabel="Cancel"
+    onPrimary={() => alert("Submit")}
+    onSecondary={() => setOpen(false)}
+>
+    {/* ---------- เนื้อหาที่ยาวเพื่อทดสอบ scroll ---------- */}
+//     <div className="space-y-4">
+//         {Array.from({ length: 2 }).map((_, i) => (
+//             <div key={i} className="space-y-1">
+//                 <label className="text-sm font-medium">Field {i + 1}</label>
+//                 <input
+//                     className="w-full h-10 rounded border px-3"
+//                     placeholder={`Input ${i + 1}`}
+//                 />
+//             </div>
+//         ))}
+//     </div>
+// </FormDialog> */}
