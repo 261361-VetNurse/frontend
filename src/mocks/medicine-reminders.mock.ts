@@ -254,8 +254,8 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
       reminders: [
         {
           id: "r1",
-          time: "12:00", // Noon - should show if within 2 hours
-          is_taken: false, // ✅ เพิ่ม is_taken
+          time: "12:00", 
+          is_taken: false, 
         },
       ],
       measurement_times_per_day: 1,
@@ -283,8 +283,8 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
       reminders: [
         {
           id: "r1",
-          time: "07:00", // Morning - might be overdue depending on current time
-          is_taken: false, // ✅ เพิ่ม is_taken
+          time: "07:00", 
+          is_taken: false, 
         },
       ],
       measurement_times_per_day: 1,
