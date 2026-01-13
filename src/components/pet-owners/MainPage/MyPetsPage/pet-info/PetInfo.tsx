@@ -1,23 +1,26 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { mockPets } from "@/mocks/pets";
-import type { Pet } from "@/types/Pet";
+import type { Petss } from "@/types/Petss";
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
 import { formatAge } from "@/app/lib/pets/age";
 import { Page } from "@/styles/myPetsPage.styled";
 
+// shared component
+import PetFilterSelector, {
+  type PetLite,
+  type PetSelectorValue,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
 export default function PetInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-
-  const pet: Pet | undefined = useMemo(
+  const pet: Petss | undefined = useMemo(
     () => mockPets.find((p) => p.id === String(petId)),
     [petId]
   );
@@ -26,24 +29,26 @@ export default function PetInfo() {
     return (
       <div className="p-6">
         <button onClick={() => router.back()} className="underline">
-          ← 
+          ←
         </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">
+          Petss not found: {String(petId)}
+        </div>
       </div>
     );
   }
 
   const currentPet = pet;
-
   const ageText = formatAge(currentPet.birthDate);
 
-  const options = useMemo(
+  // map mockPets -> PetLite (data contract ของ shared component)
+  const petsForSelector: PetLite[] = useMemo(
     () =>
       mockPets.map((p) => ({
         id: p.id,
         name: p.name,
         pid: p.pid ?? p.id,
-        imageUrl: p.imageUrl,
+        avatarUrl: p.imageUrl, // mock ใช้ imageUrl → map เป็น avatarUrl
       })),
     []
   );
@@ -61,7 +66,7 @@ export default function PetInfo() {
     },
     {
       iconSrc: "/record.svg",
-      title: "Pet Symptom Record",
+      title: "Petss Symptom Record",
       href: `/pet-owners/my-pets-page/${currentPet.id}/symptoms`,
     },
     {
@@ -74,92 +79,26 @@ export default function PetInfo() {
   return (
     <Page>
       <TopBar
-        title="Pet Information"
+        title="Petss Information"
         onBack={() => router.push(`/pet-owners/my-pets-page`)}
       />
 
-      {/* Pet selector card */}
-      <div className="mt-4 relative z-10">
-        <PetSelectorCard
-          name={currentPet.name}
-          pid={currentPet.pid ?? currentPet.id}
-          imageUrl={currentPet.imageUrl}
-          selectedId={currentPet.id}
-          options={options}
-          onSelect={(id) => router.push(`/pet-owners/my-pets-page/${id}`)}
+      {/* Pet selector (shared component) */}
+      <div className="mt-4">
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets={false}
+          pets={petsForSelector}
+          value={currentPet.id as PetSelectorValue}
+          onChange={(v) => {
+            router.push(`/pet-owners/my-pets-page/${String(v)}`);
+          }}
+          placeholder="Select your pet"
         />
       </div>
 
-      {/* Pet selector bottom sheet */}
-      {isSelectorOpen && (
-        <div className="fixed inset-0 z-50">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/30"
-            onClick={() => setIsSelectorOpen(false)}
-            aria-label="Close pet selector"
-          />
-
-          <div className="absolute left-0 right-0 bottom-0 rounded-t-3xl bg-white shadow-xl border-t border-zinc-100">
-            <div className="flex items-center justify-between">
-              <div className="text-base font-semibold text-zinc-900">
-                Select Pet
-              </div>
-            </div>
-
-            <div className="mt-3 max-h-[55vh] overflow-auto space-y-2">
-              {mockPets.map((p) => {
-                const active = p.id === currentPet.id;
-
-                return (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => {
-                      setIsSelectorOpen(false);
-                      router.push(`/pet-owners/my-pets-page/${p.id}`);
-                    }}
-                    className={[
-                      "w-full text-left rounded-2xl border px-4 py-3 flex items-center justify-between",
-                      active
-                        ? "border-zinc-300 bg-zinc-50"
-                        : "border-zinc-100 bg-white hover:bg-zinc-50",
-                    ].join(" ")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-                        <img
-                          src={p.imageUrl ?? "/pet-placeholder.svg"}
-                          alt={p.name}
-                          className="h-10 w-10 object-cover"
-                        />
-                      </div>
-
-                      <div className="leading-tight">
-                        <div className="font-semibold text-zinc-900">{p.name}</div>
-                        <div className="text-sm text-zinc-500">{`PID: ${
-                          p.pid ?? p.id
-                        }`}</div>
-                      </div>
-                    </div>
-
-                    {active ? (
-                      <div className="text-sm text-zinc-600">Selected</div>
-                    ) : (
-                      <div className="text-zinc-400 text-lg">›</div>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="mt-4 border-t border-zinc-100" />
-
       {/* Basic Information */}
-      <div className="mt-4">
+      <div className="mt-3">
         <BasicInfoCard
           name={currentPet.name}
           species={currentPet.species ?? "-"}
@@ -169,7 +108,9 @@ export default function PetInfo() {
           sex={currentPet.gender}
           color={currentPet.color ?? "-"}
           previousClinic={currentPet.previousClinicOrHospital ?? "-"}
-          onEdit={() => router.push(`/pet-owners/my-pets-page/${currentPet.id}/edit`)}
+          onEdit={() =>
+            router.push(`/pet-owners/my-pets-page/${currentPet.id}/edit`)
+          }
         />
       </div>
 

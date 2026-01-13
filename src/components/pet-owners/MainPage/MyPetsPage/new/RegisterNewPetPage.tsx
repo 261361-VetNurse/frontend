@@ -65,7 +65,7 @@ export default function RegisterNewPetPage() {
   return (
     <>
       {/* Page header */}
-      <TopBar title="Register New Pet" onBack={() => router.back()} />
+      <TopBar title="Register New Petss" onBack={() => router.back()} />
           
       {/* Content */}
       <div className="px-6 pb-28">
@@ -233,7 +233,7 @@ export default function RegisterNewPetPage() {
           disabled={!canSubmit}
           className="w-full rounded-full py-3 text-white text-sm font-semibold shadow-lg transition active:scale-[0.99] bg-sky-500 disabled:bg-sky-300"
         >
-          Add New Pet
+          Add New Petss
         </button>
       </div>
     </>

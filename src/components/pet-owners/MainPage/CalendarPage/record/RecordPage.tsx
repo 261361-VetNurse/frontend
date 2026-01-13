@@ -305,7 +305,6 @@ export const RecordPage = () => {
                         : undefined
                 }
                 isEditing={Boolean(editingRecord)}
-                petOptions={petOptions}
             />
             <RecordPopDone
                 open={isRecordDetailOpen}

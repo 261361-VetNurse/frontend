@@ -1,132 +1,140 @@
 import React from 'react';
-import styled from 'styled-components';
-import { PrimaryButton } from '../../shared/form/PrimaryButton';
-import { theme } from '@/styles/theme';
+import { formatTimeForDisplay } from '@/lib/reminder-utils';
+import { MedicineReminderVM } from '@/types/medicine-reminder';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
+import { MedDetailOverlayStyled, PopupCard, CloseButton, PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton, ActionButton } from '@/styles/medication.styled';
+import Profile from '../../shared/Profile';
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.2);
-  z-index: 1000;
-  display: flex;
-  padding: 0 16px;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PopupCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-  padding: 24px;
-  width: 100%;
-  max-width: 393px;
-  position: relative;
-  gap: 16px;
-  display: flex;
-  flex-direction: column;
-  color: ${theme.colors.textPrimary};
-`;
-
-const PetRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 16px;
-`;
-
-const PetAvatar = styled.img`
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #edeef0;
-`;
-
-const PetInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Title = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-`;
-
-const Label = styled.div`
-  font-weight: 600;
-`;
-
-const Detail = styled.div`
-  font-weight: 300;
-`;
-
-const Row = styled.div`
-  display: flex;
-  gap: 18px;
-`;
-
-const ButtonRow = styled.div`
-  display: flex;
-  gap: 16px;
-`;
-
-const DeleteButton = styled(PrimaryButton)`
-  background: #e53935 !important;
-  color: #fff !important;
-`;
-
-import type { MedicationRecord } from './MedicationPage';
-
-type MedicationDetailPopupProps = {
-  open: boolean;
+interface MedicationDetailPopupProps {
+  medicineReminder: MedicineReminderVM;
+  highlightedReminderId?: string;
   onClose: () => void;
-  record: MedicationRecord | null;
-  onEdit: (record: MedicationRecord) => void;
-  onDelete: () => void;
+  onToggleReminder: (reminderId: string, isTaken: boolean) => void;
+  onEdit: () => void;
+}
+
+type OccurrenceStatus = 'pending' | 'taken' | 'missed';
+
+const getStatus = (reminder: any): OccurrenceStatus => {
+  if (reminder.status) return reminder.status;
+  return reminder.is_taken ? 'taken' : 'pending';
 };
 
-export default function MedicationDetailPopup({ open, onClose, record, onEdit, onDelete }: MedicationDetailPopupProps) {
-  if (!open || !record) return null;
+const getStatusMeta = (status: OccurrenceStatus) => {
+  switch (status) {
+    case 'taken':
+      return { label: 'Taken', Icon: CheckCircleIcon };
+    case 'missed':
+      return { label: 'Missed', Icon: ErrorOutlineIcon };
+    case 'pending':
+    default:
+      return { label: 'Taken', Icon: RadioButtonUncheckedIcon };
+  }
+};
+
+
+export default function MedicationDetailPopup({
+  medicineReminder,
+  highlightedReminderId,
+  onClose,
+  onToggleReminder,
+  onEdit,
+}: MedicationDetailPopupProps) {
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  const formatTakenTime = (takenAt?: string) => {
+    if (!takenAt) return '';
+    const date = new Date(takenAt);
+    return `Taken at ${formatTimeForDisplay(
+      `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+    )}`;
+  };
 
   return (
-    <Overlay onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <MedDetailOverlayStyled onClick={handleOverlayClick}>
       <PopupCard>
-        <Title>Medication</Title>
-        <PetRow>
-          <PetAvatar src={record.avatarUrl || ''} alt={record.petName} />
-          <PetInfo>
-            <div style={{ fontWeight: 600 }}>{record.petName}</div>
-            <div style={{ fontSize: 13, color: theme.colors.textSecondary }}>PID: 098765345</div>
-          </PetInfo>
-        </PetRow>
-        <div>
-            <Label>Medicine Name</Label>
-            <Detail>{record.medicationName}</Detail>
-        </div>
-        <Row>
-          <div>
-            <Label>Dose/Time</Label>
-            <Detail>{record.schedule}</Detail>
+        <CloseButton onClick={onClose}>×</CloseButton>
+        
+        <PetSection>
+          <Profile imageUrl={medicineReminder.pet.image_url} size={50} />
+          <div className='pet-info'>
+            <div className="pet-name">{medicineReminder.pet.name}</div>
+            <div className="pet-id">id: {medicineReminder.pet.id}</div>
           </div>
-          <div>
-            <Label>Times/Day</Label>
-            <Detail>วันละครั้ง</Detail>
+        </PetSection>
+
+        <MedicineSection>
+          <div className="medicine-name">{medicineReminder.medicine.name}</div>
+          <div className="medicine-dosage">{medicineReminder.medicine.dosage}</div>
+        </MedicineSection>
+
+        <ScheduleSection>
+          <div className='schedule-title'>Schedule Information</div>
+          <div className='schedule-info'>
+            <div className='info-row'>
+              <div className='info-label'>Frequency:</div>
+              <div className='info-value'>{medicineReminder.schedule.frequency.label}</div>
+            </div>
+            <div className='info-row'>
+              <div className='info-label'>Times per day:</div>
+              <div className='info-value'>{medicineReminder.schedule.measurement_times_per_day}</div>
+            </div>
+            <div className='info-row'>
+              <div className='info-label'>Starting date:</div>
+              <div className='info-value'>{new Date(medicineReminder.schedule.starting_date).toLocaleDateString()}</div>
+            </div>
           </div>
-        </Row>
-        <div>
-            <Label>Note</Label>
-            <Detail>{record.note}</Detail>
+        </ScheduleSection>
+
+        <RemindersSection >
+          <div className="section-title">Today's Reminders</div>
+          {medicineReminder.schedule.reminders.map((reminder: any) => {
+            const status = getStatus(reminder);
+            const { label, Icon } = getStatusMeta(status);
+            const isTaken = status === 'taken';
+
+            return (
+              <ReminderItem
+                key={reminder.id}
+                $isHighlighted={reminder.id === highlightedReminderId}
+              >
+                <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
+
+                <div className='reminder-status'>
+                  <StatusButton
+                    $status={status}
+                    onClick={() => onToggleReminder(reminder.id, !isTaken)}
+                    title={label}
+                  >
+                    <Icon style={{ width: 16, height: 16 }} />
+                    <span>{label}</span>
+                  </StatusButton>
+
+                  {isTaken && reminder.taken_at && (
+                    <div className='taken-time'>{formatTakenTime(reminder.taken_at)}</div>
+                  )}
+                </div>
+              </ReminderItem>
+            );
+          })}
+        </RemindersSection>
+
+        <div className="flex gap-4">
+          <ActionButton $variant="secondary" onClick={onClose}>
+            Close
+          </ActionButton>
+          <ActionButton $variant="primary" onClick={onEdit}>
+            Edit Medication
+          </ActionButton>
         </div>
-        <ButtonRow>
-          <PrimaryButton size={'md'} style={{ flex: 1 }} onClick={() => onEdit(record)}>Edit</PrimaryButton>
-          <DeleteButton size={'md'} style={{ flex: 1 }} onClick={onDelete}>Delete</DeleteButton>
-        </ButtonRow>
-        <div style={{ position: 'absolute', top: 12, right: 18, cursor: 'pointer', fontSize: 22, color: theme.colors.textPrimary }} onClick={onClose}>×</div>
       </PopupCard>
-    </Overlay>
+    </MedDetailOverlayStyled>
   );
 }

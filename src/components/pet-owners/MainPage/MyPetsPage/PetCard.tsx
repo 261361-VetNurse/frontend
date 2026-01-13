@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type Pet } from "@/types/Pet";
+import { type Petss } from "@/types/Petss";
 import { useRouter } from "next/navigation";
 
 
@@ -41,7 +41,7 @@ function VerifyStatus({ verified }: { verified: boolean }) {
   );
 }
 
-export default function PetCard({ pet }: { pet: Pet }) {
+export default function PetCard({ pet }: { pet: Petss }) {
   const ageText = formatAge(pet.birthDate);
   const imageSrc = pet.imageUrl ?? "/pet-placeholder.svg";
   const router = useRouter();

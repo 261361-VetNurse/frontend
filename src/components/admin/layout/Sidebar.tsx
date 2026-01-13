@@ -35,11 +35,6 @@ const menuItems: MenuItemType[] = [
     href: "/admin/appointments",
     icon: <EventAvailableOutlined />,
   },
-  {
-    label: "Community",
-    href: "/admin/community",
-    icon: <ForumOutlined />,
-  },
 ];
 
 export default function Sidebar() {
@@ -50,23 +45,21 @@ export default function Sidebar() {
       <ul className="list-none m-0 p-0 flex flex-col gap-3">
         {menuItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
-          
+
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
-                className={`flex items-center gap-3 h-11 px-3 rounded-lg no-underline text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${
-                  isActive ? 'bg-gray-100' : ''
-                }`}
+                className={`flex items-center gap-3 h-11 px-3 rounded-lg no-underline text-gray-900 transition-colors hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 ${isActive ? 'bg-gray-100' : ''
+                  }`}
               >
                 <span className="flex items-center justify-center">
                   <span className="text-xl text-gray-900">
                     {item.icon}
                   </span>
                 </span>
-                <span className={`text-sm font-medium text-gray-900 ${
-                  isActive ? 'font-semibold' : ''
-                }`}>
+                <span className={`text-sm font-medium text-gray-900 ${isActive ? 'font-semibold' : ''
+                  }`}>
                   {item.label}
                 </span>
               </Link>

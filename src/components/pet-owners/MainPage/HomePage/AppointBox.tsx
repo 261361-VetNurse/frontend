@@ -1,5 +1,4 @@
 import styled from "styled-components";
-import ProflieCom from "./PetProfile";
 
 const AppointBox = styled.div`
     width: 100%;
@@ -71,7 +70,7 @@ export default function AppointmentBox({
 }: AppointmentBoxProps) {
     return(
         <AppointBox>
-                <ProflieCom petImage={petImage} showName={false} size={40}/>
+                {/*<ProflieCom petImage={petImage} showName={false} size={40}/>*/}
                 <div className="name-location">
                     <div className="name">{petName}</div>
                     <div className="data-row">

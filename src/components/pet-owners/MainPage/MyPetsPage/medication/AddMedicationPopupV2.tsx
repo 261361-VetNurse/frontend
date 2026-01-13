@@ -86,7 +86,7 @@ export default function AddMedicationPopupV2({ open, onClose, onSubmit, pet }: P
           </button>
         </div>
 
-        {/* Pet row (locked) */}
+        {/* Petss row (locked) */}
         <div className="px-6 pb-4 flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full bg-zinc-100 shrink-0">
             {pet.avatarUrl ? (
