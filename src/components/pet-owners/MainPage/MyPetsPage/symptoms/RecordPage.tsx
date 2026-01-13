@@ -22,7 +22,7 @@ import EditRecordPopup, {
 } from "@/components/pet-owners/shared/records/EditRecordPopup";
 
 import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
-
+import { Add } from '@mui/icons-material';
 import { mockPets } from "@/mocks/pets.mock";
 
 function pad2(n: number) {

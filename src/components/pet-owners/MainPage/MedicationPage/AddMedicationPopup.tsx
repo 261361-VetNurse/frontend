@@ -62,7 +62,7 @@ const PetIconWrap = styled.div`
 const TopPopup = styled.div`
   display: flex;
   flex-direction: row;
-  align-item: center;
+  align-items: center;
 `
 
 const Title = styled.div`
@@ -249,12 +249,13 @@ export default function CreateMedicationPopup({
     const newMedicineReminder: MedicineReminderVM = {
       notification_id: notificationId,
       pet: {
-        id: selectedPet.id,
+        
+        _id: selectedPet.id,
         name: selectedPet.name,
-        image_url: selectedPet.avatarUrl || '/pets-example/pet-ex1.svg',
+        profile_image: selectedPet.avatarUrl || '/pets-example/pet-ex1.svg',
       },
       medicine: {
-        id: medicineId,
+        _id: medicineId,
         name: medicineName,
         dosage: dosage,
       },

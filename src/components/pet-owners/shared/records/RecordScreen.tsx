@@ -122,7 +122,6 @@ export default function RecordScreen({
     record: "bg-pink-400",
   };
 
-  // list filter (ตาม pet + วัน)
   const filtered = useMemo(() => {
     return items
       .filter((r) => {
@@ -136,9 +135,7 @@ export default function RecordScreen({
       .sort((a, b) => a.time.localeCompare(b.time));
   }, [items, selectedPetId, selectedDateISO]);
 
-  // calendar dayMeta
   const dayMeta: CalendarDayMeta[] = useMemo(() => {
-    // dot mode (จุดเดียวพอ): mark ทุกวันที่มี record
     if (markerMode === "dot") {
       const set = new Set<string>();
       for (const r of items) {
@@ -155,7 +152,6 @@ export default function RecordScreen({
       }));
     }
 
-    // count mode: 1 = dot, มากกว่า 1 = badgeNumber
     const countByDate: Record<string, number> = {};
     for (const r of items) {
       const okPet =

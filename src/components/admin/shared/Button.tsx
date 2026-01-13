@@ -104,6 +104,12 @@ export const ButtonStyled = styled.button<ButtonStyleProps>`
                         ? '#d92d20'
                         : '#000'};
 
+    box-shadow: ${({ $variant }) =>
+        $variant === 'primary'
+            ? '0px 4px 4px rgba(0, 0, 0, 0.25)'
+            : 'none'};
+
+
   /* ---------- STATES ---------- */
   &:hover {
     background: ${({ $variant }) =>
@@ -114,11 +120,19 @@ export const ButtonStyled = styled.button<ButtonStyleProps>`
         $variant === 'primary' || $variant === 'danger'
             ? 0.9
             : 1};
+    box-shadow: ${({ $variant }) =>
+        $variant === 'primary'
+            ? '0px 6px 8px rgba(0,0,0,0.25)'
+            : 'none'};
   }
 
   &:active {
     transform: translateY(1px);
     opacity: 0.85;
+    box-shadow: ${({ $variant }) =>
+        $variant === 'primary'
+            ? '0px 2px 2px rgba(0,0,0,0.25)'
+            : 'none'};
   }
 
   /* ---------- DISABLED ---------- */

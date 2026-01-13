@@ -149,13 +149,18 @@ export default function AddAppointmentPopup({
             <label className="block text-sm font-medium text-zinc-800 mb-1">
               Location
             </label>
-            <input
-              type="text"
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder=""
-            />
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                <Image src="/location.svg" alt="" width={18} height={18} />
+              </div>
+              <input
+                type="text"
+                className="w-full rounded-xl border border-zinc-200 bg-white pl-10 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Examination Room"
+              />
+            </div>
           </div>
 
           {/* Button */}
