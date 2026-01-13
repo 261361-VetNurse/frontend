@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/PetAvatarPicker";
 import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
+import Button from "@/components/pet-owners/shared/Button";
 
 type Sex = "Male" | "Female" | "Unknown";
-type YesNo = "yes" | "no";
 
 export default function RegisterNewPetPage() {
   const router = useRouter();
@@ -15,17 +15,16 @@ export default function RegisterNewPetPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // เปลี่ยน Default เป็น pet-paw.svg ตามคอมโพเนนต์ใหม่
+  // State fields updated to match Edit page
   const [avatarUrl, setAvatarUrl] = useState<string>("/pet-paw.svg");
-
   const [name, setName] = useState("");
+  const [infecund, setInfecund] = useState<boolean>(false); // Match Edit page
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
-  const [dob, setDob] = useState(""); 
+  const [dob, setDob] = useState("");
   const [sex, setSex] = useState<Sex>("Female");
-  const [color, setColor] = useState("");
-  const [hasPrevHistory, setHasPrevHistory] = useState<YesNo>("yes");
-  const [prevClinic, setPrevClinic] = useState("");
+  const [weight, setWeight] = useState(""); // Match Edit page
+  const [allergiesInput, setAllergiesInput] = useState(""); // Match Edit page
 
   const computedAge = useMemo(() => {
     if (!mounted) return "-";
@@ -34,42 +33,44 @@ export default function RegisterNewPetPage() {
   }, [dob, mounted]);
 
   const canSubmit = useMemo(() => {
-    if (!name.trim()) return false;
-    if (!species.trim()) return false;
-    if (!breed.trim()) return false;
-    if (!dob) return false;
-    if (hasPrevHistory === "yes" && !prevClinic.trim()) return false;
-    return true;
-  }, [name, species, breed, dob, hasPrevHistory, prevClinic]);
+    return (
+      name.trim() !== "" &&
+      species.trim() !== "" &&
+      breed.trim() !== "" &&
+      dob !== ""
+    );
+  }, [name, species, breed, dob]);
 
   function onSubmit() {
     if (!canSubmit) return;
 
+    const allergiesArray = allergiesInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s !== "");
+
     const payload = {
       name: name.trim(),
+      infecund,
       species: species.trim(),
       breed: breed.trim(),
-      dob,
-      sex,
-      color: color.trim(),
-      hasPreviousMedicalHistory: hasPrevHistory === "yes",
-      previousClinicOrHospitalName:
-        hasPrevHistory === "yes" ? prevClinic.trim() : null,
-      avatarUrl,
+      birth_date: dob,
+      gender: sex,
+      weight_kg: weight.trim() === "" ? null : weight,
+      allergies: allergiesArray,
+      profile_image: avatarUrl,
     };
 
     console.log("CREATE PET:", payload);
+    // ในโปรเจกต์จริงตรงนี้จะเรียก API POST ข้อมูล
     router.push("/pet-owners/mypets");
   }
 
   return (
     <>
-      {/* Page header  */}
       <TopBar title="Register New Pet" onBack={() => router.back()} />
-          
-      {/* Content */}
+
       <div className="px-6 pb-28">
-        {/* Avatar Section */}
         <div className="flex justify-center py-6">
           <PetAvatarPicker value={avatarUrl} onChange={setAvatarUrl} />
         </div>
@@ -81,8 +82,8 @@ export default function RegisterNewPetPage() {
               Name
             </label>
             <input
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
-              placeholder="Judy"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              placeholder="Mochi"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -95,8 +96,8 @@ export default function RegisterNewPetPage() {
                 Species
               </label>
               <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
-                placeholder="Rabbit"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+                placeholder="cat"
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
               />
@@ -106,8 +107,8 @@ export default function RegisterNewPetPage() {
                 Breed
               </label>
               <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
-                placeholder="Holland Lop"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+                placeholder="Scottish Fold"
                 value={breed}
                 onChange={(e) => setBreed(e.target.value)}
               />
@@ -122,12 +123,11 @@ export default function RegisterNewPetPage() {
               </label>
               <input
                 type="date"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
                 Age
@@ -138,14 +138,14 @@ export default function RegisterNewPetPage() {
             </div>
           </div>
 
-          {/* Sex + Color */}
+          {/* Gender + Weight - Updated to match Edit page */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
                 Gender
               </label>
               <select
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow appearance-none"
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 appearance-none"
                 value={sex}
                 onChange={(e) => setSex(e.target.value as Sex)}
               >
@@ -154,83 +154,74 @@ export default function RegisterNewPetPage() {
                 <option value="Unknown">Unknown</option>
               </select>
             </div>
-
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
-                Color
+                Weight (kg)
               </label>
               <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
-                placeholder="Orange"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
+                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+                placeholder="e.g. 4.5"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Medical history question */}
-          <div className="pt-2">
-            <div className="block text-sm font-medium text-zinc-800 mb-3">
-              Has previous medical history?
-            </div>
-
-            <div className="flex items-center gap-10">
+          {/* Infecund (Sterile) - Added to match Edit page */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-2">
+              Infecund
+            </label>
+            <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
                 <input
                   type="radio"
-                  name="prevHistory"
-                  className="w-4 h-4 text-sky-500 border-zinc-300 focus:ring-sky-500"
-                  value="yes"
-                  checked={hasPrevHistory === "yes"}
-                  onChange={() => setHasPrevHistory("yes")}
+                  checked={infecund === true}
+                  onChange={() => setInfecund(true)}
+                  className="accent-sky-500 w-4 h-4"
                 />
                 Yes
               </label>
-
               <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
                 <input
                   type="radio"
-                  name="prevHistory"
-                  className="w-4 h-4 text-sky-500 border-zinc-300 focus:ring-sky-500"
-                  value="no"
-                  checked={hasPrevHistory === "no"}
-                  onChange={() => {
-                    setHasPrevHistory("no");
-                    setPrevClinic("");
-                  }}
+                  checked={infecund === false}
+                  onChange={() => setInfecund(false)}
+                  className="accent-sky-500 w-4 h-4"
                 />
                 No
               </label>
             </div>
           </div>
 
-          {/* Previous clinic/hospital name */}
-          {hasPrevHistory === "yes" && (
-            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-              <label className="block text-sm font-medium text-zinc-800 mb-1.5">
-                Previous clinic / hospital name
-              </label>
-              <input
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-shadow"
-                placeholder="Happy Paws Animal Clinic"
-                value={prevClinic}
-                onChange={(e) => setPrevClinic(e.target.value)}
-              />
-            </div>
-          )}
+
+          {/* Allergies - Added to match Edit page */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-1.5">
+              Allergies
+            </label>
+            <input
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              placeholder="e.g. Chicken, Beef, Dust (comma separated)"
+              value={allergiesInput}
+              onChange={(e) => setAllergiesInput(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
-      {/* Bottom fixed button  */}
       <div className="fixed bottom-0 left-1/2 w-full -translate-x-1/2 px-6 pb-6 max-w-[393px] bg-gradient-to-t from-white via-white to-transparent pt-4">
-        <button
-          type="button"
+        <Button
+          fullWidth
+          variant="primary"
+          shape="pill"
+          size="lg"
           onClick={onSubmit}
           disabled={!canSubmit}
-          className="w-full rounded-full py-3.5 text-white text-sm font-bold shadow-lg shadow-sky-100 transition active:scale-[0.98] bg-sky-500 disabled:bg-zinc-300 disabled:shadow-none"
+          style={{ padding: "14px" }}
         >
           Add New Pet
-        </button>
+        </Button>
       </div>
     </>
   );

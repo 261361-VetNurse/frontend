@@ -8,6 +8,7 @@ import { mockPets } from "@/mocks/pets.mock";
 import { Pet } from "@/types/pet";
 import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
+import Button from "@/components/pet-owners/shared/Button";
 
 type Sex = "Male" | "Female" | "Unknown";
 
@@ -80,8 +81,6 @@ export default function EditBasicInfo() {
 
     console.log("UPDATE PET:", payload);
 
-    // ✅ เพิ่มส่วนนี้: อัปเดตข้อมูลใน mockPets โดยตรง
-    // (เพราะเราไม่ได้ต่อ Database จริง การแก้ที่ตัวแปรนี้จะทำให้หน้าอื่นเห็นข้อมูลใหม่ด้วย)
     const index = mockPets.findIndex((p) => p._id === currentPet._id);
     if (index !== -1) {
       mockPets[index] = payload;
@@ -132,33 +131,6 @@ export default function EditBasicInfo() {
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
-          </div>
-
-          {/* Infecund (Sterile) */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-2">
-              Infecund
-            </label>
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input 
-                  type="radio" 
-                  checked={infecund === true} 
-                  onChange={() => setInfecund(true)}
-                  className="accent-sky-500 w-4 h-4"
-                /> 
-                Yes
-              </label>
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input 
-                  type="radio" 
-                  checked={infecund === false} 
-                  onChange={() => setInfecund(false)}
-                  className="accent-sky-500 w-4 h-4"
-                /> 
-                No
-              </label>
-            </div>
           </div>
 
           {/* Species + Breed */}
@@ -237,6 +209,33 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
+                    {/* Infecund (Sterile) */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-2">
+              Infecund
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input 
+                  type="radio" 
+                  checked={infecund === true} 
+                  onChange={() => setInfecund(true)}
+                  className="accent-sky-500 w-4 h-4"
+                /> 
+                Yes
+              </label>
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input 
+                  type="radio" 
+                  checked={infecund === false} 
+                  onChange={() => setInfecund(false)}
+                  className="accent-sky-500 w-4 h-4"
+                /> 
+                No
+              </label>
+            </div>
+          </div>
+
           {/* Allergies */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
@@ -253,15 +252,18 @@ export default function EditBasicInfo() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-1/2 w-full -translate-x-1/2 px-6 pb-6 max-w-[393px]">
-        <button
-          type="button"
+      <div className="fixed bottom-0 left-1/2 w-full -translate-x-1/2 px-6 pb-6 max-w-[393px] bg-gradient-to-t from-white via-white to-transparent pt-4">
+        <Button
+          fullWidth
+          variant="primary"
+          shape="pill"
+          size="lg"
           onClick={onUpdate}
           disabled={!canSubmit}
-          className="w-full rounded-full py-3 text-white text-sm font-semibold shadow-lg transition active:scale-[0.99] bg-sky-500 disabled:bg-sky-300 hover:bg-sky-600"
+          style={{ padding: "14px" }}
         >
           Update
-        </button>
+        </Button>
       </div>
     </div>
   );
