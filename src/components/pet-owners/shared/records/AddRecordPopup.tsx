@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { Add } from "@mui/icons-material";
+import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 
 type PetLite = {
   id: string;
@@ -17,19 +19,6 @@ export type AddSymptomPayload = {
   note: string;
   images: File[];
 };
-
-export function SymptomFab({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="fixed bottom-20 right-6 h-14 w-14 rounded-full bg-sky-500 text-white text-3xl leading-none shadow-lg active:scale-[0.98] transition z-[900]"
-      aria-label="Add symptom record"
-    >
-      +
-    </button>
-  );
-}
 
 type AddSymptomPopupProps = {
   open: boolean;
@@ -51,6 +40,7 @@ export default function AddSymptomPopup({
   const [note, setNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -64,79 +54,39 @@ export default function AddSymptomPopup({
 
   useEffect(() => {
     if (open) {
-      // reset form
       setDate("");
       setTime("");
       setNote("");
-
-      // cleanup & reset files/previews
       setFiles([]);
       setPreviews((prev) => {
         cleanupPreviews(prev);
         return [];
       });
-
       resetFileInput();
-    } else {
-      setPreviews((prev) => {
-        cleanupPreviews(prev);
-        return [];
-      });
     }
-
-    // cleanup on unmount
     return () => {
       setPreviews((prev) => {
         cleanupPreviews(prev);
         return [];
       });
     };
-     
   }, [open, pet?.id]);
 
   const canSubmit = useMemo(() => {
     return Boolean(pet?.id && date && time && note.trim());
   }, [pet?.id, date, time, note]);
 
-  const canAddMore = files.length < MAX_FILES;
-
-  if (!open) return null;
-
-  function handleClose() {
-    setDate("");
-    setTime("");
-    setNote("");
-    setFiles([]);
-    setPreviews((prev) => {
-      cleanupPreviews(prev);
-      return [];
-    });
-    resetFileInput();
-    onClose();
-  }
-
-  function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) handleClose();
-  }
-
   function onPickFiles(list: FileList | null) {
     if (!list) return;
-
     const picked = Array.from(list);
-    if (picked.length === 0) return;
-
     setFiles((prevFiles) => {
       const combined = [...prevFiles, ...picked].slice(0, MAX_FILES);
-
-      // keep previews in sync with files
       setPreviews((prevPrev) => {
         cleanupPreviews(prevPrev);
         return combined.map((f) => URL.createObjectURL(f));
       });
-
       return combined;
     });
-
     resetFileInput();
   }
 
@@ -149,188 +99,159 @@ export default function AddSymptomPopup({
     });
   }
 
-  function handleSubmit() {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
-
-    onSubmit?.({
-      petId: pet.id,
-      date,
-      time,
-      note: note.trim(),
-      images: files,
-    });
-
-    handleClose();
-  }
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({
+        petId: pet.id,
+        date,
+        time,
+        note: note.trim(),
+        images: files,
+      });
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[1000] bg-black/30 flex items-center justify-center px-4"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
+    <FormDialog
+      open={open}
+      onClose={onClose}
+      title="Create Symptom Record"
+      layout="singleColumn"
+      density="compact"
+      primaryLabel="Add New Record"
+      onPrimary={handleSubmit}
+      secondaryLabel="Cancel"
+      onSecondary={onClose}
+      submitting={isSubmitting}
+      dirty={Boolean(date || time || note || files.length > 0)}
     >
-      <div className="w-full max-w-[360px] rounded-2xl bg-white shadow-lg border border-zinc-100 overflow-hidden">
-        {/* Header */}
-        <div className="relative px-5 pt-5 pb-3">
-          <div className="text-center font-semibold text-zinc-900">
-            Create Symptom Record
-          </div>
-
-          <button
-            type="button"
-            onClick={handleClose}
-            className="absolute right-4 top-4 text-zinc-700 hover:text-zinc-900"
-            aria-label="Close"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Petss row */}
-        <div className="px-5 pb-4 flex items-center gap-3">
-          <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
-            {pet.avatarUrl ? (
-              <Image
-                src={pet.avatarUrl}
-                alt={pet.name}
-                fill
-                className="object-cover"
-              />
-            ) : null}
-          </div>
-
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-zinc-900 truncate">
-              {pet.name}
-            </div>
-            <div className="text-xs text-zinc-500 truncate">{`PID: ${pet.pid}`}</div>
-          </div>
-        </div>
-
-        {/* Form */}
-        <div className="px-5 pb-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Date
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-
-            {/* Time */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Time
-              </label>
-              <input
-                type="time"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Note */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1">
-              Note
-            </label>
-            <textarea
-              className="w-full min-h-[90px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 resize-y"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder=""
+      {/* Pet info - โครงสร้างแบบเดียวกับ Appointment */}
+      <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
+        <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
+          {pet.avatarUrl ? (
+            <Image
+              src={pet.avatarUrl}
+              alt={pet.name}
+              width={40}
+              height={40}
+              className="object-cover"
             />
+          ) : null}
+        </div>
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-zinc-900 truncate">
+            {pet.name}
           </div>
-
-          {/* Images (optional) */}
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-zinc-800">
-                Images (optional)
-                <span className="ml-2 text-xs text-zinc-400">
-                  ({files.length}/{MAX_FILES})
-                </span>
-              </label>
-
-              <button
-                type="button"
-                onClick={() => inputRef.current?.click()}
-                disabled={!canAddMore}
-                className={[
-                  "text-sm",
-                  canAddMore
-                    ? "text-sky-600 hover:text-sky-700"
-                    : "text-zinc-300 cursor-not-allowed",
-                ].join(" ")}
-              >
-                Add
-              </button>
-            </div>
-
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => onPickFiles(e.target.files)}
-            />
-
-            {files.length > 0 ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {files.map((f, idx) => (
-                  <div
-                    key={`${f.name}-${idx}`}
-                    className="relative aspect-square overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50"
-                  >
-                    <Image
-                      src={previews[idx]}
-                      alt={f.name}
-                      fill
-                      className="object-cover"
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() => removeFile(idx)}
-                      className="absolute right-1 top-1 h-6 w-6 rounded-full bg-black/60 text-white text-sm leading-none flex items-center justify-center hover:bg-black/70"
-                      aria-label="Remove image"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-2 text-sm text-zinc-400">No images selected</div>
-            )}
+          <div className="text-xs text-zinc-500 truncate">
+            PID: {pet.pid}
           </div>
-
-          {/* Button */}
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className={[
-              "w-full rounded-full py-3 text-sm font-semibold transition shadow-sm",
-              canSubmit
-                ? "bg-sky-500 text-white hover:bg-sky-600 active:scale-[0.99]"
-                : "bg-zinc-200 text-zinc-500 cursor-not-allowed",
-            ].join(" ")}
-          >
-            Add New Record
-          </button>
         </div>
       </div>
-    </div>
+
+      {/* Date & Time - โครงสร้างแบบเดียวกับ Appointment */}
+      <div className="space-y-1">
+        <div className="text-sm font-medium text-zinc-800">
+          Record Time
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Date</label>
+            <input
+              type="date"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Time</label>
+            <input
+              type="time"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Note */}
+      <div>
+        <label className="block text-sm font-medium text-zinc-800 mb-1">
+          Note
+        </label>
+        <textarea
+          className="w-full min-h-[90px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 resize-none"
+          placeholder="Describe symptoms..."
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </div>
+
+      {/* Images Section */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <label className="text-sm font-medium text-zinc-800">
+            Images <span className="text-zinc-400 font-normal">({files.length}/{MAX_FILES})</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={files.length >= MAX_FILES}
+            className={`text-xs font-semibold flex items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
+              files.length < MAX_FILES ? "text-sky-600 hover:bg-sky-50" : "text-zinc-300"
+            }`}
+          >
+            <Add fontSize="small" /> Add Photo
+          </button>
+        </div>
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={(e) => onPickFiles(e.target.files)}
+        />
+
+        <div className="grid grid-cols-2 gap-2">
+          {files.map((f, idx) => (
+            <div key={idx} className="relative aspect-square rounded-xl border border-zinc-200 overflow-hidden bg-zinc-50">
+              {previews[idx] ? (
+                <Image
+                  src={previews[idx]}
+                  alt="preview"
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full animate-pulse bg-zinc-200" />
+              )}
+              <button
+                type="button"
+                onClick={() => removeFile(idx)}
+                className="absolute right-1 top-1 h-6 w-6 rounded-full bg-black/50 text-white text-xs flex items-center justify-center hover:bg-black/70 transition-opacity"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {files.length === 0 && (
+            <div 
+              onClick={() => inputRef.current?.click()}
+              className="col-span-2 py-6 border-2 border-dashed border-zinc-100 rounded-xl flex flex-col items-center justify-center text-zinc-400 hover:bg-zinc-50 cursor-pointer transition-colors"
+            >
+              <Add className="opacity-20 mb-1" />
+              <span className="text-xs">No images selected</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </FormDialog>
   );
 }

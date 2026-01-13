@@ -28,7 +28,7 @@ export default function PetAvatarPicker({
       {/* Container */}
       <div 
         className={`relative h-24 w-24 overflow-hidden rounded-full border-2 border-white shadow-sm flex items-center justify-center
-          ${isDefault ? "bg-zinc-100" : "bg-zinc-200"}`}
+          ${isDefault ? "bg-zinc-200" : "bg-zinc-200"}`}
       >
         {isDefault ? (
           <div className="relative h-12 w-12 opacity-30">
@@ -53,7 +53,7 @@ export default function PetAvatarPicker({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-sky-500 grid place-items-center shadow-md active:scale-[0.9] transition-transform"
+        className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-sky-300 grid place-items-center shadow-md active:scale-[0.9] transition-transform"
         aria-label="Change pet photo"
         title="Change pet photo"
       >
