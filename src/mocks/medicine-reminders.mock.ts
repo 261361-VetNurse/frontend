@@ -19,6 +19,8 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 {
                     id: "r1",
                     time: "02:00",
+                    status: "taken",
+                    taken_at: "2025-11-15T02:15:00Z",
                 },
                 {
                     id: "r2",
@@ -48,7 +50,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         schedule: {
             frequency: { key: "interval_hours", label: "Every 8 hours", interval_hours: 8 },
             reminders: [
-                { id: "r1", time: "06:00"},
+                { id: "r1", time: "06:00", status: "missed"},
                 { id: "r2", time: "14:00"},
                 { id: "r3", time: "22:00"},
             ],
@@ -134,6 +136,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
                 {
                     id: "r1",
                     time: "07:00", // Morning - might be overdue depending on current time
+                    status: "missed",
                 },
             ],
             measurement_times_per_day: 1,

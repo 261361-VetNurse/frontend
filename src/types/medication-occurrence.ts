@@ -1,4 +1,4 @@
-export type OccurrenceStatus = "pending" | "taken" | "missed" | "skipped";
+export type OccurrenceStatus = "pending" | "taken" | "missed";
 
 export type MedicationOccurrenceVM = {
   occurrence_id: string;     // ใช้เป็น key ทุก action

@@ -212,3 +212,201 @@ export const FabButton = styled.button`
     transform: scale(0.95);
   }
 `;
+
+export const MedDetailOverlayStyled = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.2);
+  padding: 0 16px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+export const PopupCard = styled.div`
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  padding: 24px;
+  width: 100%;
+  max-width: 393px;
+  gap: 16px;
+`;
+
+export const CloseButton = styled.button`
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: ${theme.colors.textSecondary};
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    color: ${theme.colors.textPrimary};
+  }
+`;
+
+export const PetSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  .pet-info{
+    display: flex;
+    flex-direction: column;
+    .pet-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+    }
+    .pet-id{
+      font-size: 12px;
+      font-weight: 400;
+      color: ${theme.colors.textSecondary};
+    }
+  }
+  
+`;
+
+export const MedicineSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  .medicine-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+  }
+  .medicine-dosage {
+    font-size: 14px;
+    color: ${theme.colors.textSecondary};
+  }
+`;
+
+export const ScheduleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  .schedule-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+  }
+  .schedule-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+  }
+  .info-label {
+    color: ${theme.colors.textSecondary};
+  }
+  .info-value {
+    color: ${theme.colors.textPrimary};
+    font-weight: 500;
+  }
+`;
+
+export const RemindersSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+  }
+`;
+
+export const ReminderItem = styled.div<{ $isHighlighted?: boolean }>`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: ${(p) => (p.$isHighlighted ? "#E3F2FD" : "#F5F5F5")};
+  border: ${(p) => (p.$isHighlighted ? `2px solid ${theme.colors.primary}` : "none")};
+  .reminder-time {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${theme.colors.textPrimary};
+  }
+  .reminder-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+`;
+
+export const StatusButton = styled.button<{ $status: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  background-color: ${({ $status }) =>
+    $status === "taken" ? "#C8E6C9" :
+    $status === "missed" ? "#FFCDD2" :
+    "#BBDEFB"};
+
+  color: ${({ $status }) =>
+    $status === "taken" ? "#256029" :
+    $status === "missed" ? "#C62828" :
+    "#1565C0"};
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  .taken-time {
+    font-size: 12px;
+    color: ${theme.colors.textSecondary};
+  }
+`;
+
+export const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  ${props => props.$variant === 'primary' ? `
+    background-color: ${theme.colors.primary};
+    color: ${theme.colors.white};
+  ` : `
+    background-color: #F5F5F5;
+    color: ${theme.colors.textPrimary};
+  `}
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;

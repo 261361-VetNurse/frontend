@@ -7,8 +7,9 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import { theme } from '@/styles/theme';
 
-export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'skipped';
+export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
 type Props = {
   petName: string;
@@ -22,7 +23,7 @@ type Props = {
 
   onOpenDetail: () => void;
 
-  // ยังใช้แบบเดิมได้: toggle taken / not-taken (pending/missed/skipped ถือว่า not-taken)
+  // ยังใช้แบบเดิมได้: toggle taken / not-taken (pending/missed ถือว่า not-taken)
   onToggleTaken?: (nextTaken: boolean) => void;
 
   onEdit?: () => void;
@@ -34,8 +35,6 @@ function getStatusMeta(status: OccurrenceStatus) {
       return { label: 'Taken', Icon: CheckCircleIcon };
     case 'missed':
       return { label: 'Missed', Icon: ErrorOutlineIcon };
-    case 'skipped':
-      return { label: 'Skipped', Icon: DoNotDisturbOnIcon };
     case 'pending':
     default:
       return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
@@ -72,7 +71,6 @@ export default function MedicineCard({
         <Avatar src={petImageUrl || '/Ava.svg'} alt={petName} />
         <Info>
           <TopRow>
-            <PetName>{petName}</PetName>
             <Time>{timeLabel}</Time>
           </TopRow>
 
@@ -211,6 +209,12 @@ const IconButton = styled.button`
   padding: 6px;
   border-radius: 10px;
   cursor: pointer;
+  color: ${theme.colors.primary};
+
+  svg {
+    width: 36px;
+    height: 36px;
+  }
 
   &:disabled {
     cursor: not-allowed;

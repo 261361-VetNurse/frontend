@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CreateMedicationPopup from './AddMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
@@ -20,12 +20,15 @@ import { theme } from '@/styles/theme';
 import { QuickDialButton } from '../../shared/QuickDialButton';
 import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { OccurrenceStatus } from '@/types/medication-occurrence';
 import {
   formatTimeForDisplay,
   updateReminderTakenStatus,
   ReminderOccurrence,
-  flattenRemindersForDate,
-  buildOccurrencesForDate
+  buildOccurrencesForDate,
+  buildOccurrenceId,
+  getTodayInLocalTimezone,
+  getUserTimezone,
 } from '@/lib/reminder-utils';
 import MedicineCard from './MedicineCard';
 
@@ -46,98 +49,131 @@ const mockPets: Pet[] = [
   { id: '65f1a9c2b0f3c1a2d3e4f603', name: 'Luna', avatarUrl: 'https://picsum.photos/seed/luna/200/200' },
 ];
 
+type OccurrenceOverride = { status: OccurrenceStatus; taken_at?: string | null };
+
+function ymdInUserTz(date: Date): string {
+  // keep it simple & deterministic in Bangkok for now
+  // (avoid depending on client OS timezone formatting)
+  const userTz = getUserTimezone();
+  // If you already have a dayjs helper, you can replace this.
+  // Here we rely on reminder-utils to build ISO in TZ; for ymd we can use locale date parts safely if OS TZ == Bangkok.
+  // Better: add/export a helper from reminder-utils; but this is enough to fix the page compile.
+  const d = new Intl.DateTimeFormat('en-CA', {
+    timeZone: userTz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+  // en-CA => YYYY-MM-DD
+  return d;
+}
+
 export default function MedicationPage() {
   const searchParams = useSearchParams();
+
   const [medicineReminders, setMedicineReminders] = useState<MedicineReminderVM[]>(mockMedicineReminderVMs);
   const [selectedTab, setSelectedTab] = useState<TabType>('today');
   const [selectedPetId, setSelectedPetId] = useState<PetId>('all');
   const [petDropdownOpen, setPetDropdownOpen] = useState(false);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+
   const [selectedReminder, setSelectedReminder] = useState<{
     medicineReminder: MedicineReminderVM;
     highlightedReminderId?: string;
   } | null>(null);
+
   const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
-  const [highlightedOccurrenceId, setHighlightedOccurrenceId] = useState<string | null>(null);
-  const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, { status: any; taken_at?: string | null }>>({});
 
-  // Handle deep linking
-  useEffect(() => {
-    const notificationId = searchParams.get('notification_id');
-    const reminderId = searchParams.get('reminder_id');
-    const openMode = searchParams.get('open');
-
-    if (notificationId) {
-      const medicineReminder = medicineReminders.find(
-        mr => mr.notification_id === notificationId
-      );
-
-      if (medicineReminder && !medicineReminder.medication_status.is_stopped) {
-        if (openMode === 'edit') {
-          // Open edit popup directly
-          setEditingReminder(medicineReminder);
-        } else {
-          // Open detail popup
-          setSelectedReminder({
-            medicineReminder,
-            highlightedReminderId: reminderId || undefined,
-          });
-        }
-
-        // Highlight the specific occurrence
-        if (reminderId) {
-          setHighlightedOccurrenceId(`${notificationId}-${reminderId}`);
-        }
-
-        // Clean URL after opening (optional)
-        window.history.replaceState({}, '', '/pet-owners/medication-page');
-      } else if (medicineReminder?.medication_status.is_stopped) {
-        // Show message for stopped medication
-        alert('This medication reminder is no longer active.');
-      }
-    }
-  }, [searchParams, medicineReminders]);
-
-  const tzToday = new Date();
-  const tzTomorrow = new Date(); tzTomorrow.setDate(tzTomorrow.getDate() + 1);
-
-  const occurrences =
-    selectedTab === "today"
-      ? buildOccurrencesForDate(medicineReminders, tzToday, occurrenceOverrides)
-      : selectedTab === "tomorrow"
-      ? buildOccurrencesForDate(medicineReminders, tzTomorrow, occurrenceOverrides)
-      : []; // other ทำทีหลัง หรือทำ range
-
-  const filtered = occurrences.filter(o => selectedPetId === "all" || o.pet.id === selectedPetId);
-
+  // Keep for later (skip/missed); buildOccurrencesForDate accepts this shape
+  const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, OccurrenceOverride>>({});
 
   const getDateForTab = (tab: TabType): Date => {
-    const today = new Date();
-    if (tab === "today") return today;
-    if (tab === "tomorrow") {
+    const today = getTodayInLocalTimezone();
+    if (tab === 'today') return today;
+
+    if (tab === 'tomorrow') {
       const d = new Date(today);
       d.setDate(d.getDate() + 1);
       return d;
     }
-    // other: เอาเป็น “อีก 7 วันถัดไป (ไม่รวมวันนี้/พรุ่งนี้)” ชั่วคราวก่อนต่อ API
-    // เดี๋ยวเฟส B จะเปลี่ยนเป็น occurrences จาก server
+
+    // other: placeholder range (day+2..day+7)
     return today;
   };
 
-  // Get today's reminders
   const baseDate = getDateForTab(selectedTab);
 
-  const tabReminders =
-    selectedTab === "other"
-      ? [] // ชั่วคราวก่อน (ถ้าจะทำจริงให้ทำในเฟส B)
-      : flattenRemindersForDate(medicineReminders, baseDate).sort(
-          (a, b) => a.occurrence_datetime.getTime() - b.occurrence_datetime.getTime()
-        );
-  
-  // Filter by selected pet
-  const filteredReminders = tabReminders.filter(occurrence =>
-    selectedPetId === 'all' || occurrence.pet.id === selectedPetId
-  );
+  const occurrences: ReminderOccurrence[] = useMemo(() => {
+    const today = getTodayInLocalTimezone();
+
+    if (selectedTab === 'today') {
+      return buildOccurrencesForDate(medicineReminders, today, occurrenceOverrides);
+    }
+
+    if (selectedTab === 'tomorrow') {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 1);
+      return buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides);
+    }
+
+    // other: day+2..day+7 (รวม 6 วัน) — ชั่วคราวก่อนต่อ server
+    const out: ReminderOccurrence[] = [];
+    for (let i = 2; i <= 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      out.push(...buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides));
+    }
+
+    return out.sort(
+      (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+    );
+  }, [selectedTab, medicineReminders, occurrenceOverrides]);
+
+  const filteredOccurrences = useMemo(() => {
+    return occurrences.filter(o => selectedPetId === 'all' || o.pet.id === selectedPetId);
+  }, [occurrences, selectedPetId]);
+
+  // Deep link: ?notification_id=...&reminder_id=...&open=edit
+  useEffect(() => {
+    const notificationId = searchParams.get('notification_id'); // plan_id == notification_id
+    const reminderId = searchParams.get('reminder_id');
+    const openMode = searchParams.get('open');
+
+    if (!notificationId) return;
+
+    const plan = medicineReminders.find(mr => mr.notification_id === notificationId);
+
+    if (!plan) return;
+
+    if (plan.medication_status.is_stopped) {
+      alert('This medication reminder is no longer active.');
+      return;
+    }
+
+    if (openMode === 'edit') {
+      setEditingReminder(plan);
+    } else {
+      setSelectedReminder({
+        medicineReminder: plan,
+        highlightedReminderId: reminderId || undefined,
+      });
+    }
+
+    // Optional: highlight a specific occurrence_id for TODAY if reminderId present
+    // (occurrence_id is plan_id + YYYY-MM-DD + HH:mm)
+    if (reminderId) {
+      const slot = plan.schedule.reminders.find(r => r.id === reminderId);
+      if (slot) {
+        const ymd = ymdInUserTz(getTodayInLocalTimezone());
+        const occId = buildOccurrenceId(notificationId, ymd, slot.time);
+        // If your MedicineCard supports highlight via prop, pass occId down.
+        // For now we just compute it (no-op) to keep logic correct.
+        void occId;
+      }
+    }
+
+    window.history.replaceState({}, '', '/pet-owners/medication-page');
+  }, [searchParams, medicineReminders]);
 
   const handleTabChange = (tab: TabType) => {
     setSelectedTab(tab);
@@ -157,57 +193,53 @@ export default function MedicationPage() {
   };
 
   const handleSubmitCreatePopup = (newMedicineReminder: MedicineReminderVM) => {
-    // Add the new medication to the state
-    setMedicineReminders([...medicineReminders, newMedicineReminder]);
+    setMedicineReminders(prev => [...prev, newMedicineReminder]);
     setShowCreatePopup(false);
   };
 
-  const handleReminderClick = (occurrence: ReminderOccurrence) => {
-    const medicineReminder = medicineReminders.find(
-      mr => mr.notification_id === occurrence.notification_id
-    );
-    
-    if (medicineReminder) {
-      setSelectedReminder({
-        medicineReminder,
-        highlightedReminderId: occurrence.reminder_id,
-      });
-    }
+  const handleReminderClick = (occ: ReminderOccurrence) => {
+    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    if (!plan) return;
+
+    setSelectedReminder({
+      medicineReminder: plan,
+      highlightedReminderId: occ.reminder_id,
+    });
   };
 
-  const handleToggleReminder = (notificationId: string, reminderId: string, isTaken: boolean) => {
-    const updatedReminders = updateReminderTakenStatus(
-      medicineReminders,
-      notificationId,
-      reminderId,
-      isTaken
-    );
+  const handleEditFromCard = (occ: ReminderOccurrence) => {
+    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    if (!plan) return;
+    setEditingReminder(plan);
+    setSelectedReminder(null);
+  };
 
-    setMedicineReminders(updatedReminders);
+  const handleToggleReminder = (planId: string, reminderId: string, isTaken: boolean) => {
+    const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
+    setMedicineReminders(updated);
 
-    // sync selectedReminder ถ้ากำลังเปิด detail ของตัวเดียวกัน
-    if (selectedReminder?.medicineReminder.notification_id === notificationId) {
-      const updatedMedicineReminder = updatedReminders.find(mr => mr.notification_id === notificationId);
-      if (updatedMedicineReminder) {
-        setSelectedReminder({
-          ...selectedReminder,
-          medicineReminder: updatedMedicineReminder,
-        });
+    // sync selectedReminder ถ้ากำลังเปิด detail ของ plan เดียวกัน
+    if (selectedReminder?.medicineReminder.notification_id === planId) {
+      const updatedPlan = updated.find(mr => mr.notification_id === planId);
+      if (updatedPlan) {
+        setSelectedReminder(prev =>
+          prev ? { ...prev, medicineReminder: updatedPlan } : prev
+        );
       }
     }
-  };
 
+    // ถ้าคุณจะใช้ overrides เป็น source-of-truth (แทนการแก้ plan) ค่อยย้าย logic มาใส่ตรงนี้
+    // setOccurrenceOverrides(prev => ({ ...prev, [occurrenceId]: { status: isTaken ? "taken" : "pending", taken_at: ... } }))
+  };
 
   const handleEditFromDetail = () => {
     if (!selectedReminder) return;
-    
     setEditingReminder(selectedReminder.medicineReminder);
     setSelectedReminder(null);
   };
 
   const handleCloseDetail = () => {
     setSelectedReminder(null);
-    setHighlightedOccurrenceId(null);
   };
 
   const handleCloseEdit = () => {
@@ -226,8 +258,6 @@ export default function MedicationPage() {
         ...data.medicineReminder,
         medication_status: {
           is_stopped: data.isStopped,
-          // ก่อนต่อ API: อย่าเพิ่ง set stopped_at ด้วย new Date() (ควรเป็น server)
-          // ให้โชว์เฉพาะ flag ไปก่อน
           ...(data.isStopped ? { reason: data.reason } : {}),
         },
       };
@@ -237,13 +267,12 @@ export default function MedicationPage() {
     setEditingReminder(null);
   };
 
-  const formatDate = (): string => {
-    const today = new Date();
+  const formatDate = (d: Date): string => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dayName = days[today.getDay()];
-    const day = today.getDate();
-    const month = today.getMonth() + 1;
-    const year = today.getFullYear();
+    const dayName = days[d.getDay()];
+    const day = d.getDate();
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
     return `${dayName}, ${day}/${month}/${year}`;
   };
 
@@ -251,49 +280,53 @@ export default function MedicationPage() {
     <Page>
       {/* Pet selector */}
       <div style={{ position: 'relative', marginBottom: 16 }}>
-        <PetSelectButton onClick={() => setPetDropdownOpen((open) => !open)}>
-          <div className='PetIcon'>
+        <PetSelectButton onClick={() => setPetDropdownOpen(open => !open)}>
+          <div className="PetIcon">
             {selectedPetId === 'all' ? (
               <Pets />
             ) : (
               <Image
-                src={mockPets.find((p) => p.id === selectedPetId)?.avatarUrl || ''}
-                alt={mockPets.find((p) => p.id === selectedPetId)?.name || ''}
+                src={mockPets.find(p => p.id === selectedPetId)?.avatarUrl || ''}
+                alt={mockPets.find(p => p.id === selectedPetId)?.name || ''}
                 width={48}
                 height={48}
                 style={{ borderRadius: '50%', background: '#f1f2f4' }}
               />
             )}
           </div>
-          <div className='PetSelectText'>
+          <div className="PetSelectText">
             {selectedPetId === 'all'
               ? 'All Pets'
-              : mockPets.find((p) => p.id === selectedPetId)?.name || 'All Pets'}
+              : mockPets.find(p => p.id === selectedPetId)?.name || 'All Pets'}
           </div>
-          <div className='ChevronIcon'>
+          <div className="ChevronIcon">
             <ExpandMore />
           </div>
         </PetSelectButton>
+
         {petDropdownOpen && (
-          <div style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            background: `${theme.colors.white}`,
-            color: `${theme.colors.textPrimary}`,
-            border: '1px solid #eee',
-            borderRadius: 8,
-            zIndex: 10,
-            width: '100%',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-            }}>
+          <div
+            style={{
+              position: 'absolute',
+              top: '100%',
+              left: 0,
+              background: theme.colors.white,
+              color: theme.colors.textPrimary,
+              border: '1px solid #eee',
+              borderRadius: 8,
+              zIndex: 10,
+              width: '100%',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            }}
+          >
             <div
               style={{ padding: 12, cursor: 'pointer', borderBottom: '1px solid #eee' }}
               onClick={() => handlePetSelect('all')}
             >
               All Pets
             </div>
-            {mockPets.map((pet) => (
+
+            {mockPets.map(pet => (
               <div
                 key={pet.id}
                 style={{
@@ -303,11 +336,17 @@ export default function MedicationPage() {
                   alignItems: 'center',
                   width: '100%',
                   color: '#000',
-                  borderBottom: pet.id !== mockPets[mockPets.length - 1].id ? '1px solid #eee' : 'none'
+                  borderBottom: pet.id !== mockPets[mockPets.length - 1].id ? '1px solid #eee' : 'none',
                 }}
                 onClick={() => handlePetSelect(pet.id)}
               >
-                <Image src={pet.avatarUrl || ''} alt={pet.name} width={24} height={24} style={{ borderRadius: '50%', marginRight: 8 }} />
+                <Image
+                  src={pet.avatarUrl || ''}
+                  alt={pet.name}
+                  width={24}
+                  height={24}
+                  style={{ borderRadius: '50%', marginRight: 8 }}
+                />
                 {pet.name}
               </div>
             ))}
@@ -317,73 +356,71 @@ export default function MedicationPage() {
 
       {/* Tabs */}
       <TabsWrap>
-        <TabButton
-          $active={selectedTab === 'today'}
-          onClick={() => handleTabChange('today')}
-        >
+        <TabButton $active={selectedTab === 'today'} onClick={() => handleTabChange('today')}>
           Today
         </TabButton>
-        <TabButton
-          $active={selectedTab === 'tomorrow'}
-          onClick={() => handleTabChange('tomorrow')}
-        >
+        <TabButton $active={selectedTab === 'tomorrow'} onClick={() => handleTabChange('tomorrow')}>
           Tomorrow
         </TabButton>
-        <TabButton
-          $active={selectedTab === 'other'}
-          onClick={() => handleTabChange('other')}
-        >
+        <TabButton $active={selectedTab === 'other'} onClick={() => handleTabChange('other')}>
           Other
         </TabButton>
       </TabsWrap>
 
       {/* Header */}
       <Header>
-        <div className='Title'>
-          {selectedTab === "today" ? "Today's Medication Reminders" :
-          selectedTab === "tomorrow" ? "Tomorrow's Medication Reminders" :
-          "Other Medication Reminders"}
+        <div className="Title">
+          {selectedTab === 'today'
+            ? "Today's Medication Reminders"
+            : selectedTab === 'tomorrow'
+            ? "Tomorrow's Medication Reminders"
+            : 'Other Medication Reminders'}
         </div>
-        <div className='DateText'>{formatDate()}</div>
+        <div className="DateText">{formatDate(baseDate)}</div>
       </Header>
 
       {/* Reminder cards */}
       <CardList>
-        {filteredReminders.length > 0 ? (
-          filteredReminders.map((occ) => (
-          <MedicineCard
-            key={`${occ.notification_id}-${occ.reminder_id}-${occ.occurrence_datetime.toISOString()}`}
-            petName={occ.pet.name}
-            petImageUrl={occ.pet.image_url}
-            medicineName={occ.medicine.name}
-            dosage={occ.medicine.dosage}
-            timeLabel={formatTimeForDisplay(occ.time)}
-            status={occ.status}
-            isStopped={occ.medication_status?.is_stopped}
-            onOpenDetail={() => handleReminderClick(occ)}
-            onToggleTaken={(next) =>
-              handleToggleReminder(occ.notification_id, occ.reminder_id, next)
-            }
-            onEdit={() => handleEditFromDetail()}
-          />
-        ))
+        {filteredOccurrences.length > 0 ? (
+          filteredOccurrences.map(occ => {
+            const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
+            const isStopped = plan?.medication_status.is_stopped ?? false;
+
+            return (
+              <MedicineCard
+                key={occ.occurrence_id}
+                petName={occ.pet.name}
+                petImageUrl={occ.pet.image_url}
+                medicineName={occ.medicine.name}
+                dosage={occ.medicine.dosage}
+                timeLabel={formatTimeForDisplay(occ.time)}
+                status={occ.status}
+                isStopped={isStopped}
+                onOpenDetail={() => handleReminderClick(occ)}
+                onToggleTaken={(next: boolean) => handleToggleReminder(occ.plan_id, occ.reminder_id, next)}
+                onEdit={() => handleEditFromCard(occ)}
+              />
+            );
+          })
         ) : (
-          <div style={{
-            padding: '32px 16px',
-            textAlign: 'center',
-            color: theme.colors.textSecondary,
-            fontSize: '14px'
-          }}>
-            No medication reminders today.
+          <div
+            style={{
+              padding: '32px 16px',
+              textAlign: 'center',
+              color: theme.colors.textSecondary,
+              fontSize: '14px',
+            }}
+          >
+            No medication reminders.
           </div>
         )}
       </CardList>
 
       <QuickDialButton
-        iconColor='#fff'
-        position={'bottom-right'}
-        icon={<AddRoundedIcon/>}
-        color={'#09BFF8'}
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
         onClickAction={handleAdd}
       />
 

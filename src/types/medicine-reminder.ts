@@ -24,6 +24,8 @@ export type MedicineReminderVM = {
         reminders: Array<{
             id: string;
             time: string; // HH:mm
+            status?: string;   // สถานะการกินยา
+            taken_at?: string;    // ISO timestamp of when the medicine was taken
         }>;
 
         measurement_times_per_day: number; // Measurement: "2 times"
