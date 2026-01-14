@@ -7,7 +7,7 @@ import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
 
-type Sex = "Male" | "Female" | "Unknown";
+type Sex = "Male" | "Female" | "Unknown" | "";
 
 export default function RegisterNewPetPage() {
   const router = useRouter();
@@ -15,20 +15,22 @@ export default function RegisterNewPetPage() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // State fields updated to match Edit page
+  // ===== State =====
   const [avatarUrl, setAvatarUrl] = useState<string>("/pet-paw.svg");
   const [name, setName] = useState("");
-  const [infecund, setInfecund] = useState<boolean>(false); // Match Edit page
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
   const [dob, setDob] = useState("");
-  const [sex, setSex] = useState<Sex>("Female");
-  const [weight, setWeight] = useState(""); // Match Edit page
-  const [allergiesInput, setAllergiesInput] = useState(""); // Match Edit page
 
+  const [sex, setSex] = useState<Sex>(""); // ยังไม่เลือก
+  const [infecund, setInfecund] = useState<boolean | null>(null); // ยังไม่เลือก
+
+  const [weight, setWeight] = useState("");
+  const [allergiesInput, setAllergiesInput] = useState("");
+
+  // ===== Computed =====
   const computedAge = useMemo(() => {
-    if (!mounted) return "-";
-    if (!dob) return "-";
+    if (!mounted || !dob) return "-";
     return formatAge(dob);
   }, [dob, mounted]);
 
@@ -37,32 +39,34 @@ export default function RegisterNewPetPage() {
       name.trim() !== "" &&
       species.trim() !== "" &&
       breed.trim() !== "" &&
-      dob !== ""
+      dob !== "" &&
+      sex !== "" &&
+      infecund !== null
     );
-  }, [name, species, breed, dob]);
+  }, [name, species, breed, dob, sex, infecund]);
 
+  // ===== Submit =====
   function onSubmit() {
     if (!canSubmit) return;
 
     const allergiesArray = allergiesInput
       .split(",")
       .map((s) => s.trim())
-      .filter((s) => s !== "");
+      .filter(Boolean);
 
     const payload = {
       name: name.trim(),
-      infecund,
       species: species.trim(),
       breed: breed.trim(),
       birth_date: dob,
       gender: sex,
-      weight_kg: weight.trim() === "" ? null : weight,
+      infecund,
+      weight_kg: weight.trim() === "" ? null : Number(weight),
       allergies: allergiesArray,
       profile_image: avatarUrl,
     };
 
     console.log("CREATE PET:", payload);
-    // ในโปรเจกต์จริงตรงนี้จะเรียก API POST ข้อมูล
     router.push("/pet-owners/mypets");
   }
 
@@ -138,22 +142,40 @@ export default function RegisterNewPetPage() {
             </div>
           </div>
 
-          {/* Gender + Weight - Updated to match Edit page */}
+          {/* Gender + Weight */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
                 Gender
               </label>
-              <select
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200 appearance-none"
-                value={sex}
-                onChange={(e) => setSex(e.target.value as Sex)}
-              >
-                <option value="Female">Female</option>
-                <option value="Male">Male</option>
-                <option value="Unknown">Unknown</option>
-              </select>
+
+              <div className="relative">
+                <select
+                  className={`w-full rounded-xl border bg-white px-3 py-2.5 pr-10
+                    text-sm outline-none focus:ring-2 focus:ring-sky-200 appearance-none
+                    ${sex === "" ? "text-zinc-400" : "text-zinc-900"}
+                  `}
+                  value={sex}
+                  onChange={(e) => setSex(e.target.value as Sex)}
+                >
+                  {/* placeholder (แสดงอย่างเดียว เลือกไม่ได้) */}
+                  <option value="" disabled hidden>
+                    Select gender
+                  </option>
+                  <option value="Female">Female</option>
+                  <option value="Male">Male</option>
+                  <option value="Unknown">Unknown</option>
+                </select>
+
+                {/* dropdown icon */}
+                <img
+                  src="/down-icon.svg"
+                  alt=""
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60"
+                />
+              </div>
             </div>
+
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
                 Weight (kg)
@@ -167,13 +189,13 @@ export default function RegisterNewPetPage() {
             </div>
           </div>
 
-          {/* Infecund (Sterile) - Added to match Edit page */}
+          {/* Infecund */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-2">
               Infecund
             </label>
             <div className="flex gap-6">
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="radio"
                   checked={infecund === true}
@@ -182,7 +204,7 @@ export default function RegisterNewPetPage() {
                 />
                 Yes
               </label>
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input
                   type="radio"
                   checked={infecund === false}
@@ -194,8 +216,7 @@ export default function RegisterNewPetPage() {
             </div>
           </div>
 
-
-          {/* Allergies - Added to match Edit page */}
+          {/* Allergies */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1.5">
               Allergies
@@ -218,7 +239,6 @@ export default function RegisterNewPetPage() {
           size="lg"
           onClick={onSubmit}
           disabled={!canSubmit}
-          style={{ padding: "14px" }}
         >
           Add New Pet
         </Button>

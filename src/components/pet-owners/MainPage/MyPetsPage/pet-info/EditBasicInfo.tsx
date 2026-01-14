@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-
+import dayjs from "dayjs";
 import { mockPets } from "@/mocks/pets.mock";
 import { Pet } from "@/types/pet";
 import { formatAge } from "@/app/lib/pets/age";
@@ -40,7 +40,12 @@ export default function EditBasicInfo() {
   const [name, setName] = useState(currentPet.name ?? "");
   const [species, setSpecies] = useState(currentPet.species ?? "");
   const [breed, setBreed] = useState(currentPet.breed ?? "");
-  const [dob, setDob] = useState(currentPet.birth_date ?? "");
+  const [dob, setDob] = useState(
+  currentPet.birth_date
+    ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
+    : ""
+);
+
   const [sex, setSex] = useState<Sex>((currentPet.gender as Sex) ?? "Unknown");
   const [weight, setWeight] = useState(currentPet.weight_kg ?? "");
   const [infecund, setInfecund] = useState<boolean>(currentPet.infecund ?? false);
@@ -67,7 +72,7 @@ export default function EditBasicInfo() {
       .filter((s) => s !== "");
 
     const payload = {
-      ...currentPet, // copy ค่าเดิมมาด้วย (เช่น created_at, user_id)
+      ...currentPet, 
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),

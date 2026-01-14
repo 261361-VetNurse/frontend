@@ -27,13 +27,12 @@ export default function BasicInfoCard({
   onEdit?: () => void;
 }) {
   const sterileText = infecund ? "Yes" : "No";
-  
-  const allergiesText = allergies && allergies.length > 0 
-    ? allergies.join(", ") 
-    : "-";
 
-  const formattedBirthDate = birthDate 
-    ? dayjs(birthDate).format("DD/MM/YYYY") 
+  const allergiesText =
+    allergies && allergies.length > 0 ? allergies.join(", ") : "-";
+
+  const formattedBirthDate = birthDate
+    ? dayjs(birthDate).format("DD/MM/YYYY")
     : "-";
 
   return (
@@ -41,21 +40,29 @@ export default function BasicInfoCard({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-zinc-50 border border-zinc-100 text-zinc-700">
-            i
+          {/* info icon */}
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full ">
+            <img
+              src="/info.svg"
+              alt=""
+              className="h-4 w-4"
+            />
           </span>
+
           <div className="text-sm font-semibold text-zinc-900">
             Basic Information
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          className="text-sm text-sky-600 font-medium"
-        >
-          Edit
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-sm text-sky-600 font-medium"
+          >
+            Edit
+          </button>
+        )}
       </div>
 
       {/* Grid Section */}
