@@ -11,6 +11,7 @@ import Profile from '../../shared/Profile';
 interface MedicationDetailPopupProps {
   medicineReminder: MedicineReminderVM;
   highlightedReminderId?: string;
+  page: 'home-page' | 'medication-page';
   onClose: () => void;
   onToggleReminder: (reminderId: string, isTaken: boolean) => void;
   onEdit: () => void;
@@ -39,6 +40,7 @@ const getStatusMeta = (status: OccurrenceStatus) => {
 export default function MedicationDetailPopup({
   medicineReminder,
   highlightedReminderId,
+  page,
   onClose,
   onToggleReminder,
   onEdit,
@@ -61,7 +63,7 @@ export default function MedicationDetailPopup({
     <MedDetailOverlayStyled onClick={handleOverlayClick}>
       <PopupCard>
         <CloseButton onClick={onClose}>×</CloseButton>
-        
+
         <PetSection>
           <Profile imageUrl={medicineReminder.pet.image_url} size={50} />
           <div className='pet-info'>
@@ -95,35 +97,41 @@ export default function MedicationDetailPopup({
 
         <RemindersSection >
           <div className="section-title">Today's Reminders</div>
-          {medicineReminder.schedule.reminders.map((reminder: any) => {
-            const status = getStatus(reminder);
-            const { label, Icon } = getStatusMeta(status);
-            const isTaken = status === 'taken';
+          {medicineReminder.schedule.reminders
+            .filter((reminder: any) =>
+              // If on medication page, show all.
+              // If on home page, only show the highlighted one (if provided).
+              page === 'medication-page' || !highlightedReminderId || reminder.id === highlightedReminderId
+            )
+            .map((reminder: any) => {
+              const status = getStatus(reminder);
+              const { label, Icon } = getStatusMeta(status);
+              const isTaken = status === 'taken';
 
-            return (
-              <ReminderItem
-                key={reminder.id}
-                $isHighlighted={reminder.id === highlightedReminderId}
-              >
-                <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
+              return (
+                <ReminderItem
+                  key={reminder.id}
+                  $isHighlighted={reminder.id === highlightedReminderId}
+                >
+                  <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
 
-                <div className='reminder-status'>
-                  <StatusButton
-                    $status={status}
-                    onClick={() => onToggleReminder(reminder.id, !isTaken)}
-                    title={label}
-                  >
-                    <Icon style={{ width: 16, height: 16 }} />
-                    <span>{label}</span>
-                  </StatusButton>
+                  <div className='reminder-status'>
+                    <StatusButton
+                      $status={status}
+                      onClick={() => onToggleReminder(reminder.id, !isTaken)}
+                      title={label}
+                    >
+                      <Icon style={{ width: 16, height: 16 }} />
+                      <span>{label}</span>
+                    </StatusButton>
 
-                  {isTaken && reminder.taken_at && (
-                    <div className='taken-time'>{formatTakenTime(reminder.taken_at)}</div>
-                  )}
-                </div>
-              </ReminderItem>
-            );
-          })}
+                    {isTaken && reminder.taken_at && (
+                      <div className='taken-time'>{formatTakenTime(reminder.taken_at)}</div>
+                    )}
+                  </div>
+                </ReminderItem>
+              );
+            })}
         </RemindersSection>
 
         <div className="flex gap-4">
