@@ -15,32 +15,29 @@ import CalendarModule, {
   type DayMarker,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-import AppointmentCard from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentCard";
+// แก้ไข Path การ Import ให้เรียกใช้ไฟล์ในโฟลเดอร์เดียวกัน
+import AddAppointmentPopup, { AddAppointmentPayload } from "./AddAppointmentPopup";
+import AppointmentCard from "@/components/pet-owners/shared/appointment/AppointmentCard";
+import AppointmentDetail, {
+  type AppointmentDetailItem,
+} from "@/components/pet-owners/shared/appointment/AppointmentDetail";
+import EditAppointment from "@/components/pet-owners/shared/appointment/EditAppointment";
+
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
-
-import { PopUp } from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPopup";
-import AppointmentPopDone from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPopDone";
 
 import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import { Pet } from "@/types/pet";
 
-type Appointment = {
-  dateKey: string; // YYYY-MM-DD
-  pet: string;
-  petId?: string;
-  time: string;
-  location: string;
-  status?: string;
-  petImage?: string;
-  pid?: string;
-};
+/* ---------------- tabs ---------------- */
 
 const appointmentTabs = [
   { name: "Appointment", path: "/appointment", params: "appointment" },
   { name: "Record", path: "/record", params: "record" },
 ];
+
+/* ---------------- styled ---------------- */
 
 const Page = styled.div`
   width: 100%;
@@ -70,49 +67,10 @@ const Page = styled.div`
   }
 `;
 
-export const AppointmentPage = () => {
-  /** ================= state ================= */
+/* ================= page ================= */
 
-  const [appointments, setAppointments] = useState<Appointment[]>(() => {
-    return Object.values(mockAppointmentsByPetId)
-      .flat()
-      .map((item) => {
-        const pet = mockPets.find(
-          (p) => String(p._id) === String(item.petId)
-        );
-
-        return {
-          dateKey: item.date,
-          pet: item.petName,
-          petId: item.petId,
-          time: item.time,
-          location: item.location,
-          status: item.status,
-          petImage: pet?.profile_image,
-          pid: pet ? String(pet._id) : undefined,
-        };
-      });
-  });
-
-  const [selectedPetId, setSelectedPetId] =
-    useState<PetSelectorValue>("all");
-
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [monthCursor, setMonthCursor] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-  );
-
-  const [selectedAppointment, setSelectedAppointment] =
-    useState<Appointment | null>(null);
-
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [isPopUpOpen, setIsPopUpOpen] = useState(false);
-  const [editingAppointment, setEditingAppointment] =
-    useState<Appointment | null>(null);
-
-  /** ================= derived ================= */
-
-  const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
+export default function AppointmentPage() {
+  /* -------- pets -------- */
 
   const petOptions: PetLite[] = useMemo(
     () =>
@@ -125,75 +83,123 @@ export const AppointmentPage = () => {
     []
   );
 
-  const filteredAppointments = useMemo(() => {
+  const [selectedPetId, setSelectedPetId] =
+    useState<PetSelectorValue>("all");
+
+  /* -------- calendar -------- */
+
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [monthCursor, setMonthCursor] = useState<Date>(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+
+  const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
+
+  /* -------- appointment data -------- */
+
+  const appointments: AppointmentDetailItem[] = useMemo(() => {
+    return Object.values(mockAppointmentsByPetId)
+      .flat()
+      .map((item) => {
+        const pet = mockPets.find(
+          (p) => String(p._id) === String(item.petId)
+        );
+
+        return {
+          id: item.id,
+          petId: String(item.petId),
+          petName: item.petName,
+          petPid: pet ? String(pet._id) : "-",
+          avatarUrl: pet?.profile_image,
+          date: item.date,
+          time: item.time,
+          location: item.location,
+          status: item.status,
+        };
+      });
+  }, []);
+
+  const filteredByPet = useMemo(() => {
     if (selectedPetId === "all") return appointments;
-    return appointments.filter(
-      (a) => a.petId === selectedPetId || a.pet === selectedPetId
-    );
+    return appointments.filter((a) => a.petId === selectedPetId);
   }, [appointments, selectedPetId]);
 
-  /** 👉 appointments ของ “วันที่เลือกเท่านั้น” */
   const appointmentsBySelectedDate = useMemo(() => {
-    return filteredAppointments
-      .filter((a) => a.dateKey === selectedDateKey)
+    return filteredByPet
+      .filter((a) => a.date === selectedDateKey)
       .sort((a, b) => a.time.localeCompare(b.time));
-  }, [filteredAppointments, selectedDateKey]);
+  }, [filteredByPet, selectedDateKey]);
 
-  /** dot marker บน calendar */
+  /* -------- calendar markers -------- */
+
   const dayMeta: CalendarDayMeta[] = useMemo(() => {
     const map = new Map<string, DayMarker[]>();
 
-    filteredAppointments.forEach((a) => {
-      const arr = map.get(a.dateKey) ?? [];
+    filteredByPet.forEach((a) => {
+      const arr = map.get(a.date) ?? [];
       arr.push({ type: "dot", colorKey: "appointment" });
-      map.set(a.dateKey, arr);
+      map.set(a.date, arr);
     });
 
     return Array.from(map.entries()).map(([iso, markers]) => ({
       date: dayjs(iso).toDate(),
       markers,
     }));
-  }, [filteredAppointments]);
+  }, [filteredByPet]);
 
-  /** ================= render ================= */
+  /* -------- popups -------- */
+
+  const [openCreate, setOpenCreate] = useState(false);
+  const [detail, setDetail] =
+    useState<AppointmentDetailItem | null>(null);
+  const [editing, setEditing] =
+    useState<AppointmentDetailItem | null>(null);
+
+  /* ================= render ================= */
 
   return (
     <Page>
-      {/* create / edit popup */}
-      <PopUp
-        open={isPopUpOpen}
-        onOpenChange={setIsPopUpOpen}
-        onCreateAppointment={() => {}}
-        initialValues={undefined}
-        isEditing={Boolean(editingAppointment)}
-      />
-
-      {/* detail popup */}
-      <AppointmentPopDone
-        open={isDetailOpen}
-        appointment={selectedAppointment || undefined}
-        onClose={() => setIsDetailOpen(false)}
-        onDelete={(appt) =>
-          setAppointments((prev) =>
-            prev.filter((a) => a !== appt)
-          )
+      <AddAppointmentPopup
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        pets={petOptions}
+        initialDate={selectedDateKey}
+        initialPetId={
+          selectedPetId !== "all" ? selectedPetId : undefined
         }
-        onEdit={(appt) => {
-          setEditingAppointment(appt);
-          setIsDetailOpen(false);
-          setIsPopUpOpen(true);
+        onSubmit={(data: AddAppointmentPayload) => {
+          console.log("บันทึกนัดหมาย:", data);
+          setOpenCreate(false);
         }}
       />
 
+      {/* Detail */}
+      <AppointmentDetail
+        open={!!detail}
+        appointment={detail}
+        onClose={() => setDetail(null)}
+        onEdit={(a) => {
+          setDetail(null);
+          setEditing(a);
+        }}
+        onDelete={() => setDetail(null)}
+      />
+
+      {/* Edit */}
+      <EditAppointment
+        open={!!editing}
+        appointment={editing}
+        onClose={() => setEditing(null)}
+        onSave={() => setEditing(null)}
+      />
+
+      {/* FAB */}
       <QuickDialButton
         iconColor="#fff"
         position="bottom-right"
         icon={<AddRoundedIcon />}
         color="#09BFF8"
-        onClickAction={() => {
-          setEditingAppointment(null);
-          setIsPopUpOpen(true);
-        }}
+        onClickAction={() => setOpenCreate(true)}
       />
 
       <div className="scroll-area">
@@ -205,10 +211,8 @@ export const AppointmentPage = () => {
           pets={petOptions}
           value={selectedPetId}
           onChange={setSelectedPetId}
-          placeholder="Select your pet"
         />
 
-        {/* ✅ Calendar ผูก state จริง */}
         <CalendarModule
           size="standard"
           weekStart="sun"
@@ -218,13 +222,13 @@ export const AppointmentPage = () => {
           month={monthCursor}
           dayMeta={dayMeta}
           maxMarkersPerDay={3}
-          onSelectDate={(d) => setSelectedDate(d)}
-          onMonthChange={(m) => setMonthCursor(m)}
+          onSelectDate={setSelectedDate}
+          onMonthChange={setMonthCursor}
+          variant="card"
         />
 
         <div className="head-text">Upcoming appointments</div>
 
-        {/* ✅ list เฉพาะวันที่เลือก */}
         {appointmentsBySelectedDate.length === 0 ? (
           <div className="mt-8 text-center text-gray-400 text-sm">
             No appointments on this date
@@ -236,17 +240,14 @@ export const AppointmentPage = () => {
             </div>
             <div className="line" />
 
-            {appointmentsBySelectedDate.map((a, i) => (
+            {appointmentsBySelectedDate.map((a) => (
               <AppointmentCard
-                key={`${a.dateKey}-${i}`}
-                petName={a.pet}
-                date={dayjs(a.dateKey).format("DD/MM/YYYY")}
+                key={a.id}
+                petName={a.petName}
                 time={a.time}
                 location={a.location}
-                onClick={() => {
-                  setSelectedAppointment(a);
-                  setIsDetailOpen(true);
-                }}
+                avatarUrl={a.avatarUrl}
+                onClick={() => setDetail(a)}
               />
             ))}
           </>
@@ -254,4 +255,4 @@ export const AppointmentPage = () => {
       </div>
     </Page>
   );
-};
+}
