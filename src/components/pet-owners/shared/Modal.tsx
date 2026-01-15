@@ -116,7 +116,7 @@ export function Modal({
     const overlayPadY = "clamp(16px, 6vh, 72px)";
 
     // ✅ card padding unified: px16 py8
-    const PAD = "px-4 py-2"; // 16px / 8px
+    const PAD = "px-4 pt-2 pb-4"; // 16px / 8px
 
     // ✅ max height ของ card แบบชัวร์ ไม่พึ่ง tailwind calc+clamp
     const cardMaxHeight =
@@ -165,7 +165,7 @@ export function Modal({
                                 {title ? (
                                     <div
                                         id={titleId}
-                                        className="text-sm font-semibold leading-[21px] truncate"
+                                        className="text-sm font-semibold text-[18px] leading-[21px] truncate"
                                     >
                                         {title}
                                     </div>

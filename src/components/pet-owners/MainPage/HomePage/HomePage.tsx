@@ -19,7 +19,7 @@ import {
   updateReminderTakenStatus,
   ReminderOccurrence,
 } from "@/lib/reminder-utils";
-import MedicationDetailPopup from "../MedicationPage/MedicationDetailPopup";
+import MedicationDetailPopup from "../HomePage/MedicationDetailPopup";
 import ReminderCard from "./ReminderCard";
 
 export default function HomePage({ username }: { username: string }) {

@@ -213,53 +213,6 @@ export const FabButton = styled.button`
   }
 `;
 
-export const MedDetailOverlayStyled = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.2);
-  padding: 0 16px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-export const PopupCard = styled.div`
-  display: flex;
-  position: relative;
-  flex-direction: column;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-  padding: 24px;
-  width: 100%;
-  max-width: 393px;
-  gap: 16px;
-`;
-
-export const CloseButton = styled.button`
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: ${theme.colors.textSecondary};
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &:hover {
-    color: ${theme.colors.textPrimary};
-  }
-`;
-
 export const PetSection = styled.div`
   display: flex;
   align-items: center;
@@ -284,15 +237,17 @@ export const PetSection = styled.div`
 export const MedicineSection = styled.div`
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 8px;
   .medicine-name {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: ${theme.colors.textPrimary};
   }
   .medicine-dosage {
     font-size: 14px;
+    font-weight: 400; 
     color: ${theme.colors.textSecondary};
   }
 `;
@@ -302,29 +257,31 @@ export const ScheduleSection = styled.div`
   flex-direction: column;
   justify-content: space-between;
   gap: 8px;
-  .schedule-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: ${theme.colors.textPrimary};
-  }
   .schedule-info {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     gap: 4px;
+    justify-content: space-between; 
+    .info-row {
+      display: flex;
+      flex-direction: column; 
+      justify-content: space-between;
+      align-items: flex-start;
+      font-size: 14px;
+      .info-label {
+        font-size: 16px;  
+        font-weight: 600; 
+        color: ${theme.colors.textPrimary};
+        min-width: 150px;
+      }
+      .info-value {
+        color: ${theme.colors.textSecondary};
+        font-size: 14px;  
+        font-weight: 400;
+      }
+    }
   }
-  .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-  }
-  .info-label {
-    color: ${theme.colors.textSecondary};
-  }
-  .info-value {
-    color: ${theme.colors.textPrimary};
-    font-weight: 500;
-  }
+  
 `;
 
 export const RemindersSection = styled.div`
@@ -356,6 +313,11 @@ export const ReminderItem = styled.div<{ $isHighlighted?: boolean }>`
     align-items: center;
     gap: 8px;
   }
+  .taken-time {
+    font-size: 12px;
+    font-weight: 400;
+    color: ${theme.colors.textSecondary};
+  } 
 `;
 
 export const StatusButton = styled.button<{ $status: string }>`
@@ -371,21 +333,16 @@ export const StatusButton = styled.button<{ $status: string }>`
 
   background-color: ${({ $status }) =>
     $status === "taken" ? "#C8E6C9" :
-    $status === "missed" ? "#FFCDD2" :
-    "#BBDEFB"};
+      $status === "missed" ? "#FFCDD2" :
+        "#BBDEFB"};
 
   color: ${({ $status }) =>
     $status === "taken" ? "#256029" :
-    $status === "missed" ? "#C62828" :
-    "#1565C0"};
+      $status === "missed" ? "#C62828" :
+        "#1565C0"};
 
   &:hover {
     opacity: 0.8;
-  }
-
-  .taken-time {
-    font-size: 12px;
-    color: ${theme.colors.textSecondary};
   }
 `;
 
