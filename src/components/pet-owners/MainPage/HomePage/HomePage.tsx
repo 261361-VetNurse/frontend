@@ -31,6 +31,7 @@ export default function HomePage({ username }: { username: string }) {
   const [selectedReminder, setSelectedReminder] = useState<{
     medicineReminder: MedicineReminderVM;
     highlightedReminderId: string;
+    page: 'home-page' | 'medication-page';
   } | null>(null);
 
   // Get filtered reminders for home page display
@@ -53,6 +54,7 @@ export default function HomePage({ username }: { username: string }) {
     setSelectedReminder({
       medicineReminder: plan,
       highlightedReminderId: occ.reminder_id,
+      page: 'home-page',
     });
   };
 
@@ -173,7 +175,7 @@ export default function HomePage({ username }: { username: string }) {
           displayReminders.map((occ) => (
             <div key={occ.occurrence_id}>
               <ReminderCard
-                petName={occ.pet.name}
+                page="home-page"
                 petImageUrl={occ.pet.image_url}
                 medicineName={occ.medicine.name}
                 dosage={occ.medicine.dosage}
@@ -238,6 +240,7 @@ export default function HomePage({ username }: { username: string }) {
 
       {selectedReminder && (
         <MedicationDetailPopup
+          page={selectedReminder.page}
           medicineReminder={selectedReminder.medicineReminder}
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={handleClosePopup}

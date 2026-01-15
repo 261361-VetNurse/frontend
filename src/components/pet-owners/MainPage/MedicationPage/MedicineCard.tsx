@@ -11,20 +11,26 @@ import { theme } from '@/styles/theme';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
+export interface TimeSlot {
+  id: string; // reminder_id
+  timeLabel: string;
+  status: OccurrenceStatus;
+}
+
 type Props = {
   petName: string;
   petImageUrl?: string;
   medicineName: string;
   dosage?: string;
-  timeLabel: string;
 
-  status: OccurrenceStatus;       // ✅ เปลี่ยนจาก isTaken
+  // New prop: list of times
+  times: TimeSlot[];
+
   isStopped?: boolean;
-
   onOpenDetail: () => void;
 
-  // ยังใช้แบบเดิมได้: toggle taken / not-taken (pending/missed ถือว่า not-taken)
-  onToggleTaken?: (nextTaken: boolean) => void;
+  // Callback now requires reminderId
+  onToggleTaken: (reminderId: string, nextTaken: boolean) => void;
 
   onEdit?: () => void;
 };
@@ -32,12 +38,12 @@ type Props = {
 function getStatusMeta(status: OccurrenceStatus) {
   switch (status) {
     case 'taken':
-      return { label: 'Taken', Icon: CheckCircleIcon };
+      return { label: 'Taken', Icon: CheckCircleIcon, color: theme.colors.primary };
     case 'missed':
-      return { label: 'Missed', Icon: ErrorOutlineIcon };
+      return { label: 'Missed', Icon: ErrorOutlineIcon, color: '#ef4444' };
     case 'pending':
     default:
-      return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
+      return { label: 'Pending', Icon: RadioButtonUncheckedIcon, color: '#e5e7eb' }; // Gray for pending frame
   }
 }
 
@@ -46,16 +52,12 @@ export default function MedicineCard({
   petImageUrl,
   medicineName,
   dosage,
-  timeLabel,
-  status,
+  times,
   isStopped,
   onOpenDetail,
   onToggleTaken,
   onEdit,
 }: Props) {
-  const isTaken = status === 'taken';
-  const { label, Icon } = getStatusMeta(status);
-
   return (
     <Card
       $disabled={!!isStopped}
@@ -65,41 +67,54 @@ export default function MedicineCard({
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') onOpenDetail();
       }}
-      aria-label={`${petName} ${medicineName} ${timeLabel} ${label}`}
+      aria-label={`${petName} ${medicineName}`}
     >
-      <Left>
-        <Avatar src={petImageUrl || '/Ava.svg'} alt={petName} />
-        <Info>
-          <TopRow>
-            <Time>{timeLabel}</Time>
-          </TopRow>
-
-          <MedName $disabled={!!isStopped}>{medicineName}</MedName>
-          {dosage ? <Dosage $disabled={!!isStopped}>{dosage}</Dosage> : null}
-          {isStopped ? <StoppedTag>Stopped</StoppedTag> : null}
-        </Info>
-      </Left>
-
-      <Right>
-        {onToggleTaken ? (
+      <MainRow>
+        <Left>
+          <Avatar src={petImageUrl || '/Ava.svg'} alt={petName} />
+          <Info>
+            <PetName>{petName}</PetName>
+            <MedName $disabled={!!isStopped}>{medicineName}</MedName>
+            {dosage ? <Dosage $disabled={!!isStopped}>{dosage}</Dosage> : null}
+            {isStopped ? <StoppedTag>Stopped</StoppedTag> : null}
+          </Info>
+        </Left>
+        {onEdit && (
           <IconButton
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (!isStopped) onToggleTaken(!isTaken);
+              onEdit();
             }}
-            aria-label={isTaken ? 'Mark as not taken' : 'Mark as taken'}
-            disabled={!!isStopped}
-            title={label}
+            style={{ padding: 4 }}
           >
-            <Icon />
+            <MoreHorizIcon style={{ color: '#9ca3af' }} />
           </IconButton>
-        ) : (
-          <StatusWrap aria-label={label} title={label}>
-            <Icon />
-          </StatusWrap>
         )}
-      </Right>
+      </MainRow>
+
+      <Divider />
+
+      <TimesGrid>
+        {times.map((slot) => {
+          const isTaken = slot.status === 'taken';
+          const { label, Icon, color } = getStatusMeta(slot.status);
+
+          return (
+            <TimeChip
+              key={slot.id}
+              $status={slot.status}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isStopped) onToggleTaken(slot.id, !isTaken);
+              }}
+            >
+              <div className="time">{slot.timeLabel}</div>
+              <Icon style={{ width: 16, height: 16 }} />
+            </TimeChip>
+          );
+        })}
+      </TimesGrid>
     </Card>
   );
 }
@@ -108,13 +123,25 @@ const Card = styled.div<{ $disabled: boolean }>`
   width: 100%;
   background: #fff;
   border-radius: 16px;
-  padding: 12px;
+  padding: 16px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
   cursor: pointer;
-  opacity: ${({ $disabled }) => ($disabled ? 0.6 : 1)};
+  opacity: ${({ $disabled }) => ($disabled ? 0.7 : 1)};
   box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  border: 1px solid #f3f4f6;
+  transition: transform 0.1s;
+  
+  &:active {
+    transform: scale(0.995);
+  }
+`;
+
+const MainRow = styled.div`
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
 `;
 
 const Left = styled.div`
@@ -125,11 +152,13 @@ const Left = styled.div`
 `;
 
 const Avatar = styled.img`
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 9999px;
   object-fit: cover;
   flex: 0 0 auto;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 `;
 
 const Info = styled.div`
@@ -138,69 +167,77 @@ const Info = styled.div`
   min-width: 0;
 `;
 
-const TopRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-`;
-
 const PetName = styled.div`
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: #111827;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const Time = styled.div`
-  font-size: 12px;
   color: #6b7280;
-  flex: 0 0 auto;
+  margin-bottom: 2px;
 `;
 
 const MedName = styled.div<{ $disabled: boolean }>`
-  margin-top: 2px;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
   color: ${({ $disabled }) => ($disabled ? '#6b7280' : '#111827')};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.3;
 `;
 
 const Dosage = styled.div<{ $disabled: boolean }>`
-  margin-top: 2px;
-  font-size: 12px;
+  font-size: 13px;
   color: ${({ $disabled }) => ($disabled ? '#9ca3af' : '#6b7280')};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-top: 2px;
 `;
 
 const StoppedTag = styled.div`
   margin-top: 6px;
   display: inline-flex;
   width: fit-content;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
   background: #f3f4f6;
-  color: #374151;
+  color: #4b5563;
 `;
 
-const Right = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
+const Divider = styled.div`
+    height: 1px;
+    background: #f3f4f6;
+    width: 100%;
 `;
 
-const StatusWrap = styled.div`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+const TimesGrid = styled.div`
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+`;
+
+const TimeChip = styled.div<{ $status: OccurrenceStatus }>`
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: ${({ $status }) =>
+    $status === 'taken' ? '#eef2ff' :
+      $status === 'missed' ? '#fef2f2' : '#f9fafb'};
+    border: 1px solid ${({ $status }) =>
+    $status === 'taken' ? '#c7d2fe' :
+      $status === 'missed' ? '#fecaca' : '#e5e7eb'};
+    color: ${({ $status }) =>
+    $status === 'taken' ? '#4f46e5' :
+      $status === 'missed' ? '#dc2626' : '#374151'};
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    .time {
+        font-family: inherit;
+    }
+
+    &:hover {
+        filter: brightness(0.97);
+    }
 `;
 
 const IconButton = styled.button`
@@ -210,11 +247,9 @@ const IconButton = styled.button`
   border-radius: 10px;
   cursor: pointer;
   color: ${theme.colors.primary};
-
-  svg {
-    width: 36px;
-    height: 36px;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   &:disabled {
     cursor: not-allowed;

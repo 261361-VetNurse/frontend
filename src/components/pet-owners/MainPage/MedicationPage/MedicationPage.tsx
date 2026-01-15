@@ -373,8 +373,8 @@ export default function MedicationPage() {
           {selectedTab === 'today'
             ? "Today's Medication Reminders"
             : selectedTab === 'tomorrow'
-            ? "Tomorrow's Medication Reminders"
-            : 'Other Medication Reminders'}
+              ? "Tomorrow's Medication Reminders"
+              : 'Other Medication Reminders'}
         </div>
         <div className="DateText">{formatDate(baseDate)}</div>
       </Header>
@@ -382,26 +382,73 @@ export default function MedicationPage() {
       {/* Reminder cards */}
       <CardList>
         {filteredOccurrences.length > 0 ? (
-          filteredOccurrences.map(occ => {
-            const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
-            const isStopped = plan?.medication_status.is_stopped ?? false;
+          (() => {
+            // Group occurrences by plan_id
+            const groupedMap = new Map<string, {
+              planId: string;
+              pet: typeof filteredOccurrences[0]['pet'];
+              medicine: typeof filteredOccurrences[0]['medicine'];
+              isStopped: boolean;
+              slots: { id: string; timeLabel: string; status: any }[];
+            }>();
 
-            return (
+            filteredOccurrences.forEach(occ => {
+              const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
+              const isStopped = plan?.medication_status.is_stopped ?? false;
+
+              if (!groupedMap.has(occ.plan_id)) {
+                groupedMap.set(occ.plan_id, {
+                  planId: occ.plan_id,
+                  pet: occ.pet,
+                  medicine: occ.medicine,
+                  isStopped,
+                  slots: []
+                });
+              }
+
+              const group = groupedMap.get(occ.plan_id)!;
+              group.slots.push({
+                id: occ.reminder_id,
+                timeLabel: formatTimeForDisplay(occ.time),
+                status: occ.status
+              });
+            });
+
+            // Convert to array and sort (optional: sort by first slot time)
+            const groupedList = Array.from(groupedMap.values()).sort((a, b) => {
+              // Sort by the time of the first slot
+              const validSlotsA = a.slots[0];
+              const validSlotsB = b.slots[0];
+              if (!validSlotsA || !validSlotsB) return 0;
+              return validSlotsA.timeLabel.localeCompare(validSlotsB.timeLabel);
+            });
+
+            return groupedList.map(group => (
               <MedicineCard
-                key={occ.occurrence_id}
-                petName={occ.pet.name}
-                petImageUrl={occ.pet.image_url}
-                medicineName={occ.medicine.name}
-                dosage={occ.medicine.dosage}
-                timeLabel={formatTimeForDisplay(occ.time)}
-                status={occ.status}
-                isStopped={isStopped}
-                onOpenDetail={() => handleReminderClick(occ)}
-                onToggleTaken={(next: boolean) => handleToggleReminder(occ.plan_id, occ.reminder_id, next)}
-                onEdit={() => handleEditFromCard(occ)}
+                key={group.planId}
+                petName={group.pet.name}
+                petImageUrl={group.pet.image_url}
+                medicineName={group.medicine.name}
+                dosage={group.medicine.dosage}
+                times={group.slots} // Pass all times
+                isStopped={group.isStopped}
+                onOpenDetail={() => {
+                  // Open detail using the first occurrence as reference, or just planId
+                  // We need an occurrence to trigger handleReminderClick logic which sets selectedReminder
+                  // We can find any occurrence for this plan.
+                  const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
+                  if (firstOcc) handleReminderClick(firstOcc);
+                }}
+                onToggleTaken={(reminderId, next) =>
+                  handleToggleReminder(group.planId, reminderId, next)
+                }
+                onEdit={() => {
+                  const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
+                  if (firstOcc) handleEditFromCard(firstOcc);
+                }}
               />
-            );
-          })
+            ));
+          })()
         ) : (
           <div
             style={{
@@ -435,6 +482,7 @@ export default function MedicationPage() {
       {/* Medication Detail Popup */}
       {selectedReminder && (
         <MedicationDetailPopup
+          page="medication-page"
           medicineReminder={selectedReminder.medicineReminder}
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={handleCloseDetail}
