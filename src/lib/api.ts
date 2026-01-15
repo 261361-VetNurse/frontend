@@ -1,12 +1,7 @@
 import axios from "axios";
 
-const MOCK_TOKEN = "mock-user-token"; 
-
-const api = axios.create();
-
-api.interceptors.request.use((config) => {
-  config.headers.Authorization = `Bearer ${MOCK_TOKEN}`;
-  return config;
+const api = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
 export default api;
