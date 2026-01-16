@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from "react";
 import { HomePageStyled } from "@/styles/homepage.styled";
-import AppointmentBox from "./AppointBox";
+import AppointmentCard from "./AppointmentCard";
+import { mockAppointments } from "@/mocks/appointments";
 import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
@@ -234,8 +235,9 @@ export default function HomePage({ username }: { username: string }) {
       </div>
 
       <div className="appoint-box">
-        <AppointmentBox />
-        <AppointmentBox />
+        {mockAppointments.slice(0, 3).map((apt) => (
+          <AppointmentCard key={apt.id} appointment={apt} />
+        ))}
       </div>
 
       {selectedReminder && (

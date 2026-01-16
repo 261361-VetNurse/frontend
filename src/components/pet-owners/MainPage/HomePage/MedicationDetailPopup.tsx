@@ -1,4 +1,3 @@
-import React from 'react';
 import { formatTimeForDisplay } from '@/lib/reminder-utils';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -7,6 +6,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
+import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
   medicineReminder: MedicineReminderVM;
@@ -70,6 +70,7 @@ export default function MedicationDetailPopup({
         </PetSection>
 
         <MedicineSection>
+          <MedicationIcon style={{ color: '#cccccc' }} />
           <div className="medicine-name">{medicineReminder.medicine.name}</div>
           <div className="medicine-dosage">({medicineReminder.medicine.dosage})</div>
         </MedicineSection>
@@ -102,7 +103,6 @@ export default function MedicationDetailPopup({
               return (
                 <ReminderItem
                   key={reminder.id}
-                  $isHighlighted={reminder.id === highlightedReminderId}
                 >
                   <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
 

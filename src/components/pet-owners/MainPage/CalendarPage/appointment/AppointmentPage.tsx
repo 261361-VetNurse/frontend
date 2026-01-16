@@ -5,7 +5,7 @@ import styled from "styled-components";
 import { Tabs } from "@/components/pet-owners/shared/Tabs";
 import PetList from "@/components/pet-owners/MainPage/CalendarPage/PetList";
 import Calendar from "@/components/pet-owners/MainPage/CalendarPage/Calendar";
-import AppointmentBox from "@/components/pet-owners/MainPage/HomePage/AppointBox";
+import AppointmentCard from "@/components/pet-owners/MainPage/HomePage/AppointmentCard";
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PopUp } from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPopup";
@@ -263,7 +263,7 @@ export const AppointmentPage = () => {
                     onDelete={handleDeleteAppointment}
                     onEdit={handleEditAppointment}
                 />
-                <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon/>} color={'#09BFF8'} onClickAction={handleClick}/>
+                <QuickDialButton iconColor='#fff' position={'bottom-right'} icon={<AddRoundedIcon />} color={'#09BFF8'} onClickAction={handleClick} />
             </>
             <div className="scroll-area">
                 <Tabs data={appointmentTabs} queryKey="tab" />
@@ -272,7 +272,7 @@ export const AppointmentPage = () => {
                     selectedPetId={selectedPetId}
                     onSelectPet={setSelectedPetId}
                 />
-                <Calendar appointmentPetsByDate={appointmentPetsByDate}/>
+                <Calendar appointmentPetsByDate={appointmentPetsByDate} />
                 <div className="head-text">Upcoming appointments</div>
                 {upcomingAppointmentsByDate.map(({ dateKey, items }) => (
                     <React.Fragment key={dateKey}>
@@ -287,11 +287,17 @@ export const AppointmentPage = () => {
                                 className="appointment-card"
                                 onClick={() => handleOpenAppointment(appointment)}
                             >
-                                <AppointmentBox
-                                    petName={appointment.pet}
-                                    locationText={appointment.location}
-                                    dateText={dayjs(appointment.dateKey).format("DD/MM/YYYY")}
-                                    timeText={appointment.time}
+                                <AppointmentCard
+                                    appointment={{
+                                        id: `${appointment.dateKey}-${appointment.pet}-${index}`,
+                                        petId: appointment.pid || "",
+                                        petName: appointment.pet,
+                                        date: dayjs(appointment.dateKey).format("DD/MM/YYYY"),
+                                        time: appointment.time,
+                                        location: appointment.location,
+                                        status: (appointment.status as any) || "upcoming"
+                                    }}
+                                    petImageUrl={appointment.petImage}
                                 />
                             </button>
                         ))}

@@ -257,28 +257,34 @@ export const ScheduleSection = styled.div`
   flex-direction: column;
   justify-content: space-between;
   gap: 8px;
+  .schedule-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${theme.colors.textPrimary};
+  } 
   .schedule-info {
     display: flex;
     flex-direction: row;
     gap: 4px;
     justify-content: space-between; 
-    .info-row {
-      display: flex;
-      flex-direction: column; 
-      justify-content: space-between;
-      align-items: flex-start;
-      font-size: 14px;
-      .info-label {
-        font-size: 16px;  
-        font-weight: 600; 
-        color: ${theme.colors.textPrimary};
-        min-width: 150px;
-      }
-      .info-value {
-        color: ${theme.colors.textSecondary};
-        font-size: 14px;  
-        font-weight: 400;
-      }
+  }
+
+  .info-row {
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 14px;
+    .info-label {
+      font-size: 16px;  
+      font-weight: 500; 
+      color: ${theme.colors.textPrimary};
+      min-width: 150px;
+    }
+    .info-value {
+      color: ${theme.colors.textSecondary};
+      font-size: 14px;  
+      font-weight: 400;
     }
   }
   
@@ -290,19 +296,18 @@ export const RemindersSection = styled.div`
   gap: 8px;
   .section-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     color: ${theme.colors.textPrimary};
   }
 `;
 
-export const ReminderItem = styled.div<{ $isHighlighted?: boolean }>`
+export const ReminderItem = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 12px;
   border-radius: 8px;
-  background-color: ${(p) => (p.$isHighlighted ? "#E3F2FD" : "#F5F5F5")};
-  border: ${(p) => (p.$isHighlighted ? `2px solid ${theme.colors.primary}` : "none")};
+  background-color: #F5F5F5;
   .reminder-time {
     font-size: 16px;
     font-weight: 500;

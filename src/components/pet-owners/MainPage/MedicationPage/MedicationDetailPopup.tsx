@@ -3,9 +3,10 @@ import { MedicineReminderVM } from '@/types/medicine-reminder';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton, ActionButton } from '@/styles/medication.styled';
+import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/medication.styled';
 import Profile from '../../shared/Profile';
-import { Modal } from '@/components/pet-owners/shared/Modal';
+import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
+import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
   medicineReminder: MedicineReminderVM;
@@ -52,23 +53,16 @@ export default function MedicationDetailPopup({
   };
 
   return (
-    <Modal
+    <FormDialog
       open={true}
       onClose={onClose}
       title="Medication Detail"
-      footerNode={
-        <div className="flex gap-4 w-full">
-          <ActionButton $variant="secondary" onClick={onClose}>
-            Close
-          </ActionButton>
-          <ActionButton $variant="primary" onClick={onEdit}>
-            Edit Medication
-          </ActionButton>
-        </div>
-      }
+      primaryLabel="Edit Medication"
+      onPrimary={onEdit}
+      secondaryLabel="Close"
+      onSecondary={onClose}
     >
-      <div>
-
+      <div className='flex flex-col gap-4'>
         <PetSection>
           <Profile imageUrl={medicineReminder.pet.image_url} size={50} />
           <div className='pet-info'>
@@ -78,26 +72,30 @@ export default function MedicationDetailPopup({
         </PetSection>
 
         <MedicineSection>
+          <MedicationIcon style={{ color: '#cccccc' }} />
           <div className="medicine-name">{medicineReminder.medicine.name}</div>
           <div className="medicine-dosage">{medicineReminder.medicine.dosage}</div>
         </MedicineSection>
 
         <ScheduleSection>
           <div className='schedule-title'>Schedule Information</div>
-          <div className='schedule-info'>
-            <div className='info-row'>
-              <div className='info-label'>Frequency:</div>
-              <div className='info-value'>{medicineReminder.schedule.frequency.label}</div>
-            </div>
-            <div className='info-row'>
-              <div className='info-label'>Times per day:</div>
-              <div className='info-value'>{medicineReminder.schedule.measurement_times_per_day}</div>
+          <div className='px-4'>
+            <div className='schedule-info'>
+              <div className='info-row'>
+                <div className='info-label'>Frequency:</div>
+                <div className='info-value'>{medicineReminder.schedule.frequency.label}</div>
+              </div>
+              <div className='info-row'>
+                <div className='info-label'>Times per day:</div>
+                <div className='info-value'>{medicineReminder.schedule.measurement_times_per_day}</div>
+              </div>
             </div>
             <div className='info-row'>
               <div className='info-label'>Starting date:</div>
-              <div className='info-value'>{new Date(medicineReminder.schedule.starting_date).toLocaleDateString()}</div>
+              <div className='info-value'>{medicineReminder.schedule.starting_date}</div>
             </div>
           </div>
+
         </ScheduleSection>
 
         <RemindersSection >
@@ -111,7 +109,6 @@ export default function MedicationDetailPopup({
               return (
                 <ReminderItem
                   key={reminder.id}
-                  $isHighlighted={reminder.id === highlightedReminderId}
                 >
                   <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
 
@@ -135,6 +132,6 @@ export default function MedicationDetailPopup({
         </RemindersSection>
 
       </div>
-    </Modal>
+    </FormDialog>
   );
 }

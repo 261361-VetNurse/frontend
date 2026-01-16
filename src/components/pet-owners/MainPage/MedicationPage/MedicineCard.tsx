@@ -5,9 +5,15 @@ import styled from 'styled-components';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import DoNotDisturbOnIcon from '@mui/icons-material/DoNotDisturbOn';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 import { theme } from '@/styles/theme';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
@@ -33,6 +39,7 @@ type Props = {
   onToggleTaken: (reminderId: string, nextTaken: boolean) => void;
 
   onEdit?: () => void;
+  onDelete?: () => void;
 };
 
 function getStatusMeta(status: OccurrenceStatus) {
@@ -57,7 +64,32 @@ export default function MedicineCard({
   onOpenDetail,
   onToggleTaken,
   onEdit,
+  onDelete,
 }: Props) {
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  const handleMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleEditAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onEdit?.();
+  };
+
+  const handleDeleteAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleMenuClose();
+    onDelete?.();
+  };
+
   return (
     <Card
       $disabled={!!isStopped}
@@ -79,17 +111,51 @@ export default function MedicineCard({
             {isStopped ? <StoppedTag>Stopped</StoppedTag> : null}
           </Info>
         </Left>
-        {onEdit && (
-          <IconButton
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit();
-            }}
-            style={{ padding: 4 }}
-          >
-            <MoreHorizIcon style={{ color: '#9ca3af' }} />
-          </IconButton>
+        {(onEdit || onDelete) && (
+          <>
+            <IconButton
+              type="button"
+              onClick={open ? handleMenuClose : handleMenuClick}
+              style={{ padding: 4 }}
+            >
+              <MoreHorizIcon style={{ color: '#9ca3af' }} />
+            </IconButton>
+            <Menu
+              anchorEl={anchorEl}
+              open={open}
+              onClose={handleMenuClose}
+              onClick={(e) => e.stopPropagation()}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              PaperProps={{
+                style: {
+                  borderRadius: 12,
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  minWidth: 160,
+                  marginTop: 8
+                }
+              }}
+            >
+              <MenuItem onClick={handleEditAction}>
+                <ListItemIcon>
+                  <EditIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Edit</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleDeleteAction} sx={{ color: '#ef4444' }}>
+                <ListItemIcon>
+                  <DeleteIcon fontSize="small" sx={{ color: '#ef4444' }} />
+                </ListItemIcon>
+                <ListItemText>Delete</ListItemText>
+              </MenuItem>
+            </Menu>
+          </>
         )}
       </MainRow>
 
@@ -106,11 +172,10 @@ export default function MedicineCard({
               $status={slot.status}
               onClick={(e) => {
                 e.stopPropagation();
-                if (!isStopped) onToggleTaken(slot.id, !isTaken);
               }}
             >
+              <Icon style={{ fontSize: 16 }} />
               <div className="time">{slot.timeLabel}</div>
-              <Icon style={{ width: 16, height: 16 }} />
             </TimeChip>
           );
         })}
@@ -217,26 +282,18 @@ const TimeChip = styled.div<{ $status: OccurrenceStatus }>`
     gap: 6px;
     padding: 6px 10px;
     border-radius: 8px;
-    background: ${({ $status }) =>
-    $status === 'taken' ? '#eef2ff' :
-      $status === 'missed' ? '#fef2f2' : '#f9fafb'};
     border: 1px solid ${({ $status }) =>
-    $status === 'taken' ? '#c7d2fe' :
+    $status === 'taken' ? `${theme.colors.primary}40` :
       $status === 'missed' ? '#fecaca' : '#e5e7eb'};
     color: ${({ $status }) =>
-    $status === 'taken' ? '#4f46e5' :
+    $status === 'taken' ? `${theme.colors.primary}` :
       $status === 'missed' ? '#dc2626' : '#374151'};
     font-size: 13px;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
+    cursor: default;
 
     .time {
         font-family: inherit;
-    }
-
-    &:hover {
-        filter: brightness(0.97);
     }
 `;
 
@@ -256,3 +313,4 @@ const IconButton = styled.button`
     opacity: 0.6;
   }
 `;
+

@@ -43,3 +43,5 @@ export const mockAppointmentsByPetId: Record<string, Appointment[]> = {
     },
   ],
 };
+
+export const mockAppointments: Appointment[] = Object.values(mockAppointmentsByPetId).flat();

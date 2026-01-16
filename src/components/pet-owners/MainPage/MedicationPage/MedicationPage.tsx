@@ -214,6 +214,12 @@ export default function MedicationPage() {
     setSelectedReminder(null);
   };
 
+  const handleDeleteFromCard = (planId: string) => {
+    if (window.confirm('Are you sure you want to delete this medication?')) {
+      setMedicineReminders(prev => prev.filter(mr => mr.notification_id !== planId));
+    }
+  };
+
   const handleToggleReminder = (planId: string, reminderId: string, isTaken: boolean) => {
     const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
     setMedicineReminders(updated);
@@ -446,6 +452,8 @@ export default function MedicationPage() {
                   const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
                   if (firstOcc) handleEditFromCard(firstOcc);
                 }}
+                onDelete={() => handleDeleteFromCard(group.planId)}
+
               />
             ));
           })()
