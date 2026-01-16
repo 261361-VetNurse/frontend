@@ -15,7 +15,7 @@ export default function NotificationsPage() {
               {/* Appointment Card */}
               <div className="bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-start border border-gray-50">
                 <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gray-100 mr-4 border border-gray-100">
-                  <img src="/images/lee.png" alt="Petss" className="w-full h-full object-cover" />
+                  <img src="/images/lee.png" alt="Pets" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between items-start">
@@ -29,7 +29,7 @@ export default function NotificationsPage() {
               {/* Medicine Card */}
               <div className="bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] flex items-start border border-gray-50">
                 <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0 bg-gray-100 mr-4 border border-gray-100">
-                  <img src="/images/lee.png" alt="Petss" className="w-full h-full object-cover" />
+                  <img src="/images/lee.png" alt="Pets" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-grow">
                   <div className="flex justify-between items-start">

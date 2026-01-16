@@ -3,11 +3,10 @@
 import Image from "next/image";
 
 type Props = {
-  time: string; // เช่น "10.52 น." หรือ "11.00 A.M."
-  note: string; // เช่น "เข้าห้องตรวจ"
+  time: string; 
+  note: string; 
   onClick?: () => void;
 
-  // ✅ เพิ่มสำหรับโหมดลบ
   showDelete?: boolean;
   onDelete?: () => void;
   deleteIconSrc?: string;

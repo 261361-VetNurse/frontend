@@ -5,17 +5,19 @@ import StatCard from "@/components/pet-owners/MainPage/MyPetsPage/StatCard";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
-import { mockPets } from "@/mocks/pets";
+
+import { mockPets } from "@/mocks/pets.mock"; 
 import { mockOwner } from "@/mocks/owner";
-import { Petss } from "@/types/Petss";
+import { Pet } from "@/types/pet"; 
+
 import { Page } from "@/styles/myPetsPage.styled";
 
 export default function MyPets() {
-  const pets: Petss[] = mockPets;
+  const pets: Pet[] = mockPets;
+  
   const allPetsCount = pets.length;
-  const inMedicalCount = 0;
-  const router = useRouter();
-
+  const inMedicalCount = 0; 
+  
   return (
     <Page>
       <div className="flex flex-col gap-4">
@@ -44,7 +46,7 @@ export default function MyPets() {
               No pets yet. Click “New Pet” to add one.
             </div>
           ) : (
-            pets.map((pet) => <PetCard key={pet.id} pet={pet} />)
+            pets.map((pet) => <PetCard key={pet._id} pet={pet} />)
           )}
         </div>
       </div>

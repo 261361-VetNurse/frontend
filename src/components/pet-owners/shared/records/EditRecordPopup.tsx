@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import type { SymptomDetailRecord } from "./SymptomDetailPopup";
+import type { RecordDetailItem } from "./RecordDetailPopup";
 
 export type EditSymptomPayload = {
   id: string;
@@ -15,13 +15,13 @@ export type EditSymptomPayload = {
 
 type Props = {
   open: boolean;
-  record: SymptomDetailRecord | null;
+  record: RecordDetailItem | null;
   onClose: () => void;
   onSave?: (data: EditSymptomPayload) => void;
   maxImages?: number; // default 4
 };
 
-export default function EditSymptomPopup({
+export default function EditRecordPopup({
   open,
   record,
   onClose,
@@ -52,7 +52,6 @@ export default function EditSymptomPopup({
   // guard
   if (!open || !record) return null;
 
-  // ✅ หลัง guard: record ไม่ null แน่นอน
   const r = record;
 
   function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
@@ -80,7 +79,6 @@ export default function EditSymptomPopup({
   }
 
   function handleSave() {
-    // ✅ ใช้ r แทน record จะไม่โดน "possibly null"
     if (!canSubmit) return;
 
     onSave?.({

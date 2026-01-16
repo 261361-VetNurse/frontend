@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-export type SymptomDetailRecord = {
+export type RecordDetailItem = {
   id: string;
   petId: string;
   petName: string;
@@ -18,12 +18,11 @@ export type SymptomDetailRecord = {
 
 type Props = {
   open: boolean;
-  record: SymptomDetailRecord | null;
+  record: RecordDetailItem | null;
   onClose: () => void;
-  onEdit?: (rec: SymptomDetailRecord) => void;
+  onEdit?: (rec: RecordDetailItem) => void;
   onDelete?: (id: string) => void;
 
-  // ✅ เพิ่มเพื่อให้ page.tsx ส่งมาได้
   formatTime?: (t: string) => string;
 };
 
@@ -36,7 +35,7 @@ function formatDateLabel(isoDate: string) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-export default function SymptomDetailPopup({
+export default function RecordDetailPopup({
   open,
   record,
   onClose,
@@ -76,7 +75,7 @@ export default function SymptomDetailPopup({
           </button>
         </div>
 
-        {/* Petss row */}
+        {/* Pet row */}
         <div className="px-5 pb-4 flex items-center gap-3">
           <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
             {record.avatarUrl ? (

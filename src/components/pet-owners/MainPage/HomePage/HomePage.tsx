@@ -143,7 +143,7 @@ export default function HomePage({ username }: { username: string }) {
           {mockPets.map((pet: Pet, index: number) => (
             <Profile
               key={index}
-              imageUrl={pet.image_url}
+              imageUrl={pet.profile_image}
               size={60}
               label={pet.name}
               showLabel={true}

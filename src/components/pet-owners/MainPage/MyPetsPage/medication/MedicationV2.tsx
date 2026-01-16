@@ -4,11 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetSelectorCard from "@/components/pet-owners/MainPage/MyPetsPage/PetSelectorCard";
+import PetFilterSelector, {
+  type PetLite as SharedPetLite,
+  type PetSelectorValue,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
 import AddMedicationPopupV2, { type AddMedicationPayloadV2 } from "./AddMedicationPopupV2";
-import EditMedicationPopupV2, {type EditMedicationPayload,} from "./EditMedicationPopupV2";
+import EditMedicationPopupV2, { type EditMedicationPayload } from "./EditMedicationPopupV2";
 import MedicationDetailPopupV2 from "./MedicationDetailPopupV2";
-import { mockPetInformationById } from "@/mocks/petInformation";
+import { mockPets } from "@/mocks/pets.mock"; 
+
 import {
   TabsWrap,
   TabButton,
@@ -26,11 +31,11 @@ export type MedicationRecordV2 = {
   petId: string;
   petName: string;
   medicationName: string;
-  dose: string;  
-  times: string; 
+  dose: string;
+  times: string;
   note?: string;
   avatarUrl?: string;
-  recordDate?: string; 
+  recordDate?: string;
 };
 
 type PetOption = {
@@ -62,41 +67,42 @@ const getMockRecords = (): Record<TabType, MedicationRecordV2[]> => {
     return `${yyyy}-${mm}-${dd}`;
   };
 
+  // ✅ แก้ petId ให้ตรงกับ ID ของ Luna ใน mockPets (430244)
   return {
     today: [
       {
         id: "1",
-        petId: "4302459",
+        petId: "430244", // ตรงกับ Luna ใน mockPets
         petName: "Luna",
         medicationName: "Prednisolone 5mg",
         dose: "ครั้งละ 2 เม็ด",
         times: "วันละสองครั้ง",
         note: "Note : Morning and evening",
-        avatarUrl: "/pets-example/pet-ex1.svg",
+        avatarUrl: "/pets-example/pet-ex3.svg",
       },
     ],
     tomorrow: [],
     other: [
       {
         id: "4",
-        petId: "4302459",
+        petId: "430244", // ตรงกับ Luna ใน mockPets
         petName: "Luna",
         medicationName: "Samylin Medium Breed",
         dose: "ครั้งละ 1 ซอง",
         times: "วันละครั้ง",
         note: "Note : กินผสมอาหาร, ช่วยบำรุงตับ",
-        avatarUrl: "/pets-example/pet-ex1.svg",
+        avatarUrl: "/pets-example/pet-ex3.svg",
         recordDate: fmtISO(dayAfterTomorrow),
       },
       {
         id: "6",
-        petId: "4302459",
+        petId: "430244", // ตรงกับ Luna ใน mockPets
         petName: "Luna",
         medicationName: "Samylin Medium Breed",
         dose: "ครั้งละ 1 ซอง",
         times: "วันละครั้ง",
         note: "Note : กินผสมอาหาร, ช่วยบำรุงตับ",
-        avatarUrl: "/pets-example/pet-ex1.svg",
+        avatarUrl: "/pets-example/pet-ex3.svg",
         recordDate: fmtISO(thirdDay),
       },
     ],
@@ -148,14 +154,24 @@ export default function MedicationPageV2() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
+  // ✅ 2. ปรับการ map ข้อมูลจาก mockPets (Array) ให้เป็น PetOption
   const petOptions: PetOption[] = useMemo(() => {
-    return Object.values(mockPetInformationById).map((p) => ({
-      id: String(p.header.id),
-      name: p.header.name,
-      pid: p.header.pid,
-      imageUrl: p.header.avatarUrl,
+    return mockPets.map((p) => ({
+      id: p._id,                // ใช้ _id แทน p.header.id
+      name: p.name,             // ใช้ name
+      pid: p._id,               // mock ใหม่ไม่มี pid แยก ใช้ _id แทนไปก่อน
+      imageUrl: p.profile_image,// ใช้ profile_image
     }));
   }, []);
+
+  const selectorPets: SharedPetLite[] = useMemo(() => {
+    return petOptions.map((p) => ({
+      id: p.id,
+      name: p.name,
+      pid: p.pid,
+      avatarUrl: p.imageUrl,
+    }));
+  }, [petOptions]);
 
   const [selectedPetId, setSelectedPetId] = useState<string>(
     String(petId ?? petOptions[0]?.id ?? "")
@@ -199,16 +215,19 @@ export default function MedicationPageV2() {
 
   return (
     <>
-      <TopBar title="Medication" onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)} />
+      <TopBar
+        title="Medication"
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+      />
 
       <div style={{ marginTop: 8 }}>
-        <PetSelectorCard
-          name={selectedPet?.name ?? "-"}
-          pid={selectedPet?.pid ?? "-"}
-          imageUrl={selectedPet?.imageUrl}
-          options={petOptions}
-          selectedId={selectedPetId}
-          onSelect={(id) => {
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets={false}
+          pets={selectorPets}
+          value={selectedPetId as PetSelectorValue}
+          onChange={(v) => {
+            const id = String(v);
             setSelectedPetId(id);
             router.push(`/pet-owners/my-pets-page/${id}/medications`);
           }}

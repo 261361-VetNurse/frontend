@@ -164,7 +164,7 @@ export default function EditMedicationPopupV2({
       <PopupCard>
         <Title>Edit Medication</Title>
 
-        {/* ✅ Petss row only */}
+        {/* Pets row only */}
         <PetRow>
           <PetAvatarWrap>
             {pet.avatarUrl ? (

@@ -260,7 +260,7 @@ export default function EditMedicationPopup({
 
   useEffect(() => {
     if (medicineReminder) {
-      setPetId(medicineReminder.pet.id);
+      setPetId(medicineReminder.pet._id);
       setMedicineName(medicineReminder.medicine.name);
       setDosage(medicineReminder.medicine.dosage);
       setFrequency(medicineReminder.schedule.frequency.key);
@@ -330,9 +330,9 @@ export default function EditMedicationPopup({
     const updatedMedicineReminder: MedicineReminderVM = {
       ...medicineReminder,
       pet: {
-        id: selectedPet.id,
+        _id: selectedPet.id,
         name: selectedPet.name,
-        image_url: selectedPet.avatarUrl || medicineReminder.pet.image_url,
+        profile_image: selectedPet.avatarUrl || medicineReminder.pet.profile_image,
       },
       medicine: {
         ...medicineReminder.medicine,

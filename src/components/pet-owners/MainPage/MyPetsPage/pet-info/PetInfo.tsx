@@ -2,8 +2,10 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { mockPets } from "@/mocks/pets";
-import type { Petss } from "@/types/Petss";
+
+import { mockPets } from "@/mocks/pets.mock";
+import { Pet } from "@/types/pet";
+
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
@@ -20,8 +22,8 @@ export default function PetInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const pet: Petss | undefined = useMemo(
-    () => mockPets.find((p) => p.id === String(petId)),
+  const pet: Pet | undefined = useMemo(
+    () => mockPets.find((p) => String(p._id) === String(petId)),
     [petId]
   );
 
@@ -29,26 +31,25 @@ export default function PetInfo() {
     return (
       <div className="p-6">
         <button onClick={() => router.back()} className="underline">
-          ←
+          ← Back
         </button>
         <div className="mt-4 text-zinc-700">
-          Petss not found: {String(petId)}
+          Pet not found: {String(petId)}
         </div>
       </div>
     );
   }
 
   const currentPet = pet;
-  const ageText = formatAge(currentPet.birthDate);
+  const ageText = formatAge(currentPet.birth_date);
 
-  // map mockPets -> PetLite (data contract ของ shared component)
   const petsForSelector: PetLite[] = useMemo(
     () =>
       mockPets.map((p) => ({
-        id: p.id,
+        id: String(p._id), 
         name: p.name,
-        pid: p.pid ?? p.id,
-        avatarUrl: p.imageUrl, // mock ใช้ imageUrl → map เป็น avatarUrl
+        pid: String(p._id), 
+        avatarUrl: p.profile_image, 
       })),
     []
   );
@@ -57,29 +58,24 @@ export default function PetInfo() {
     {
       iconSrc: "/calendar-app.svg",
       title: "Appointment",
-      href: `/pet-owners/my-pets-page/${currentPet.id}/appointments`,
+      href: `/pet-owners/my-pets-page/${currentPet._id}/appointments`, 
     },
     {
       iconSrc: "/medication.svg",
       title: "Medication",
-      href: `/pet-owners/my-pets-page/${currentPet.id}/medications`,
+      href: `/pet-owners/my-pets-page/${currentPet._id}/medications`,
     },
     {
       iconSrc: "/record.svg",
-      title: "Petss Symptom Record",
-      href: `/pet-owners/my-pets-page/${currentPet.id}/symptoms`,
-    },
-    {
-      iconSrc: "/history.svg",
-      title: "Medical History",
-      href: `/pet-owners/my-pets-page/${currentPet.id}/medical`,
+      title: "Pets Symptom Record",
+      href: `/pet-owners/my-pets-page/${currentPet._id}/symptoms`,
     },
   ];
 
   return (
     <Page>
       <TopBar
-        title="Petss Information"
+        title="Pets Information"
         onBack={() => router.push(`/pet-owners/my-pets-page`)}
       />
 
@@ -89,7 +85,7 @@ export default function PetInfo() {
           mode="filter"
           allowAllPets={false}
           pets={petsForSelector}
-          value={currentPet.id as PetSelectorValue}
+          value={String(currentPet._id) as PetSelectorValue} 
           onChange={(v) => {
             router.push(`/pet-owners/my-pets-page/${String(v)}`);
           }}
@@ -103,13 +99,11 @@ export default function PetInfo() {
           name={currentPet.name}
           species={currentPet.species ?? "-"}
           breed={currentPet.breed ?? "-"}
-          birthDate={currentPet.birthDate}
+          birthDate={currentPet.birth_date} 
           ageText={ageText}
           sex={currentPet.gender}
-          color={currentPet.color ?? "-"}
-          previousClinic={currentPet.previousClinicOrHospital ?? "-"}
           onEdit={() =>
-            router.push(`/pet-owners/my-pets-page/${currentPet.id}/edit`)
+            router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`) // ✅ ใช้ _id
           }
         />
       </div>
@@ -131,7 +125,7 @@ export default function PetInfo() {
         <button
           type="button"
           className="w-full rounded-2xl bg-red-600 text-white py-3 font-semibold hover:bg-red-700 active:scale-[0.99] transition"
-          onClick={() => console.log("delete", currentPet.id)}
+          onClick={() => console.log("delete", currentPet._id)}
         >
           Delete
         </button>

@@ -2,7 +2,7 @@
 
 import { useSearchParams } from "next/navigation";
 import "react-day-picker/dist/style.css";
-import { AppointmentPage } from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPage";
+import  AppointmentPage  from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPage";
 import { RecordPage } from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPage";
 
 export default function Page() {

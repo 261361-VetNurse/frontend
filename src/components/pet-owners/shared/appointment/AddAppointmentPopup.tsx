@@ -3,24 +3,25 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
+import { LocationOn } from "@mui/icons-material";
+import type { PetLite } from "@/components/pet-owners/shared/PetFilterSelector";
 
-type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
+
+export type AddAppointmentPayload = {
+  petId: string;
+  date: string;   // YYYY-MM-DD
+  time: string;   // HH:mm
+  location: string;
 };
 
 type AddAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: {
-    petId: string;
-    date: string;
-    time: string;
-    location: string;
-  }) => void;
-  pet: PetLite;
+  pets: PetLite[];
+initialPetId?: string;
+
+  onSubmit?: (data: AddAppointmentPayload) => void;
+  pet?: PetLite;              // optional (ถ้ามาจาก calendar ที่เลือก pet แล้ว)
 };
 
 export default function AddAppointmentPopup({
@@ -32,31 +33,36 @@ export default function AddAppointmentPopup({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
+  /** reset เมื่อเปิด popup */
   useEffect(() => {
     if (open) {
       setDate("");
       setTime("");
       setLocation("");
     }
-  }, [open]);
+  }, [open, pet?.id]);
 
   const canSubmit = useMemo(() => {
     return Boolean(pet?.id && date && time && location.trim());
   }, [pet?.id, date, time, location]);
 
-  function handleSubmit() {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
-
-    onSubmit?.({
-      petId: pet.id,
-      date,
-      time,
-      location: location.trim(),
-    });
-
-    onClose();
-  }
+    setIsSubmitting(true);
+    try {
+      await onSubmit?.({
+        petId: pet!.id,
+        date,
+        time,
+        location: location.trim(),
+      });
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <FormDialog
@@ -69,38 +75,39 @@ export default function AddAppointmentPopup({
       onPrimary={handleSubmit}
       secondaryLabel="Cancel"
       onSecondary={onClose}
-      dirty={canSubmit}
+      submitting={isSubmitting}
+      dirty={Boolean(date || time || location)}
     >
-      {/* Pet info */}
-      <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
-        <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-          {pet.avatarUrl ? (
-            <Image
-              src={pet.avatarUrl}
-              alt={pet.name}
-              width={40}
-              height={40}
-              className="object-cover"
-            />
-          ) : null}
-        </div>
-
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-zinc-900 truncate">
-            {pet.name}
+      {/* Pet info (เหมือน Record) */}
+      {pet ? (
+        <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
+          <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
+            {pet.avatarUrl ? (
+              <Image
+                src={pet.avatarUrl}
+                alt={pet.name}
+                width={40}
+                height={40}
+                className="object-cover"
+              />
+            ) : null}
           </div>
-          <div className="text-xs text-zinc-500 truncate">
-            PID: {pet.pid}
+          <div className="min-w-0">
+            <div className="text-sm font-semibold text-zinc-900 truncate">
+              {pet.name}
+            </div>
+            <div className="text-xs text-zinc-500 truncate">
+              PID: {pet.pid}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
-      {/* Appointment time */}
+      {/* Date & Time */}
       <div className="space-y-1">
         <div className="text-sm font-medium text-zinc-800">
           Appointment Time
         </div>
-
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs text-zinc-500 mb-1">
@@ -113,7 +120,6 @@ export default function AddAppointmentPopup({
               onChange={(e) => setDate(e.target.value)}
             />
           </div>
-
           <div>
             <label className="block text-xs text-zinc-500 mb-1">
               Time
@@ -133,13 +139,16 @@ export default function AddAppointmentPopup({
         <label className="block text-sm font-medium text-zinc-800 mb-1">
           Location
         </label>
-        <input
-          type="text"
-          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          placeholder="e.g. Examination Room 1"
-        />
+        <div className="relative">
+          <LocationOn className="absolute left-3 top-2.5 text-zinc-400" fontSize="small" />
+          <input
+            type="text"
+            placeholder="Enter location"
+            className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
       </div>
     </FormDialog>
   );

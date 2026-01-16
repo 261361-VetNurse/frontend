@@ -1,318 +1,287 @@
 "use client";
-import React, { useState } from "react";
-import dayjs from "dayjs";
+
+import React, { useEffect, useMemo, useState } from "react";
 import styled from "styled-components";
+import dayjs from "dayjs";
+
 import { Tabs } from "@/components/pet-owners/shared/Tabs";
-import PetList from "@/components/pet-owners/MainPage/CalendarPage/PetList";
-import Calendar from "@/components/pet-owners/MainPage/CalendarPage/Calendar";
-import RecordModal from "@/components/pet-owners/MainPage/CalendarPage/record/RecordModal";
-import RecordPopUp from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPopup";
-import RecordPopDone from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPopDone";
-import { QuickDialButton } from "../../../shared/QuickDialButton";
+import PetFilterSelector, {
+  type PetLite,
+  type PetSelectorValue,
+} from "@/components/pet-owners/shared/PetFilterSelector";
+
+import CalendarModule, {
+  type CalendarDayMeta,
+  type DayMarker,
+  isoToLocalDate,
+  localDateToISO,
+} from "@/components/pet-owners/shared/CalendarModule";
+
+import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
+import RecordDateSection from "@/components/pet-owners/shared/records/RecordDateSection";
+import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
+import AddRecordPopup, { type  AddSymptomPayload } from "./AddRecordPopup";
+import EditRecordPopup, { type EditSymptomPayload } from "@/components/pet-owners/shared/records/EditRecordPopup";
+import RecordDetailPopup, { type RecordDetailItem } from "@/components/pet-owners/shared/records/RecordDetailPopup";
+
+import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-const RecordPageStyled = styled.div`
-    width: 100%;
-    height: 100%;
-    min-height: 100vh;
-    overflow: hidden;
-    position: relative;
+import { mockPets } from "@/mocks/pets.mock";
+import { Pet } from "@/types/pet";
 
-    .scroll-area {
-        height: 100%;
-        overflow: auto;
-        display: flex;
-        flex-direction: column;
-        row-gap: 10px;
-    }
-    .head-text{
-        color: #000;
-        font-size: 18px;
-        font-weight: 500;
-    }
-    .date-text{
-        color: #000;
-        font-size: 14px;
-        font-weight: 500;
-    }
-    .line{
-        width: 345px;
-        height: 1px;
-        background: rgba(0, 0, 0, 0.20);
-    }
-    .record-card{
-        border: none;
-        background: transparent;
-        padding: 0;
-        text-align: left;
-        cursor: pointer;
-    }
+/* ---------------- styled ---------------- */
+const RecordPageStyled = styled.div`
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+
+  .scroll-area {
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    row-gap: 10px;
+  }
 `;
 
 const recordTabs = [
-    {
-        name: "Appointment",
-        path: "/appointment",
-        params: "appointment",
-    },
-    {
-        name: "Record",
-        path: "/record",
-        params: "record",
-    },
+  { name: "Appointment", path: "/appointment", params: "appointment" },
+  { name: "Record", path: "/record", params: "record" },
 ];
 
 type RecordEntry = {
-    id: string;
-    dateKey: string;
-    pet: string;
-    time: string;
-    note: string;
-    petImage?: string;
-    pid?: string;
-    images?: string[];
-    attachmentCount?: number;
-};
-
-const PET_META: Record<string, { pid?: string; image?: string }> = {
-    cat: { pid: "098765345", image: "/pets-example/pet-ex1.svg" },
-    dog: { image: "/pets-example/pet-ex1.svg" },
+  id: string;
+  dateKey: string;
+  petId: string;
+  time: string;
+  note: string;
+  images?: string[];
 };
 
 const recordSamples: RecordEntry[] = [
-    {
-        id: "record-1",
-        dateKey: "2026-01-03",
-        time: "11:00",
-        pet: "Lee",
-        note: "มีอาการซึมไม่อยากอาหาร\nมีอาเจียนเล็กน้อย",
-        petImage: "/pets-example/pet-ex1.svg",
-        attachmentCount: 3,
-    },
+  {
+    id: "record-1",
+    dateKey: "2026-01-03",
+    time: "11:00",
+    petId: String(mockPets?.[0]?._id ?? "4302459"),
+    note: "มีอาการซึมไม่อยากอาหาร\nมีอาเจียนเล็กน้อย",
+    images: ["/pets-example/pet-ex1.svg"],
+  },
 ];
 
-export const RecordPage = () => {
-    const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
-    const [selectedPetId, setSelectedPetId] = useState("all");
-    const [isRecordPopUpOpen, setIsRecordPopUpOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<RecordEntry | null>(null);
-    const [isRecordDetailOpen, setIsRecordDetailOpen] = useState(false);
-    const [editingRecord, setEditingRecord] = useState<RecordEntry | null>(null);
-    const handleClick = () => {
-        setEditingRecord(null);
-        setIsRecordPopUpOpen(true);
-    };
-    const handleRecordPopUpChange = (open: boolean) => {
-        setIsRecordPopUpOpen(open);
-        if (!open) {
-            setEditingRecord(null);
-        }
-    };
-    const handleOpenRecord = (record: RecordEntry) => {
-        setSelectedRecord(record);
-        setIsRecordDetailOpen(true);
-    };
-    const handleCloseRecord = () => {
-        setIsRecordDetailOpen(false);
-    };
-    const handleDeleteRecord = (record: RecordEntry) => {
-        setRecords((prev) => prev.filter((item) => item.id !== record.id));
-        setIsRecordDetailOpen(false);
-        setSelectedRecord(null);
-    };
-    const handleSaveRecord = ({
-        date,
-        pet,
-        time,
-        note,
-        images,
-    }: {
-        date: Date;
-        pet: string;
-        time: string;
-        note: string;
-        images: string[];
-    }) => {
-        const normalizedPet = pet.trim().toLowerCase();
-        const dateKey = dayjs(date).format("YYYY-MM-DD");
-        const petMeta = PET_META[normalizedPet];
-        const nextRecord: RecordEntry = {
-            id: editingRecord?.id ?? `record-${Date.now()}`,
-            dateKey,
-            pet: normalizedPet,
-            time,
-            note: note.trim(),
-            petImage: petMeta?.image ?? editingRecord?.petImage,
-            pid: petMeta?.pid ?? editingRecord?.pid,
-            images,
-            attachmentCount: images.length,
-        };
-        setRecords((prev) => {
-            if (editingRecord) {
-                const hasSameSlot = prev.some(
-                    (item) =>
-                        item.id !== editingRecord.id &&
-                        item.pet.trim().toLowerCase() === normalizedPet &&
-                        item.dateKey === dateKey &&
-                        item.time === time
-                );
-                if (hasSameSlot) {
-                    return prev;
-                }
-                return prev.map((item) => (item.id === editingRecord.id ? nextRecord : item));
-            }
-            const hasSameSlot = prev.some(
-                (item) =>
-                    item.pet.trim().toLowerCase() === normalizedPet &&
-                    item.dateKey === dateKey &&
-                    item.time === time
-            );
-            if (hasSameSlot) {
-                return prev;
-            }
-            return [...prev, nextRecord];
-        });
-        if (editingRecord) {
-            setSelectedRecord(nextRecord);
-        }
-    };
-    const handleEditRecord = (record: RecordEntry) => {
-        setSelectedRecord(record);
-        setEditingRecord(record);
-        setIsRecordDetailOpen(false);
-        setIsRecordPopUpOpen(true);
-    };
-    const petOptions = React.useMemo(() => {
-        const map = new Map<string, { id: string; name: string; image?: string; pid?: string }>();
-        records.forEach((record) => {
-            if (!map.has(record.pet)) {
-                const petMeta = PET_META[record.pet];
-                map.set(record.pet, {
-                    id: record.pet,
-                    name: record.pet,
-                    image: record.petImage ?? petMeta?.image,
-                    pid: record.pid ?? petMeta?.pid,
-                });
-            }
-        });
-        return Array.from(map.values());
-    }, [records]);
-    React.useEffect(() => {
-        if (selectedPetId !== "all" && !petOptions.some((pet) => pet.id === selectedPetId)) {
-            setSelectedPetId("all");
-        }
-    }, [petOptions, selectedPetId]);
-    const filteredRecords = React.useMemo(() => {
-        return records.filter(
-            (record) => selectedPetId === "all" || record.pet === selectedPetId
-        );
-    }, [records, selectedPetId]);
-    const sortedRecords = React.useMemo(() => {
-        return [...filteredRecords].sort((a, b) => {
-            if (a.dateKey === b.dateKey) {
-                return a.time.localeCompare(b.time);
-            }
-            return a.dateKey.localeCompare(b.dateKey);
-        });
-    }, [filteredRecords]);
-    const recordsByDate = React.useMemo(() => {
-        const map: Record<string, RecordEntry[]> = {};
-        sortedRecords.forEach((record) => {
-            if (!map[record.dateKey]) {
-                map[record.dateKey] = [];
-            }
-            map[record.dateKey].push(record);
-        });
-        return Object.entries(map)
-            .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-            .map(([dateKey, items]) => ({
-                dateKey,
-                items,
-            }));
-    }, [sortedRecords]);
-    const recordPetsByDate = React.useMemo(() => {
-        const map: Record<string, string[]> = {};
-        filteredRecords.forEach(({ dateKey, pet }) => {
-            if (!map[dateKey]) {
-                map[dateKey] = [pet];
-                return;
-            }
-            if (!map[dateKey].includes(pet)) {
-                map[dateKey].push(pet);
-            }
-        });
-        return map;
-    }, [filteredRecords]);
+/* ---------------- helpers ---------------- */
+function pad2(n: number) { return String(n).padStart(2, "0"); }
 
-    return (
-        <RecordPageStyled>
-            <div className="scroll-area">
-                <Tabs data={recordTabs} queryKey="tab" />
-                <PetList
-                    pets={petOptions}
-                    selectedPetId={selectedPetId}
-                    onSelectPet={setSelectedPetId}
-                />
-                <Calendar appointmentPetsByDate={recordPetsByDate} />
-                <div className="head-text">Records</div>
-                {recordsByDate.map(({ dateKey, items }) => (
-                    <React.Fragment key={dateKey}>
-                        <div className="date-text">
-                            {dayjs(dateKey).format("ddd, DD/MM/YYYY")}
-                        </div>
-                        <div className="line"> </div>
-                        {items.map((record) => (
-                            <button
-                                key={record.id}
-                                type="button"
-                                className="record-card"
-                                onClick={() => handleOpenRecord(record)}
-                            >
-                            <RecordModal
-                                timeText={record.time}
-                                petName={record.pet}
-                                noteText={record.note}
-                                petImage={record.petImage}
-                                attachmentCount={record.attachmentCount}
-                                attachmentImage={record.images?.[0]}
-                            />
-                            </button>
-                        ))}
-                    </React.Fragment>
-                ))}
-            </div>
-            <QuickDialButton
-                iconColor="#fff"
-                position="bottom-right"
-                icon={<AddRoundedIcon />}
-                color="#09BFF8"
-                onClickAction={handleClick}
-            />
-            <RecordPopUp
-                open={isRecordPopUpOpen}
-                onOpenChange={handleRecordPopUpChange}
-                onCreateRecord={handleSaveRecord}
-                initialValues={
-                    editingRecord
-                        ? {
-                              date: dayjs(editingRecord.dateKey).toDate(),
-                              pet: editingRecord.pet,
-                              time: editingRecord.time,
-                              note: editingRecord.note,
-                              images: editingRecord.images ?? [],
-                              petImage: editingRecord.petImage,
-                          }
-                        : undefined
-                }
-                isEditing={Boolean(editingRecord)}
-            />
-            <RecordPopDone
-                open={isRecordDetailOpen}
-                record={selectedRecord ?? undefined}
-                onClose={handleCloseRecord}
-                onDelete={handleDeleteRecord}
-                onEdit={handleEditRecord}
-            />
-        </RecordPageStyled>
+function formatTime12h(time24: string) {
+  const [hStr, mStr] = time24.split(":");
+  const h = Number(hStr);
+  const m = Number(mStr);
+  if (isNaN(h) || isNaN(m)) return time24;
+  const suffix = h >= 12 ? "P.M." : "A.M.";
+  const hour12 = ((h + 11) % 12) + 1;
+  return `${pad2(hour12)}.${pad2(m)} ${suffix}`;
+}
+
+function formatHeaderDate(isoDate: string) {
+  const d = new Date(`${isoDate}T00:00:00`);
+  if (isNaN(d.getTime())) return isoDate;
+  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+  return `${weekday}, ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+function filesToObjectUrls(files: File[] | undefined) {
+  return (files ?? []).map((f) => URL.createObjectURL(f));
+}
+
+/* ================= page ================= */
+export const RecordPage = () => {
+  const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
+  const [selectedPetId, setSelectedPetId] = useState<PetSelectorValue>("all");
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [month, setMonth] = useState<Date>(new Date());
+
+  const [openCreate, setOpenCreate] = useState(false);
+  const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
+  const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
+
+  const petOptions: PetLite[] = useMemo(() => {
+    return (mockPets ?? []).map((p: Pet) => ({
+      id: String(p._id),
+      name: p.name ?? "-",
+      pid: String(p._id),
+      avatarUrl: p.profile_image,
+    }));
+  }, []);
+
+  const petById = useMemo(() => {
+    const m = new Map<string, PetLite>();
+    petOptions.forEach((p) => m.set(p.id, p));
+    return m;
+  }, [petOptions]);
+
+  const selectedIso = useMemo(() => localDateToISO(selectedDate), [selectedDate]);
+
+  const filteredByPet = useMemo(() => {
+    return records.filter(
+      (r) => selectedPetId === "all" || String(r.petId) === String(selectedPetId)
     );
+  }, [records, selectedPetId]);
+
+  const dayMeta: CalendarDayMeta[] = useMemo(() => {
+    const set = new Set<string>();
+    filteredByPet.forEach((r) => set.add(r.dateKey));
+    return Array.from(set).map((iso) => ({
+      date: isoToLocalDate(iso),
+      markers: [{ type: "dot", colorKey: "record" } as DayMarker],
+    }));
+  }, [filteredByPet]);
+
+  const recordsOnSelectedDate = useMemo(() => {
+    return filteredByPet
+      .filter((r) => r.dateKey === selectedIso)
+      .sort((a, b) => a.time.localeCompare(b.time));
+  }, [filteredByPet, selectedIso]);
+
+  /* -------- handlers -------- */
+  const handleSaveAdd = (data: AddSymptomPayload) => {
+    const next: RecordEntry = {
+      id: `record-${Date.now()}`,
+      petId: data.petId,
+      dateKey: data.date,
+      time: data.time,
+      note: data.note,
+      images: filesToObjectUrls(data.images),
+    };
+
+    setRecords((prev) => [next, ...prev]);
+    setOpenCreate(false);
+  };
+
+  const handleSaveEdit = (payload: EditSymptomPayload) => {
+    setRecords((prev) =>
+      prev.map((x) =>
+        x.id !== payload.id
+          ? x
+          : {
+            ...x,
+            petId: payload.petId, // อัปเดต petId กรณีเปลี่ยนตัวสัตว์เลี้ยง
+            dateKey: payload.date,
+            time: payload.time,
+            note: payload.note,
+            images: payload.imageUrls,
+          }
+      )
+    );
+    setEditRecord(null);
+  };
+
+  return (
+    <RecordPageStyled>
+      <div className="scroll-area">
+        <Tabs data={recordTabs} queryKey="tab" />
+
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets
+          pets={petOptions}
+          value={selectedPetId}
+          onChange={setSelectedPetId}
+        />
+
+        <CalendarModule
+          size="standard"
+          weekStart="sun"
+          showOutsideDays
+          showMarkers
+          selectedDate={selectedDate}
+          month={month}
+          dayMeta={dayMeta}
+          maxMarkersPerDay={1}
+          markerPalette={CALENDAR_MARKER_PALETTE}
+          onSelectDate={setSelectedDate}
+          onMonthChange={setMonth}
+          variant="card"
+        />
+
+        <div className="mt-4 space-y-4 px-1">
+          <div className="space-y-2">
+            <div className="font-semibold text-zinc-900 text-lg">Record</div>
+            <div className="text-sm text-zinc-500 border-b border-zinc-100 pb-2 font-medium">
+              {formatHeaderDate(selectedIso)}
+            </div>
+          </div>
+
+          {recordsOnSelectedDate.length === 0 ? (
+            <div className="py-10 text-center text-sm text-zinc-400">No records on this date</div>
+          ) : (
+            <RecordDateSection label="">
+              {recordsOnSelectedDate.map((record) => {
+                const pet = petById.get(String(record.petId));
+                return (
+                  <RecordCard
+                    key={record.id}
+                    petName={pet?.name ?? "-"}
+                    time={formatTime12h(record.time)}
+                    note={record.note}
+                    avatarUrl={pet?.avatarUrl}
+                    imageUrls={record.images ?? []}
+                    onClick={() => {
+                      setDetailRecord({
+                        ...record,
+                        petName: pet?.name ?? "-",
+                        petPid: pet?.pid ?? "-",
+                        avatarUrl: pet?.avatarUrl,
+                        date: record.dateKey,
+                        imageUrls: record.images ?? [],
+                      });
+                    }}
+                  />
+                );
+              })}
+            </RecordDateSection>
+          )}
+        </div>
+      </div>
+
+      <QuickDialButton
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
+        onClickAction={() => setOpenCreate(true)}
+      />
+
+      <AddRecordPopup
+        open={openCreate}
+        onClose={() => setOpenCreate(false)}
+        pets={petOptions}
+        initialPetId={selectedPetId !== "all" ? String(selectedPetId) : undefined}
+        onSubmit={handleSaveAdd}
+      />
+
+      {/* Edit (shared) */}
+      <EditRecordPopup
+        open={!!editRecord}
+        record={editRecord}
+        onClose={() => setEditRecord(null)}
+        onSave={handleSaveEdit}
+        maxImages={4}
+      />
+
+      <RecordDetailPopup
+        open={!!detailRecord}
+        record={detailRecord}
+        onClose={() => setDetailRecord(null)}
+        onEdit={(rec) => rec && setEditRecord(rec)}
+        onDelete={(id) => {
+          setRecords((prev) => prev.filter((x) => x.id !== id));
+          setDetailRecord(null);
+        }}
+        formatTime={(t: string) => t}
+      />
+    </RecordPageStyled>
+  );
 };

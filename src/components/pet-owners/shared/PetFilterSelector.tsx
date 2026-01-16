@@ -19,7 +19,8 @@ export type PetSelectorValue = string | "all";
 type Props = {
   mode?: Mode;
 
-  /** true = มี All Pets, false = ไม่มีตัวเลือก All */
+  /** true = มี All Pets, 
+   * false = ไม่มีตัวเลือก All */
   allowAllPets?: boolean;
 
   size?: Size;
@@ -112,9 +113,15 @@ export default function PetFilterSelector({
       >
         <div className="min-w-0 flex items-center gap-3">
           {allowAllPets && value === "all" ? (
-            <div className="h-11 w-11 rounded-full bg-zinc-100 grid place-items-center">
-              <span className="text-zinc-500 text-lg">🐾</span>
+            <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
+              <Image
+                src="/pet-paw.svg"
+                alt="All pets"
+                fill
+                className="object-contain p-2"
+              />
             </div>
+
           ) : (
             <div className="relative h-11 w-11 overflow-hidden rounded-full bg-zinc-100">
               <Image
@@ -245,9 +252,15 @@ function PetRow({
     >
       <div className="min-w-0 flex items-center gap-3">
         {isAll ? (
-          <div className="h-10 w-10 rounded-full bg-zinc-100 grid place-items-center">
-            <span className="text-zinc-500 text-lg">🐾</span>
+          <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
+            <Image
+              src="/pet-paw.svg"
+              alt="All pets"
+              fill
+              className="object-contain p-2"
+            />
           </div>
+
         ) : (
           <div className="relative h-10 w-10 overflow-hidden rounded-full bg-zinc-100">
             <Image

@@ -1,13 +1,15 @@
-export type ObjectId = string;
-
 export type Pet = {
-    _id: ObjectId;
-    user_id: ObjectId;
-    name: string;
-    species: "dog" | "cat" | "rabbit" | "bird" | "other";
-    breed: string;
-    birth_date: string;
-    sex: "male" | "female";
-    image_url: string;
-    create_date: string;
+  _id: string;    // เลข 6 หลัก
+  user_id: string;
+  name: string;
+  species: string;       
+  breed: string;
+  color: string | null;   
+  gender: string;    
+  birth_date: string;  
+  weight_kg: string | null; 
+  allergies: string[];
+  infecund: boolean;
+  profile_image: string;  
+  created_at: string;     
 };

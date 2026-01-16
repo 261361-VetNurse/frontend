@@ -1,5 +1,6 @@
 "use client";
 
+import dayjs from "dayjs";
 import InfoRow from "./InfoRow";
 
 export default function BasicInfoCard({
@@ -9,8 +10,9 @@ export default function BasicInfoCard({
   birthDate,
   ageText,
   sex,
-  color,
-  previousClinic,
+  weightKg,
+  infecund,
+  allergies,
   onEdit,
 }: {
   name: string;
@@ -19,48 +21,68 @@ export default function BasicInfoCard({
   birthDate: string;
   ageText: string;
   sex: string;
-  color?: string;
-  previousClinic?: string;
+  weightKg?: string | null;
+  infecund?: boolean;
+  allergies?: string[];
   onEdit?: () => void;
 }) {
+  const sterileText = infecund ? "Yes" : "No";
+
+  const allergiesText =
+    allergies && allergies.length > 0 ? allergies.join(", ") : "-";
+
+  const formattedBirthDate = birthDate
+    ? dayjs(birthDate).format("DD/MM/YYYY")
+    : "-";
+
   return (
     <div className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-zinc-50 border border-zinc-100 text-zinc-700">
-            i
+          {/* info icon */}
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full ">
+            <img
+              src="/info.svg"
+              alt=""
+              className="h-4 w-4"
+            />
           </span>
+
           <div className="text-sm font-semibold text-zinc-900">
             Basic Information
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={onEdit}
-          className="text-sm text-sky-600 font-medium"
-        >
-          Edit
-        </button>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={onEdit}
+            className="text-sm text-sky-600 font-medium"
+          >
+            Edit
+          </button>
+        )}
       </div>
 
-      <div className="mt-4">
-        <InfoRow label="Name" value={name} />
-      </div>
-
+      {/* Grid Section */}
       <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
+        <InfoRow label="Name" value={name} />
         <InfoRow label="Species" value={species} />
-        <InfoRow label="Breed" value={breed} />
 
-        <InfoRow label="Date of birth" value={birthDate} />
+        <InfoRow label="Breed" value={breed} />
+        <InfoRow label="Infecund" value={sterileText} />
+
+        <InfoRow label="Date of birth" value={formattedBirthDate} />
         <InfoRow label="Age" value={ageText} />
 
-        <InfoRow label="Sex" value={sex} />
-        <InfoRow label="Color" value={color} />
+        <InfoRow label="Gender" value={sex} />
+        <InfoRow label="Weight (kg)" value={weightKg ?? "-"} />
       </div>
 
+      {/* Allergies */}
       <div className="mt-4">
-        <InfoRow label="Previous clinic / hospital name" value={previousClinic} />
+        <InfoRow label="Allergies" value={allergiesText} />
       </div>
     </div>
   );
