@@ -1,7 +1,10 @@
 import LoginPage from "@/components/pet-owners/MainPage/LoginPage";
+import { Suspense } from "react";
 
 export default function PetOwnersHomePage() {
     return (
-        <LoginPage />
+        <Suspense fallback={<div>Loading...</div>}>
+            <LoginPage />
+        </Suspense>
     );
 }
