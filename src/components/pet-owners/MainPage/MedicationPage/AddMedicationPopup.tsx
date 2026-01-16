@@ -174,6 +174,7 @@ type Pet = {
 type ReminderTime = {
   id: string;
   time: string;
+  status: string;
 };
 
 type CreateMedicationPopupProps = {
@@ -183,11 +184,11 @@ type CreateMedicationPopupProps = {
   pets: Pet[];
 };
 
-export default function CreateMedicationPopup({ 
-  open, 
-  onClose, 
-  onSubmit, 
-  pets 
+export default function CreateMedicationPopup({
+  open,
+  onClose,
+  onSubmit,
+  pets
 }: CreateMedicationPopupProps) {
   const [petId, setPetId] = useState('');
   const [medicineName, setMedicineName] = useState('');
@@ -195,7 +196,7 @@ export default function CreateMedicationPopup({
   const [frequency, setFrequency] = useState('everyday');
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [reminders, setReminders] = useState<ReminderTime[]>([
-    { id: 'r1', time: '08:00' }
+    { id: 'r1', time: '08:00', status: 'pending' }
   ]);
 
   if (!open) return null;
@@ -208,7 +209,7 @@ export default function CreateMedicationPopup({
 
   const addReminder = () => {
     const newId = `r${reminders.length + 1}`;
-    setReminders([...reminders, { id: newId, time: '08:00' }]);
+    setReminders([...reminders, { id: newId, time: '08:00', status: 'pending' }]);
   };
 
   const removeReminder = (id: string) => {
@@ -218,7 +219,7 @@ export default function CreateMedicationPopup({
   };
 
   const updateReminderTime = (id: string, time: string) => {
-    setReminders(reminders.map(r => 
+    setReminders(reminders.map(r =>
       r.id === id ? { ...r, time } : r
     ));
   };
@@ -249,7 +250,7 @@ export default function CreateMedicationPopup({
     const newMedicineReminder: MedicineReminderVM = {
       notification_id: notificationId,
       pet: {
-        
+
         _id: selectedPet.id,
         name: selectedPet.name,
         profile_image: selectedPet.avatarUrl || '/pets-example/pet-ex1.svg',
@@ -268,6 +269,7 @@ export default function CreateMedicationPopup({
           id: reminder.id,
           time: reminder.time,
           is_taken: false,
+          status: reminder.status,
         })),
         measurement_times_per_day: reminders.length,
         starting_date: startDate,
@@ -278,15 +280,15 @@ export default function CreateMedicationPopup({
     };
 
     onSubmit?.(newMedicineReminder);
-    
+
     // Reset form
     setPetId('');
     setMedicineName('');
     setDosage('');
     setFrequency('everyday');
     setStartDate(new Date().toISOString().split('T')[0]);
-    setReminders([{ id: 'r1', time: '08:00' }]);
-    
+    setReminders([{ id: 'r1', time: '08:00', status: 'pending' }]);
+
     onClose();
   };
 
@@ -304,7 +306,7 @@ export default function CreateMedicationPopup({
             <CloseIcon sx={{ fontSize: 22 }} />
           </IconButton>
         </TopPopup>
-        
+
 
         <SelectPet>
           <PetIconWrap>
@@ -332,22 +334,22 @@ export default function CreateMedicationPopup({
             />
           </FormField>
         </SelectPet>
-        
+
         <FormField label="Medicine Name" htmlFor="medicine-name-input">
-          <TextInput 
-            id="medicine-name-input" 
-            value={medicineName} 
-            onChange={e => setMedicineName(e.target.value)} 
-            placeholder="e.g., Amoxicillin" 
+          <TextInput
+            id="medicine-name-input"
+            value={medicineName}
+            onChange={e => setMedicineName(e.target.value)}
+            placeholder="e.g., Amoxicillin"
           />
         </FormField>
 
         <Row>
           <FormField label="Dosage" htmlFor="dosage-input">
-            <TextInput 
-              id="dosage-input" 
-              value={dosage} 
-              onChange={e => setDosage(e.target.value)} 
+            <TextInput
+              id="dosage-input"
+              value={dosage}
+              onChange={e => setDosage(e.target.value)}
               placeholder="e.g., 250mg, 1 tablet"
             />
           </FormField>
@@ -367,11 +369,11 @@ export default function CreateMedicationPopup({
         </Row>
 
         <FormField label="Start Date" htmlFor="start-date-input">
-          <TextInput 
-            id="start-date-input" 
+          <TextInput
+            id="start-date-input"
             type="date"
-            value={startDate} 
-            onChange={e => setStartDate(e.target.value)} 
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
           />
         </FormField>
 
@@ -394,7 +396,7 @@ export default function CreateMedicationPopup({
               )}
             </ReminderItem>
           ))}
-          
+
           <AddReminderButton onClick={addReminder}>
             <Add fontSize="small" />
             Add Another Time
@@ -410,7 +412,7 @@ export default function CreateMedicationPopup({
           </PrimaryButton>
         </ButtonRow>
 
-        
+
       </PopupCard>
     </Overlay>
   );

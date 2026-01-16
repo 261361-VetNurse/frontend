@@ -23,7 +23,6 @@ const getStatusIcon = (status: OccurrenceStatus) => {
 
 
 export type ReminderBoxProps = {
-  page: 'home-page' | 'medication-page';
   petImageUrl: string;
   medicineName: string;
   dosage?: string;
@@ -34,7 +33,6 @@ export type ReminderBoxProps = {
 };
 
 export default function ReminderCard({
-  page,
   petImageUrl,
   medicineName,
   dosage,

@@ -62,10 +62,10 @@ export default function MedicationDetailPopup({
     >
       <div className='flex flex-col gap-4'>
         <PetSection>
-          <Profile imageUrl={medicineReminder.pet.image_url} size={50} />
+          <Profile imageUrl={medicineReminder.pet.profile_image} size={50} />
           <div className='pet-info'>
             <div className="pet-name">{medicineReminder.pet.name}</div>
-            <div className="pet-id">id: {medicineReminder.pet.id}</div>
+            <div className="pet-id">id: {medicineReminder.pet._id}</div>
           </div>
         </PetSection>
 

@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { HomePageStyled } from "@/styles/homepage.styled";
 import AppointmentCard from "./AppointmentCard";
-import { mockAppointments } from "@/mocks/appointments";
+import { allMockAppointments } from "@/mocks/appointments";
 import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
@@ -176,8 +176,7 @@ export default function HomePage({ username }: { username: string }) {
           displayReminders.map((occ) => (
             <div key={occ.occurrence_id}>
               <ReminderCard
-                page="home-page"
-                petImageUrl={occ.pet.image_url}
+                petImageUrl={occ.pet.profile_image || ""}
                 medicineName={occ.medicine.name}
                 dosage={occ.medicine.dosage}
                 schedule={{ frequency_label: occ.frequency_label, time: formatTimeForDisplay(occ.time) }}
@@ -235,7 +234,7 @@ export default function HomePage({ username }: { username: string }) {
       </div>
 
       <div className="appoint-box">
-        {mockAppointments.slice(0, 3).map((apt) => (
+        {allMockAppointments.slice(0, 3).map((apt) => (
           <AppointmentCard key={apt.id} appointment={apt} />
         ))}
       </div>

@@ -318,12 +318,14 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
           id: "r1",
           time: "02:00",
           is_taken: false,
+          status: "pending",
         },
         {
           id: "r2",
           time: "20:00",
           is_taken: true,
           taken_at: "2026-01-07T20:03:00.000Z",
+          status: "taken",
         },
       ],
       measurement_times_per_day: 2,
@@ -349,9 +351,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
     schedule: {
       frequency: { key: "interval_hours", label: "Every 8 hours", interval_hours: 8 },
       reminders: [
-        { id: "r1", time: "06:00", is_taken: false }, // ✅ เพิ่ม is_taken
-        { id: "r2", time: "14:00", is_taken: false }, // ✅ เพิ่ม is_taken
-        { id: "r3", time: "22:00", is_taken: false }, // ✅ เพิ่ม is_taken
+        { id: "r1", time: "06:00", is_taken: false, status: "pending" }, // ✅ เพิ่ม is_taken
+        { id: "r2", time: "14:00", is_taken: false, status: "pending" }, // ✅ เพิ่ม is_taken
+        { id: "r3", time: "22:00", is_taken: false, status: "pending" }, // ✅ เพิ่ม is_taken
       ],
       measurement_times_per_day: 3,
       starting_date: "2026-01-01",
@@ -379,7 +381,7 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
         label: "Mon, Fri",
         days_of_week: ["mon", "fri"],
       },
-      reminders: [{ id: "r1", time: "02:00", is_taken: false }], // ✅ เพิ่ม is_taken
+      reminders: [{ id: "r1", time: "02:00", is_taken: false, status: "pending" }], // ✅ เพิ่ม is_taken
       measurement_times_per_day: 1,
       starting_date: "2026-01-02",
     },
@@ -406,8 +408,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
       reminders: [
         {
           id: "r1",
-          time: "12:00", 
-          is_taken: false, 
+          time: "12:00",
+          is_taken: false,
+          status: "pending",
         },
       ],
       measurement_times_per_day: 1,
@@ -435,8 +438,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
       reminders: [
         {
           id: "r1",
-          time: "07:00", 
-          is_taken: false, 
+          time: "07:00",
+          is_taken: false,
+          status: "pending",
         },
       ],
       measurement_times_per_day: 1,

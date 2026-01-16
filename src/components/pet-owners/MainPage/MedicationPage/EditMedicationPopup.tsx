@@ -227,6 +227,7 @@ type ReminderTime = {
   id: string;
   time: string;
   is_taken: boolean;
+  status: string;
   taken_at?: string;
 };
 
@@ -242,12 +243,12 @@ type EditMedicationPopupProps = {
   }) => void;
 };
 
-export default function EditMedicationPopup({ 
-  open, 
-  onClose, 
-  medicineReminder, 
-  pets, 
-  onSave 
+export default function EditMedicationPopup({
+  open,
+  onClose,
+  medicineReminder,
+  pets,
+  onSave
 }: EditMedicationPopupProps) {
   const [petId, setPetId] = useState('');
   const [medicineName, setMedicineName] = useState('');
@@ -270,6 +271,7 @@ export default function EditMedicationPopup({
         time: r.time,
         is_taken: false,
         taken_at: undefined,
+        status: r.status,
       })));
       setIsStopped(medicineReminder.medication_status.is_stopped);
       setStopReason(medicineReminder.medication_status.reason || '');
@@ -284,10 +286,11 @@ export default function EditMedicationPopup({
 
   const addReminder = () => {
     const newId = `r${Date.now()}`;
-    setReminders([...reminders, { 
-      id: newId, 
-      time: '08:00', 
-      is_taken: false 
+    setReminders([...reminders, {
+      id: newId,
+      time: '08:00',
+      is_taken: false,
+      status: 'pending',
     }]);
   };
 
@@ -298,7 +301,7 @@ export default function EditMedicationPopup({
   };
 
   const updateReminderTime = (id: string, time: string) => {
-    setReminders(reminders.map(r => 
+    setReminders(reminders.map(r =>
       r.id === id ? { ...r, time } : r
     ));
   };
@@ -349,6 +352,7 @@ export default function EditMedicationPopup({
           id: reminder.id,
           time: reminder.time,
           is_taken: reminder.is_taken,
+          status: reminder.status,
           taken_at: reminder.taken_at,
         })),
         measurement_times_per_day: reminders.length,
@@ -369,7 +373,7 @@ export default function EditMedicationPopup({
     <Overlay onClick={handleOverlayClick}>
       <PopupCard>
         <Title>Edit Medication</Title>
-        
+
         <SelectPet>
           <PetIconWrap>
             {selectedPet?.avatarUrl ? (
@@ -398,19 +402,19 @@ export default function EditMedicationPopup({
         </SelectPet>
 
         <FormField label="Medicine Name" htmlFor="medication-name">
-          <TextInput 
-            id="medication-name" 
-            value={medicineName} 
-            onChange={e => setMedicineName(e.target.value)} 
+          <TextInput
+            id="medication-name"
+            value={medicineName}
+            onChange={e => setMedicineName(e.target.value)}
             placeholder="e.g., Amoxicillin"
           />
         </FormField>
 
         <Row>
           <FormField label="Dosage" htmlFor="dosage">
-            <TextInput 
-              id="dosage" 
-              value={dosage} 
+            <TextInput
+              id="dosage"
+              value={dosage}
               onChange={e => setDosage(e.target.value)}
               placeholder="e.g., 250mg, 1 tablet"
             />
@@ -431,11 +435,11 @@ export default function EditMedicationPopup({
         </Row>
 
         <FormField label="Start Date" htmlFor="start-date">
-          <TextInput 
-            id="start-date" 
+          <TextInput
+            id="start-date"
             type="date"
-            value={startDate} 
-            onChange={e => setStartDate(e.target.value)} 
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
           />
         </FormField>
 
@@ -451,8 +455,8 @@ export default function EditMedicationPopup({
                 value={reminder.time}
                 onChange={e => updateReminderTime(reminder.id, e.target.value)}
               />
-              <span style={{ 
-                fontSize: '12px', 
+              <span style={{
+                fontSize: '12px',
                 color: reminder.is_taken ? '#4CAF50' : theme.colors.textSecondary,
                 minWidth: '60px'
               }}>
@@ -465,7 +469,7 @@ export default function EditMedicationPopup({
               )}
             </ReminderItem>
           ))}
-          
+
           <AddReminderButton onClick={addReminder}>
             <Add fontSize="small" />
             Add Another Time
@@ -485,7 +489,7 @@ export default function EditMedicationPopup({
               <StatusLabel>Active</StatusLabel>
               <StatusDescription>Continue medication schedule</StatusDescription>
             </StatusOption>
-            
+
             <StatusOption $isSelected={isStopped}>
               <StatusRadio
                 type="radio"
@@ -497,7 +501,7 @@ export default function EditMedicationPopup({
               <StatusDescription>Discontinue medication</StatusDescription>
             </StatusOption>
           </StatusOptions>
-          
+
           {isStopped && (
             <div>
               <FormField label="Reason for stopping (required)" htmlFor="stop-reason">
@@ -521,15 +525,15 @@ export default function EditMedicationPopup({
           </PrimaryButton>
         </ButtonRow>
 
-        <div 
-          style={{ 
-            position: 'absolute', 
-            top: 12, 
-            right: 18, 
-            cursor: 'pointer', 
-            fontSize: 22, 
-            color: theme.colors.textPrimary 
-          }} 
+        <div
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 18,
+            cursor: 'pointer',
+            fontSize: 22,
+            color: theme.colors.textPrimary
+          }}
           onClick={onClose}
         >
           ×

@@ -130,7 +130,7 @@ export default function MedicationPage() {
   }, [selectedTab, medicineReminders, occurrenceOverrides]);
 
   const filteredOccurrences = useMemo(() => {
-    return occurrences.filter(o => selectedPetId === 'all' || o.pet.id === selectedPetId);
+    return occurrences.filter(o => selectedPetId === 'all' || o.pet._id === selectedPetId);
   }, [occurrences, selectedPetId]);
 
   // Deep link: ?notification_id=...&reminder_id=...&open=edit
@@ -433,7 +433,7 @@ export default function MedicationPage() {
               <MedicineCard
                 key={group.planId}
                 petName={group.pet.name}
-                petImageUrl={group.pet.image_url}
+                petImageUrl={group.pet.profile_image}
                 medicineName={group.medicine.name}
                 dosage={group.medicine.dosage}
                 times={group.slots} // Pass all times
