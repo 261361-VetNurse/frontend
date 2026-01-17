@@ -2,13 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-
-export type PetLite = {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-  pid?: string;
-}; 
+import { Pet } from "@/types/pet";
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";
@@ -26,7 +20,7 @@ type Props = {
   size?: Size;
   state?: VisualState;
 
-  pets: PetLite[];
+  pets: Pet[];
   value: PetSelectorValue;
   onChange: (value: PetSelectorValue) => void;
 
@@ -68,7 +62,7 @@ export default function PetFilterSelector({
 
   const selectedPet = useMemo(() => {
     if (value === "all") return null;
-    return pets.find((p) => p.id === value) ?? null;
+    return pets.find((p) => p._id === value) ?? null;
   }, [pets, value]);
 
   const ui = useMemo(() => {
@@ -125,7 +119,7 @@ export default function PetFilterSelector({
           ) : (
             <div className="relative h-11 w-11 overflow-hidden rounded-full bg-zinc-100">
               <Image
-                src={selectedPet?.avatarUrl ?? "/pet-placeholder.svg"}
+                src={selectedPet?.profile_image ?? "/pet-placeholder.svg"}
                 alt={selectedPet?.name ?? "Pet"}
                 fill
                 className="object-cover"
@@ -144,7 +138,7 @@ export default function PetFilterSelector({
               <div className="text-xs text-zinc-500"> </div>
             ) : (
               <div className="truncate text-xs text-zinc-500">
-                {selectedPet?.pid ? `PID: ${selectedPet.pid}` : " "}
+                {selectedPet?._id ? `PID: ${selectedPet._id}` : " "}
               </div>
             )}
           </div>
@@ -204,13 +198,13 @@ export default function PetFilterSelector({
             ) : (
               pets.map((p) => (
                 <PetRow
-                  key={p.id}
-                  active={value === p.id}
-                  onClick={() => pick(p.id)}
+                  key={p._id}
+                  active={value === p._id}
+                  onClick={() => pick(p._id)}
                   size={size}
                   name={p.name}
-                  pid={p.pid}
-                  avatarUrl={p.avatarUrl}
+                  pid={p._id}
+                  avatarUrl={p.profile_image}
                 />
               ))
             )}

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import styled from "styled-components";
 
-import { Tabs } from "@/components/pet-owners/shared/Tabs";
-import PetFilterSelector, {
-  type PetLite,
+import { Pet } from "@/types/pet";
+
+import {
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -28,7 +28,14 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
-import { Pet } from "@/types/pet";
+
+// Simplified type for pet selector options
+type PetOption = {
+  id: string;
+  name: string;
+  pid: string;
+  avatarUrl: string;
+};
 
 /* ---------------- tabs ---------------- */
 
@@ -69,22 +76,13 @@ const Page = styled.div`
 
 /* ================= page ================= */
 
-export default function AppointmentPage() {
+export default function AppointmentPage({
+  selectedPetId = "all",
+}: {
+  selectedPetId?: PetSelectorValue;
+}) {
   /* -------- pets -------- */
-
-  const petOptions: PetLite[] = useMemo(
-    () =>
-      mockPets.map((p: Pet) => ({
-        id: String(p._id),
-        name: p.name,
-        pid: String(p._id),
-        avatarUrl: p.profile_image,
-      })),
-    []
-  );
-
-  const [selectedPetId, setSelectedPetId] =
-    useState<PetSelectorValue>("all");
+  // Removed local petOptions and selectedPetId state
 
   /* -------- calendar -------- */
 
@@ -155,6 +153,18 @@ export default function AppointmentPage() {
   const [editing, setEditing] =
     useState<AppointmentDetailItem | null>(null);
 
+  // Re-creating petOptions for popup usage since we removed the main one
+  const petOptions: PetOption[] = useMemo(
+    () =>
+      mockPets.map((p: Pet) => ({
+        id: String(p._id),
+        name: p.name,
+        pid: String(p._id),
+        avatarUrl: p.profile_image,
+      })),
+    []
+  );
+
   /* ================= render ================= */
 
   return (
@@ -203,15 +213,7 @@ export default function AppointmentPage() {
       />
 
       <div className="scroll-area">
-        <Tabs data={appointmentTabs} queryKey="tab" />
-
-        <PetFilterSelector
-          mode="filter"
-          allowAllPets
-          pets={petOptions}
-          value={selectedPetId}
-          onChange={setSelectedPetId}
-        />
+        {/* Removed local PetFilterSelector */}
 
         <CalendarModule
           size="standard"
@@ -221,7 +223,7 @@ export default function AppointmentPage() {
           selectedDate={selectedDate}
           month={monthCursor}
           dayMeta={dayMeta}
-          maxMarkersPerDay={3}
+          maxMarkersPerDay={1}
           onSelectDate={setSelectedDate}
           onMonthChange={setMonthCursor}
           variant="card"

@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { mockPets } from "@/mocks/pets.mock";
+import { usePet } from "@/lib/hooks/usePets";
 import { Pet } from "@/types/pet";
 
 import TopBar from "@/components/pet-owners/layout/TopBar";
@@ -22,10 +22,27 @@ export default function PetInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const pet: Pet | undefined = useMemo(
-    () => mockPets.find((p) => String(p._id) === String(petId)),
-    [petId]
-  );
+  const { pet, pets, loading, error } = usePet(petId);
+
+  if (loading) {
+    return (
+      <Page>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-zinc-500">Loading pet information...</div>
+        </div>
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </Page>
+    );
+  }
 
   if (!pet) {
     return (
@@ -45,20 +62,20 @@ export default function PetInfo() {
 
   const petsForSelector: PetLite[] = useMemo(
     () =>
-      mockPets.map((p) => ({
-        id: String(p._id), 
+      pets.map((p) => ({
+        id: String(p._id),
         name: p.name,
-        pid: String(p._id), 
-        avatarUrl: p.profile_image, 
+        pid: String(p._id),
+        avatarUrl: p.profile_image,
       })),
-    []
+    [pets]
   );
 
   const menus = [
     {
       iconSrc: "/calendar-app.svg",
       title: "Appointment",
-      href: `/pet-owners/my-pets-page/${currentPet._id}/appointments`, 
+      href: `/pet-owners/my-pets-page/${currentPet._id}/appointments`,
     },
     {
       iconSrc: "/medication.svg",
@@ -85,7 +102,7 @@ export default function PetInfo() {
           mode="filter"
           allowAllPets={false}
           pets={petsForSelector}
-          value={String(currentPet._id) as PetSelectorValue} 
+          value={String(currentPet._id) as PetSelectorValue}
           onChange={(v) => {
             router.push(`/pet-owners/my-pets-page/${String(v)}`);
           }}
@@ -99,7 +116,7 @@ export default function PetInfo() {
           name={currentPet.name}
           species={currentPet.species ?? "-"}
           breed={currentPet.breed ?? "-"}
-          birthDate={currentPet.birth_date} 
+          birthDate={currentPet.birth_date}
           ageText={ageText}
           sex={currentPet.gender}
           onEdit={() =>

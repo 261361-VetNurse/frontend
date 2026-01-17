@@ -22,7 +22,7 @@ const TabStyled = styled.nav`
         height: 100%;
         font-weight: 500;
         flex: 1 0 0;
-        padding: 6px 16px;
+        padding: 6px 8px;
         overflow: hidden;
         cursor: pointer;
         background: transparent;
@@ -88,7 +88,7 @@ export const Tabs = ({ data, onChangeAction, queryKey = "tab" }: TabsProps) => {
                     className={`tab-item ${resolvedActiveIndex === index ? "active" : ""}`}
                     onClick={() => handleClick(tab, index)}
                 >
-                  <span>{tab.name}</span>
+                    <span>{tab.name}</span>
                 </button>
             ))}
         </TabStyled>

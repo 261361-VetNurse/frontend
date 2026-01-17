@@ -8,7 +8,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 export type OccurrenceStatus = "pending" | "taken" | "missed";
 
-const getStatusIcon = (status: OccurrenceStatus) => {
+const getStatusIcon = (status: string) => {
   switch (status) {
     case "taken":
       return <CheckCircleIcon />;
@@ -20,14 +20,12 @@ const getStatusIcon = (status: OccurrenceStatus) => {
   }
 };
 
-
-
 export type ReminderBoxProps = {
   petImageUrl: string;
   medicineName: string;
   dosage?: string;
   schedule: { frequency_label: string; time: string };
-  status: OccurrenceStatus; // ✅ เปลี่ยนจาก is_taken
+  status: string; // ✅ เปลี่ยนจาก is_taken
   petImageSize?: number;
   onClick?: () => void;
 };

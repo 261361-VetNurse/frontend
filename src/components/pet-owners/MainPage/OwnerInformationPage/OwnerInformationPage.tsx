@@ -3,6 +3,8 @@
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { getUserProfile, authStorage } from '@/lib/api-client';
 import {
   Container,
   TopHeader,
@@ -26,6 +28,53 @@ import {
 
 const OwnerInformationPage = () => {
   const router = useRouter();
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = authStorage.getToken();
+        if (!token) {
+          router.push('/pet-owners/login-page');
+          return;
+        }
+
+        const profile = await getUserProfile(token);
+        setUserData(profile);
+      } catch (err) {
+        console.error('Failed to fetch user profile:', err);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <Container>
+        <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
+      </Container>
+    );
+  }
+
+  if (error || !userData) {
+    return (
+      <Container>
+        <div style={{ padding: '20px', textAlign: 'center', color: 'red' }}>
+          {error || 'No user data available'}
+        </div>
+      </Container>
+    );
+  }
+
+  const displayName = `${userData.fname || ''} ${userData.lname || ''}`.trim() || 'Unknown User';
+  const userId = userData.id || 'N/A';
+
   return (
     <Container>
       <TopHeader>
@@ -36,11 +85,16 @@ const OwnerInformationPage = () => {
       </TopHeader>
       <Header>
         <AvatarWrapper>
-          <AvatarImg src="/images/profile-test.png" alt="Owner Avatar" width={50} height={50} />
+          <AvatarImg
+            src={userData.picture_url || "/images/profile-test.png"}
+            alt="Owner Avatar"
+            width={50}
+            height={50}
+          />
         </AvatarWrapper>
         <div>
-          <OwnerName>Y JH</OwnerName>
-          <OwnerId>ID: 098765345</OwnerId>
+          <OwnerName>{displayName}</OwnerName>
+          <OwnerId>ID: {userId.substring(userId.length - 9)}</OwnerId>
         </div>
       </Header>
       <Divider />
@@ -55,27 +109,27 @@ const OwnerInformationPage = () => {
         <InfoList>
           <InfoItem>
             <InfoLabel>First Name</InfoLabel>
-            <InfoValue>JH</InfoValue>
+            <InfoValue>{userData.fname || 'N/A'}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>Last Name</InfoLabel>
-            <InfoValue>Yoon</InfoValue>
+            <InfoValue>{userData.lname || 'N/A'}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>Gender</InfoLabel>
-            <InfoValue>Male</InfoValue>
+            <InfoValue>{userData.contact?.gender || 'N/A'}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>Phone</InfoLabel>
-            <InfoValue>0123456789</InfoValue>
+            <InfoValue>{userData.contact?.phone || 'N/A'}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>Email</InfoLabel>
-            <InfoValue>YJH@gmail.com</InfoValue>
+            <InfoValue>{userData.contact?.email || 'N/A'}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>Line ID</InfoLabel>
-            <InfoValue>YJH1004</InfoValue>
+            <InfoValue>{userData.line_id || 'N/A'}</InfoValue>
           </InfoItem>
         </InfoList>
       </Section>

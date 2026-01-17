@@ -1,451 +1,437 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, {
-  type PetLite as SharedPetLite,
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector, { PetSelectorValue, PetLite as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
+import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
+import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
+import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
+import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import AddMedicationPopupV2, { type AddMedicationPayloadV2 } from "./AddMedicationPopupV2";
-import EditMedicationPopupV2, { type EditMedicationPayload } from "./EditMedicationPopupV2";
-import MedicationDetailPopupV2 from "./MedicationDetailPopupV2";
-import { mockPets } from "@/mocks/pets.mock"; 
-
+import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { OccurrenceStatus } from '@/types/medication-occurrence';
 import {
-  TabsWrap,
-  TabButton,
-  Header,
-  CardList,
-  FabButton,
-} from "../../../../../styles/medication.styled";
-
+  formatTimeForDisplay,
+  updateReminderTakenStatus,
+  ReminderOccurrence,
+  buildOccurrencesForDate,
+  buildOccurrenceId,
+  getTodayInLocalTimezone,
+  getUserTimezone,
+} from '@/lib/reminder-utils';
+import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/lib/api-client';
+import { usePets } from '@/lib/hooks/usePets';
+import { theme } from '@/styles/theme';
+import { FabButton } from "@/styles/appointments.styled";
 import { Add } from "@mui/icons-material";
+import { TabsWrap, TabButton, Header, CardList } from "../../../../../styles/medication.styled";
 
-type TabType = "today" | "tomorrow" | "other";
+// Types
+type TabType = 'today' | 'tomorrow' | 'other';
+type OccurrenceOverride = { status: OccurrenceStatus; taken_at?: string | null };
 
-export type MedicationRecordV2 = {
-  id: string;
-  petId: string;
-  petName: string;
-  medicationName: string;
-  dose: string;
-  times: string;
-  note?: string;
-  avatarUrl?: string;
-  recordDate?: string;
-};
-
-type PetOption = {
-  id: string;
-  name: string;
-  pid: string;
-  imageUrl?: string;
-};
-
-type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
-};
-
-const getMockRecords = (): Record<TabType, MedicationRecordV2[]> => {
-  const today = new Date();
-  const dayAfterTomorrow = new Date(today);
-  dayAfterTomorrow.setDate(today.getDate() + 2);
-
-  const thirdDay = new Date(today);
-  thirdDay.setDate(today.getDate() + 3);
-
-  const fmtISO = (d: Date) => {
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-  };
-
-  // ✅ แก้ petId ให้ตรงกับ ID ของ Luna ใน mockPets (430244)
-  return {
-    today: [
-      {
-        id: "1",
-        petId: "430244", // ตรงกับ Luna ใน mockPets
-        petName: "Luna",
-        medicationName: "Prednisolone 5mg",
-        dose: "ครั้งละ 2 เม็ด",
-        times: "วันละสองครั้ง",
-        note: "Note : Morning and evening",
-        avatarUrl: "/pets-example/pet-ex3.svg",
-      },
-    ],
-    tomorrow: [],
-    other: [
-      {
-        id: "4",
-        petId: "430244", // ตรงกับ Luna ใน mockPets
-        petName: "Luna",
-        medicationName: "Samylin Medium Breed",
-        dose: "ครั้งละ 1 ซอง",
-        times: "วันละครั้ง",
-        note: "Note : กินผสมอาหาร, ช่วยบำรุงตับ",
-        avatarUrl: "/pets-example/pet-ex3.svg",
-        recordDate: fmtISO(dayAfterTomorrow),
-      },
-      {
-        id: "6",
-        petId: "430244", // ตรงกับ Luna ใน mockPets
-        petName: "Luna",
-        medicationName: "Samylin Medium Breed",
-        dose: "ครั้งละ 1 ซอง",
-        times: "วันละครั้ง",
-        note: "Note : กินผสมอาหาร, ช่วยบำรุงตับ",
-        avatarUrl: "/pets-example/pet-ex3.svg",
-        recordDate: fmtISO(thirdDay),
-      },
-    ],
-  };
-};
-
-function formatHeaderDate(tab: Exclude<TabType, "other">) {
-  const today = new Date();
-  const d = new Date(today);
-  if (tab === "tomorrow") d.setDate(today.getDate() + 1);
-
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const dayName = days[d.getDay()];
-  return `${dayName}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+function ymdInUserTz(date: Date): string {
+  const userTz = getUserTimezone();
+  const d = new Intl.DateTimeFormat('en-CA', {
+    timeZone: userTz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
+  return d;
 }
 
-function formatGroupDate(isoDate: string) {
-  const d = new Date(`${isoDate}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return isoDate;
+function getDateForTab(tab: TabType): Date {
+  const today = getTodayInLocalTimezone();
+  if (tab === 'today') return today;
 
-  const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
-  const dd = String(d.getDate()).padStart(2, "0");
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  return `${weekday}, ${dd}/${mm}/${yyyy}`;
-}
-
-function groupByDate(items: MedicationRecordV2[]) {
-  const map = new Map<string, MedicationRecordV2[]>();
-  for (const r of items) {
-    const key = r.recordDate ?? "Unknown date";
-    map.set(key, [...(map.get(key) ?? []), r]);
+  if (tab === 'tomorrow') {
+    const d = new Date(today);
+    d.setDate(d.getDate() + 1);
+    return d;
   }
 
-  return Array.from(map.entries()).sort((a, b) => {
-    if (a[0] === "Unknown date") return 1;
-    if (b[0] === "Unknown date") return -1;
-    return a[0].localeCompare(b[0]);
-  });
-}
-
-function getHeaderTitle(tab: TabType) {
-  if (tab === "today") return "Today record";
-  if (tab === "tomorrow") return "Tomorrow record";
-  return "Other record";
+  // other: day+2
+  const d = new Date(today);
+  d.setDate(d.getDate() + 2);
+  return d;
 }
 
 export default function MedicationPageV2() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  // ✅ 2. ปรับการ map ข้อมูลจาก mockPets (Array) ให้เป็น PetOption
-  const petOptions: PetOption[] = useMemo(() => {
-    return mockPets.map((p) => ({
-      id: p._id,                // ใช้ _id แทน p.header.id
-      name: p.name,             // ใช้ name
-      pid: p._id,               // mock ใหม่ไม่มี pid แยก ใช้ _id แทนไปก่อน
-      imageUrl: p.profile_image,// ใช้ profile_image
-    }));
-  }, []);
+  const [medicineReminders, setMedicineReminders] = useState<MedicineReminderVM[]>([]);
+  const [remindersLoading, setRemindersLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const selectorPets: SharedPetLite[] = useMemo(() => {
-    return petOptions.map((p) => ({
-      id: p.id,
-      name: p.name,
-      pid: p.pid,
-      avatarUrl: p.imageUrl,
-    }));
-  }, [petOptions]);
+  // Fetch pets - Use API hook
+  const { pets: apiPets, loading: petsLoading } = usePets();
 
-  const [selectedPetId, setSelectedPetId] = useState<string>(
-    String(petId ?? petOptions[0]?.id ?? "")
-  );
+  // Selected Pet Logic
+  const [selectedPetId, setSelectedPetId] = useState<string>(petId ? String(petId) : '');
 
+  // Sync state with URL param
   useEffect(() => {
-    if (!petId) return;
-    const idFromUrl = String(petId);
-    const exists = petOptions.some((p) => p.id === idFromUrl);
-    if (exists) setSelectedPetId(idFromUrl);
-  }, [petId, petOptions]);
+    if (petId) {
+      setSelectedPetId(String(petId));
+    } else if (apiPets.length > 0 && !selectedPetId) {
+      // If no petId in URL but we have pets, default to first or stay empty?
+      // MyPetsPage usually requires a pet context, but let's handle if URL changes.
+      // Actually, normally MyPetsPage requires selection.
+    }
+  }, [petId, apiPets, selectedPetId]);
+
+
+  const petOptions: SharedPetLite[] = useMemo(() => {
+    return apiPets.map(p => ({
+      id: p._id,
+      name: p.name,
+      pid: p._id, // fallback
+      avatarUrl: p.profile_image
+    }));
+  }, [apiPets]);
 
   const selectedPet = useMemo(() => {
-    return petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
+    // If selectedPetId matches a pet, use it
+    return petOptions.find(p => p.id === selectedPetId);
   }, [petOptions, selectedPetId]);
 
-  const lockedPet: PetLite = useMemo(
-    () => ({
-      id: selectedPet?.id ?? "",
-      name: selectedPet?.name ?? "-",
-      pid: selectedPet?.pid ?? "-",
-      avatarUrl: selectedPet?.imageUrl,
-    }),
-    [selectedPet]
-  );
+  // Tabs
+  const [activeTab, setActiveTab] = useState<TabType>('today');
+  const [showCreatePopup, setShowCreatePopup] = useState(false);
 
-  const [tab, setTab] = useState<TabType>("today");
+  const [selectedReminder, setSelectedReminder] = useState<{
+    medicineReminder: MedicineReminderVM;
+    highlightedReminderId?: string;
+  } | null>(null);
 
-  const [recordsByTab, setRecordsByTab] = useState<Record<TabType, MedicationRecordV2[]>>(
-    getMockRecords()
-  );
+  const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
+  const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, OccurrenceOverride>>({});
 
-  const filteredRecords = useMemo(() => {
-    const list = recordsByTab[tab] ?? [];
-    return list.filter((r) => String(r.petId) === String(selectedPetId));
-  }, [recordsByTab, tab, selectedPetId]);
+  const fetchReminders = useCallback(async () => {
+    if (!selectedPetId) return;
 
-  const [showAdd, setShowAdd] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<MedicationRecordV2 | null>(null);
-  const [editRecord, setEditRecord] = useState<MedicationRecordV2 | null>(null);
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+      setRemindersLoading(true);
+      setError(null);
+
+      try {
+        const dateParam = undefined; // As per debug fix
+        const petIdParam = selectedPetId;
+
+        // Important: getMedications likely returns ALL meds for the pet, we filter by date client side
+        const data = await getMedications(token, petIdParam, dateParam);
+        setMedicineReminders(data);
+      } catch (apiErr: any) {
+        console.warn('API failed, using mock data:', apiErr?.message);
+        const { mockMedicineReminderVMs } = await import('@/mocks/medicine-reminders.mock');
+        setMedicineReminders(mockMedicineReminderVMs);
+        setError('Using mock data (API unavailable)');
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Failed to load medication reminders');
+    } finally {
+      setRemindersLoading(false);
+    }
+  }, [selectedPetId]);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
+
+
+  // Derived Data
+  const baseDate = getDateForTab(activeTab);
+
+  const occurrences: ReminderOccurrence[] = useMemo(() => {
+    const today = getTodayInLocalTimezone();
+
+    if (activeTab === 'today') {
+      return buildOccurrencesForDate(medicineReminders, today, occurrenceOverrides);
+    }
+
+    if (activeTab === 'tomorrow') {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 1);
+      return buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides);
+    }
+
+    // other: day+2..day+7
+    const out: ReminderOccurrence[] = [];
+    for (let i = 2; i <= 7; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + i);
+      out.push(...buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides));
+    }
+
+    return out.sort(
+      (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+    );
+  }, [activeTab, medicineReminders, occurrenceOverrides]);
+
+  const filteredOccurrences = useMemo(() => {
+    // Already filtered by API for selectedPetId, but double check
+    return occurrences.filter(o => o.pet._id === selectedPetId);
+  }, [occurrences, selectedPetId]);
+
+
+  // Handlers
+  const handlePetSelect = (id: PetSelectorValue) => {
+    const nextId = String(id);
+    setSelectedPetId(nextId);
+    router.push(`/pet-owners/my-pets-page/${nextId}/medications`);
+  };
+
+  const handleAdd = () => setShowCreatePopup(true);
+  const handleCloseCreatePopup = () => setShowCreatePopup(false);
+
+  const handleSubmitCreatePopup = () => {
+    setShowCreatePopup(false);
+    fetchReminders();
+  };
+
+  const handleReminderClick = (occ: ReminderOccurrence) => {
+    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    if (!plan) return;
+    setSelectedReminder({
+      medicineReminder: plan,
+      highlightedReminderId: occ.reminder_id,
+    });
+  };
+
+  const handleEditFromCard = (occ: ReminderOccurrence) => {
+    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    if (!plan) return;
+    setEditingReminder(plan);
+    setSelectedReminder(null);
+  };
+
+  const handleDeleteFromCard = async (planId: string) => {
+    if (window.confirm('Are you sure you want to delete this medication?')) {
+      try {
+        const token = authStorage.getToken();
+        if (token) {
+          const reminder = medicineReminders.find(mr => mr.notification_id === planId);
+          if (reminder) {
+            await deleteMedicine(token, planId, reminder.medicine._id);
+            setMedicineReminders(prev => prev.filter(mr => mr.notification_id !== planId));
+          }
+        }
+      } catch (err) {
+        alert("Failed to delete medication");
+      }
+    }
+  };
+
+  const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
+    const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
+    setMedicineReminders(updated);
+    if (selectedReminder?.medicineReminder.notification_id === planId) {
+      const updatedPlan = updated.find(mr => mr.notification_id === planId);
+      if (updatedPlan) {
+        setSelectedReminder(prev => prev ? { ...prev, medicineReminder: updatedPlan } : prev);
+      }
+    }
+    try {
+      const token = authStorage.getToken();
+      if (token) await markMedicationTaken(token, reminderId, isTaken);
+    } catch (err) {
+      console.error(err);
+      fetchReminders();
+    }
+  };
+
+  const handleEditFromDetail = () => {
+    if (!selectedReminder) return;
+    setEditingReminder(selectedReminder.medicineReminder);
+    setSelectedReminder(null);
+  };
+
+  const handleSaveEdit = () => {
+    setEditingReminder(null);
+    fetchReminders();
+  };
+
+  const formatDate = (d: Date): string => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayName = days[d.getDay()];
+    const day = d.getDate();
+    const month = d.getMonth() + 1;
+    const year = d.getFullYear();
+    return `${dayName}, ${day}/${month}/${year}`;
+  };
+
+  const loading = remindersLoading || petsLoading;
+
+  // Need to map apiPets to ComponentPet for popups
+  const popupPets = useMemo(() => {
+    return apiPets.map(p => ({
+      id: p._id,
+      name: p.name,
+      avatarUrl: p.profile_image
+    }));
+  }, [apiPets]);
+
 
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <TopBar
         title="Medication"
         onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
       />
 
-      <div style={{ marginTop: 8 }}>
-        <PetFilterSelector
-          mode="filter"
-          allowAllPets={false}
-          pets={selectorPets}
-          value={selectedPetId as PetSelectorValue}
-          onChange={(v) => {
-            const id = String(v);
-            setSelectedPetId(id);
-            router.push(`/pet-owners/my-pets-page/${id}/medications`);
-          }}
-        />
-      </div>
+      <PetFilterSelector
+        mode="filter"
+        allowAllPets={false}
+        pets={petOptions}
+        value={selectedPetId as PetSelectorValue}
+        onChange={handlePetSelect}
+      />
 
       <div style={{ marginTop: 8 }}>
         <TabsWrap>
-          <TabButton $active={tab === "today"} onClick={() => setTab("today")}>
+          <TabButton $active={activeTab === "today"} onClick={() => setActiveTab("today")}>
             Today
           </TabButton>
-          <TabButton $active={tab === "tomorrow"} onClick={() => setTab("tomorrow")}>
+          <TabButton $active={activeTab === "tomorrow"} onClick={() => setActiveTab("tomorrow")}>
             Tomorrow
           </TabButton>
-          <TabButton $active={tab === "other"} onClick={() => setTab("other")}>
+          <TabButton $active={activeTab === "other"} onClick={() => setActiveTab("other")}>
             Other
           </TabButton>
         </TabsWrap>
       </div>
 
       <div style={{ marginTop: 8 }}>
-        {tab === "other" ? (
-          <Header>
-            <div className="Title">{getHeaderTitle(tab)}</div>
-          </Header>
+        <Header>
+          <div className="Title">
+            {activeTab === 'today'
+              ? "Today's Medication Reminders"
+              : activeTab === 'tomorrow'
+                ? "Tomorrow's Medication Reminders"
+                : 'Other Medication Reminders'}
+          </div>
+          <div className="DateText">{activeTab !== 'other' ? formatDate(baseDate) : ''}</div>
+        </Header>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {loading ? (
+          <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
+        ) : filteredOccurrences.length > 0 ? (
+          <CardList>
+            {(() => {
+              // Group occurrences by plan_id similar to MedicationPage
+              const groupedMap = new Map<string, {
+                planId: string;
+                pet: typeof filteredOccurrences[0]['pet'];
+                medicine: typeof filteredOccurrences[0]['medicine'];
+                isStopped: boolean;
+                slots: { id: string; timeLabel: string; status: any }[];
+              }>();
+
+              filteredOccurrences.forEach(occ => {
+                const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
+                const isStopped = plan?.medication_status?.is_stopped ?? false;
+
+                if (!groupedMap.has(occ.plan_id)) {
+                  groupedMap.set(occ.plan_id, {
+                    planId: occ.plan_id,
+                    pet: occ.pet,
+                    medicine: occ.medicine,
+                    isStopped,
+                    slots: []
+                  });
+                }
+
+                const group = groupedMap.get(occ.plan_id)!;
+                group.slots.push({
+                  id: occ.reminder_id,
+                  timeLabel: formatTimeForDisplay(occ.time),
+                  status: occ.status
+                });
+              });
+
+              const groupedList = Array.from(groupedMap.values()).sort((a, b) => {
+                const validSlotsA = a.slots[0];
+                const validSlotsB = b.slots[0];
+                if (!validSlotsA || !validSlotsB) return 0;
+                return validSlotsA.timeLabel.localeCompare(validSlotsB.timeLabel);
+              });
+
+              return groupedList.map(group => (
+                <MedicineCard
+                  key={group.planId}
+                  petName={group.pet.name}
+                  petImageUrl={group.pet.profile_image}
+                  medicineName={group.medicine.name}
+                  dosage={group.medicine.dosage}
+                  times={group.slots}
+                  isStopped={group.isStopped}
+                  onOpenDetail={() => {
+                    // Find generic occurrence to trigger click
+                    const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
+                    if (firstOcc) handleReminderClick(firstOcc);
+                  }}
+                  onToggleTaken={(reminderId, next) =>
+                    handleToggleReminder(group.planId, reminderId, next)
+                  }
+                  onEdit={() => {
+                    const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
+                    if (firstOcc) handleEditFromCard(firstOcc);
+                  }}
+                  onDelete={() => handleDeleteFromCard(group.planId)}
+
+                />
+              ));
+            })()}
+          </CardList>
         ) : (
-          <Header>
-            <div className="Title">{getHeaderTitle(tab)}</div>
-            <div className="DateText">{formatHeaderDate(tab)}</div>
-          </Header>
+          <div style={{ fontSize: 14, color: "#71717a", textAlign: 'center', padding: '32px' }}>
+            No medication reminders.
+          </div>
         )}
       </div>
 
-      <div style={{ marginTop: 8 }}>
-        <CardList>
-          {filteredRecords.length === 0 ? (
-            <div style={{ fontSize: 14, color: "#71717a" }}>No records</div>
-          ) : tab === "other" ? (
-            groupByDate(filteredRecords).map(([dateKey, items]) => (
-              <div className="DateGroup" key={dateKey}>
-                <div className="GroupHeader">
-                  {dateKey === "Unknown date" ? "Unknown date" : formatGroupDate(dateKey)}
-                </div>
-
-                {items.map((record) => (
-                  <div
-                    className="Card"
-                    key={record.id}
-                    onClick={() => setDetailRecord(record)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="CardTopRow">
-                      <div className="ScheduleText">{`${record.dose} ${record.times}`}</div>
-                    </div>
-
-                    <div className="CardBody">
-                      <div className="AvatarWrap">
-                        {record.avatarUrl ? (
-                          <Image src={record.avatarUrl} alt={record.petName} width={40} height={40} />
-                        ) : (
-                          <div
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              backgroundColor: "#E5E7EB",
-                              borderRadius: "50%",
-                            }}
-                          />
-                        )}
-                      </div>
-
-                      <div className="TextCol">
-                        <div className="PetName">{record.petName}</div>
-                        <div className="MedName">{record.medicationName}</div>
-                        {record.note && <div className="Note">{record.note}</div>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ))
-          ) : (
-            filteredRecords.map((record) => (
-              <div
-                className="Card"
-                key={record.id}
-                onClick={() => setDetailRecord(record)}
-                style={{ cursor: "pointer" }}
-              >
-                <div className="CardTopRow">
-                  <div className="ScheduleText">{`${record.dose} ${record.times}`}</div>
-                </div>
-
-                <div className="CardBody">
-                  <div className="AvatarWrap">
-                    {record.avatarUrl ? (
-                      <Image src={record.avatarUrl} alt={record.petName} width={40} height={40} />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          backgroundColor: "#E5E7EB",
-                          borderRadius: "50%",
-                        }}
-                      />
-                    )}
-                  </div>
-
-                  <div className="TextCol">
-                    <div className="PetName">{record.petName}</div>
-                    <div className="MedName">{record.medicationName}</div>
-                    {record.note && <div className="Note">{record.note}</div>}
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </CardList>
-      </div>
-
-      <FabButton onClick={() => setShowAdd(true)}>
+      <FabButton onClick={handleAdd}>
         <Add />
       </FabButton>
 
-      <AddMedicationPopupV2
-        open={showAdd}
-        onClose={() => setShowAdd(false)}
-        pet={lockedPet}
-        onSubmit={(data: AddMedicationPayloadV2) => {
-          console.log("add medication", data);
-
-          const newItem: MedicationRecordV2 = {
-            id: crypto.randomUUID(),
-            petId: lockedPet.id,
-            petName: lockedPet.name,
-            medicationName: data.medicationName,
-            dose: data.dose,
-            times: data.times,
-            note: data.note,
-            avatarUrl: lockedPet.avatarUrl,
-          };
-
-          setRecordsByTab((prev) => ({
-            ...prev,
-            today: [newItem, ...(prev.today ?? [])],
-          }));
-
-          setShowAdd(false);
-        }}
+      <CreateMedicationPopup
+        open={showCreatePopup}
+        onClose={handleCloseCreatePopup}
+        onSuccess={handleSubmitCreatePopup}
+        pets={popupPets}
+        initialPetId={selectedPetId}
       />
 
-      <MedicationDetailPopupV2
-        open={!!detailRecord}
-        onClose={() => setDetailRecord(null)}
-        pet={lockedPet}
-        record={detailRecord}
-        onEdit={() => {
-          if (!detailRecord) return;
-          setEditRecord(detailRecord);
-          setDetailRecord(null);
-        }}
-        onDelete={() => {
-          if (!detailRecord) return;
-          const id = detailRecord.id;
+      {selectedReminder && (
+        <MedicationDetailPopup
+          page="medication-page"
+          medicineReminder={selectedReminder.medicineReminder}
+          highlightedReminderId={selectedReminder.highlightedReminderId}
+          onClose={() => setSelectedReminder(null)}
+          onToggleReminder={(reminderId: string, isTaken: boolean) =>
+            handleToggleReminder(selectedReminder.medicineReminder.notification_id, reminderId, isTaken)
+          }
+          onEdit={handleEditFromDetail}
+        />
+      )}
 
-          setRecordsByTab((prev) => ({
-            today: prev.today.filter((x) => x.id !== id),
-            tomorrow: prev.tomorrow.filter((x) => x.id !== id),
-            other: prev.other.filter((x) => x.id !== id),
-          }));
-
-          setDetailRecord(null);
-        }}
-      />
-
-      <EditMedicationPopupV2
-        open={!!editRecord}
-        onClose={() => setEditRecord(null)}
-        pet={lockedPet}
-        record={
-          editRecord
-            ? {
-                id: editRecord.id,
-                medicationName: editRecord.medicationName,
-                dose: editRecord.dose,
-                times: editRecord.times,
-                note: editRecord.note,
-              }
-            : null
-        }
-        onSave={(data: EditMedicationPayload) => {
-          console.log("save medication", data);
-
-          setRecordsByTab((prev) => {
-            const patch = (arr: MedicationRecordV2[]) =>
-              arr.map((x) =>
-                x.id === data.id
-                  ? {
-                      ...x,
-                      medicationName: data.medicationName,
-                      dose: data.dose,
-                      times: data.times,
-                      note: data.note,
-                    }
-                  : x
-              );
-
-            return {
-              today: patch(prev.today ?? []),
-              tomorrow: patch(prev.tomorrow ?? []),
-              other: patch(prev.other ?? []),
-            };
-          });
-
-          setEditRecord(null);
-        }}
-      />
-    </>
+      {editingReminder && (
+        <EditMedicationPopup
+          open={!!editingReminder}
+          onClose={() => setEditingReminder(null)}
+          medicineReminder={editingReminder}
+          pets={popupPets}
+          onSuccess={handleSaveEdit}
+        />
+      )}
+    </div>
   );
 }

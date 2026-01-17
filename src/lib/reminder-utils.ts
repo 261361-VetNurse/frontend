@@ -43,12 +43,13 @@ function getDayKeyInUserTz(date: Date): DayKey {
  */
 function isOnOrAfterStartingDate(plan: MedicineReminderVM, date: Date): boolean {
   const userTz = getUserTimezone();
-  const start = plan.schedule.starting_date; // required by your new type
+  const start = plan.schedule?.starting_date; // required by your new type
 
   if (!start) return true; // defensive
 
   const target = dayjs(date).tz(userTz).startOf("day");
-  const starting = dayjs.tz(start, "YYYY-MM-DD", userTz).startOf("day");
+  // Relaxed parsing: let dayjs handle standard formats (ISO, YYYY-MM-DD)
+  const starting = dayjs.tz(start, userTz).startOf("day");
   return target.isSame(starting) || target.isAfter(starting);
 }
 
@@ -56,13 +57,17 @@ function isOnOrAfterStartingDate(plan: MedicineReminderVM, date: Date): boolean 
  * Helper: frequency match for a given date
  */
 function matchesFrequencyOnDate(plan: MedicineReminderVM, date: Date): boolean {
-  const freq = plan.schedule.frequency;
+  const freq = plan.schedule?.frequency;
+
+  if (!freq) return true; // defensive: if no schedule/frequency, allow on any date
+
+  const key = (freq.key || "").toLowerCase();
 
   // new keys: "everyday" | "interval_hours" | "custom"
-  if (freq.key === "everyday") return true;
+  if (key === "everyday") return true;
 
-  if (freq.key === "custom") {
-    const days = (freq.days_of_week ?? []) as DayKey[];
+  if (key === "custom") {
+    const days = (freq.days_of_week ?? []).map(d => d.toLowerCase()) as DayKey[];
     if (days.length === 0) return false;
     return days.includes(getDayKeyInUserTz(date));
   }
@@ -71,7 +76,7 @@ function matchesFrequencyOnDate(plan: MedicineReminderVM, date: Date): boolean {
   // In your current data model you still have explicit reminders[].time (per-day times),
   // so for date-level eligibility we allow it on any day after starting_date.
   // (If later you want true rolling-interval occurrences across days, implement that at occurrence generation layer.)
-  if (freq.key === "interval_hours") return true;
+  if (key === "interval_hours") return true;
 
   return true;
 }
@@ -86,7 +91,11 @@ function isScheduledOnDate(plan: MedicineReminderVM, date: Date): boolean {
 function buildScheduledAtISO(dateYYYYMMDD: string, timeHHmm: string): string {
   const userTz = getUserTimezone();
   // produces ISO with offset (e.g. 2026-01-11T08:00:00+07:00)
-  return dayjs.tz(`${dateYYYYMMDD} ${timeHHmm}`, "YYYY-MM-DD HH:mm", userTz).format();
+  // Relaxed parsing: construct string and let dayjs.tz handle it.
+  // Note: For YYYY-MM-DD HH:mm string construction, standard ISO format is safest if we can't ensure CustomParseFormat
+  // But dayjs(string).tz(zone) might interpret differently than dayjs.tz(string, zone).
+  // "YYYY-MM-DD HH:mm" is fairly standard, usually parses ok without plugin if dashes/colons present.
+  return dayjs.tz(`${dateYYYYMMDD} ${timeHHmm}`, userTz).format();
 }
 
 /**
@@ -115,10 +124,10 @@ export function buildOccurrencesForDate(
   const ymd = dayjs(date).tz(userTz).format("YYYY-MM-DD");
 
   return plans
-    .filter(p => !p.medication_status.is_stopped)
+    .filter(p => !p.medication_status?.is_stopped)
     .filter(p => isScheduledOnDate(p, date))
     .flatMap(p =>
-      p.schedule.reminders.map(slot => {
+      (p.schedule?.reminders || []).map(slot => {
         const occurrenceId = buildOccurrenceId(p.notification_id, ymd, slot.time);
         const override = overrides[occurrenceId];
 
@@ -136,7 +145,7 @@ export function buildOccurrencesForDate(
           occurrence_id: occurrenceId,
           plan_id: p.notification_id,
           reminder_id: slot.id,
-          frequency_label: p.schedule.frequency.label,
+          frequency_label: p.schedule?.frequency?.label || 'Unknown',
           time: slot.time,
           pet: p.pet,
           medicine: p.medicine,
@@ -273,7 +282,7 @@ export function updateReminderTakenStatus(
       ...plan,
       schedule: {
         ...plan.schedule,
-        reminders: plan.schedule.reminders.map(slot => {
+        reminders: (plan.schedule?.reminders || []).map(slot => {
           if (slot.id !== reminderId) return slot;
 
           return {

@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import styled from "styled-components";
-import dayjs from "dayjs";
 
-import { Tabs } from "@/components/pet-owners/shared/Tabs";
-import PetFilterSelector, {
+import {
   type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
@@ -18,9 +16,9 @@ import CalendarModule, {
 } from "@/components/pet-owners/shared/CalendarModule";
 
 import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
-import RecordDateSection from "@/components/pet-owners/shared/records/RecordDateSection";
+
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
-import AddRecordPopup, { type  AddSymptomPayload } from "./AddRecordPopup";
+import AddRecordPopup, { type AddSymptomPayload } from "./AddRecordPopup";
 import EditRecordPopup, { type EditSymptomPayload } from "@/components/pet-owners/shared/records/EditRecordPopup";
 import RecordDetailPopup, { type RecordDetailItem } from "@/components/pet-owners/shared/records/RecordDetailPopup";
 
@@ -31,26 +29,34 @@ import { mockPets } from "@/mocks/pets.mock";
 import { Pet } from "@/types/pet";
 
 /* ---------------- styled ---------------- */
-const RecordPageStyled = styled.div`
+/* ---------------- styled ---------------- */
+const Page = styled.div`
   width: 100%;
-  height: 100%;
   min-height: 100vh;
-  overflow: hidden;
-  position: relative;
 
   .scroll-area {
-    height: 100%;
-    overflow: auto;
     display: flex;
     flex-direction: column;
-    row-gap: 10px;
+    gap: 12px;
+    padding-bottom: 80px;
+  }
+
+  .head-text {
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .date-text {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .line {
+    width: 100%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.15);
   }
 `;
-
-const recordTabs = [
-  { name: "Appointment", path: "/appointment", params: "appointment" },
-  { name: "Record", path: "/record", params: "record" },
-];
 
 type RecordEntry = {
   id: string;
@@ -97,9 +103,13 @@ function filesToObjectUrls(files: File[] | undefined) {
 }
 
 /* ================= page ================= */
-export const RecordPage = () => {
+export const RecordPage = ({
+  selectedPetId = "all",
+}: {
+  selectedPetId?: PetSelectorValue;
+}) => {
   const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
-  const [selectedPetId, setSelectedPetId] = useState<PetSelectorValue>("all");
+  // Removed local selectedPetId state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [month, setMonth] = useState<Date>(new Date());
 
@@ -179,17 +189,9 @@ export const RecordPage = () => {
   };
 
   return (
-    <RecordPageStyled>
+    <Page>
       <div className="scroll-area">
-        <Tabs data={recordTabs} queryKey="tab" />
-
-        <PetFilterSelector
-          mode="filter"
-          allowAllPets
-          pets={petOptions}
-          value={selectedPetId}
-          onChange={setSelectedPetId}
-        />
+        {/* Removed local PetFilterSelector */}
 
         <CalendarModule
           size="standard"
@@ -206,44 +208,42 @@ export const RecordPage = () => {
           variant="card"
         />
 
-        <div className="mt-4 space-y-4 px-1">
-          <div className="space-y-2">
-            <div className="font-semibold text-zinc-900 text-lg">Record</div>
-            <div className="text-sm text-zinc-500 border-b border-zinc-100 pb-2 font-medium">
-              {formatHeaderDate(selectedIso)}
-            </div>
-          </div>
+        <div className="head-text">Record</div>
 
-          {recordsOnSelectedDate.length === 0 ? (
-            <div className="py-10 text-center text-sm text-zinc-400">No records on this date</div>
-          ) : (
-            <RecordDateSection label="">
-              {recordsOnSelectedDate.map((record) => {
-                const pet = petById.get(String(record.petId));
-                return (
-                  <RecordCard
-                    key={record.id}
-                    petName={pet?.name ?? "-"}
-                    time={formatTime12h(record.time)}
-                    note={record.note}
-                    avatarUrl={pet?.avatarUrl}
-                    imageUrls={record.images ?? []}
-                    onClick={() => {
-                      setDetailRecord({
-                        ...record,
-                        petName: pet?.name ?? "-",
-                        petPid: pet?.pid ?? "-",
-                        avatarUrl: pet?.avatarUrl,
-                        date: record.dateKey,
-                        imageUrls: record.images ?? [],
-                      });
-                    }}
-                  />
-                );
-              })}
-            </RecordDateSection>
-          )}
-        </div>
+        {recordsOnSelectedDate.length === 0 ? (
+          <div className="mt-8 text-center text-gray-400 text-sm">
+            No records on this date
+          </div>
+        ) : (
+          <>
+            <div className="date-text">{formatHeaderDate(selectedIso)}</div>
+            <div className="line" />
+
+            {recordsOnSelectedDate.map((record) => {
+              const pet = petById.get(String(record.petId));
+              return (
+                <RecordCard
+                  key={record.id}
+                  petName={pet?.name ?? "-"}
+                  time={formatTime12h(record.time)}
+                  note={record.note}
+                  avatarUrl={pet?.avatarUrl}
+                  imageUrls={record.images ?? []}
+                  onClick={() => {
+                    setDetailRecord({
+                      ...record,
+                      petName: pet?.name ?? "-",
+                      petPid: pet?.pid ?? "-",
+                      avatarUrl: pet?.avatarUrl,
+                      date: record.dateKey,
+                      imageUrls: record.images ?? [],
+                    });
+                  }}
+                />
+              );
+            })}
+          </>
+        )}
       </div>
 
       <QuickDialButton
@@ -282,6 +282,6 @@ export const RecordPage = () => {
         }}
         formatTime={(t: string) => t}
       />
-    </RecordPageStyled>
+    </Page>
   );
 };

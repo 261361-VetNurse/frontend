@@ -5,8 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
 import PetFilterSelector, {
-  type PetLite,
 } from "@/components/pet-owners/shared/PetFilterSelector";
+
+import { Pet } from "@/types/pet";
 
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
 import AppointmentTabs, {
@@ -14,7 +15,7 @@ import AppointmentTabs, {
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
 
-import { mockPets } from "@/mocks/pets.mock"; 
+import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import type { Appointment } from "@/types/Appointment";
 
@@ -26,37 +27,31 @@ export default function Appointments() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const petOptions: PetLite[] = useMemo(() => {
-    return mockPets.map((p) => ({
-      id: String(p._id),   
-      name: p.name,
-      pid: String(p._id), 
-      avatarUrl: p.profile_image,  
-    }));
-  }, []);
+  // Use mockPets directly as it matches Pet[] expected by PetFilterSelector
+  const petOptions: Pet[] = mockPets;
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
     const fromUrl = String(petId ?? "");
-    if (fromUrl && petOptions.some((p) => p.id === fromUrl)) return fromUrl;
-    return String(petOptions[0]?.id ?? "");
+    if (fromUrl && petOptions.some((p) => p._id === fromUrl)) return fromUrl;
+    return String(petOptions[0]?._id ?? "");
   });
 
   useEffect(() => {
     const fromUrl = String(petId ?? "");
     if (!fromUrl) return;
 
-    const exists = petOptions.some((p) => p.id === fromUrl);
+    const exists = petOptions.some((p) => p._id === fromUrl);
     if (exists) setSelectedPetId(fromUrl);
   }, [petId, petOptions]);
 
   useEffect(() => {
     if (!selectedPetId) return;
-    const exists = petOptions.some((p) => p.id === selectedPetId);
-    if (!exists) setSelectedPetId(String(petOptions[0]?.id ?? ""));
+    const exists = petOptions.some((p) => p._id === selectedPetId);
+    if (!exists) setSelectedPetId(String(petOptions[0]?._id ?? ""));
   }, [selectedPetId, petOptions]);
 
   const selectedPet = useMemo(() => {
-    return petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
+    return petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0];
   }, [petOptions, selectedPetId]);
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
@@ -90,7 +85,7 @@ export default function Appointments() {
     <div className="flex flex-col gap-4">
       <TopBar
         title="Appointment"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
       />
 
       <PetFilterSelector
@@ -143,10 +138,10 @@ export default function Appointments() {
         onClose={handleClosePopup}
         onSubmit={handleSubmitPopup}
         pet={{
-          id: selectedPet?.id ?? "",
+          id: selectedPet?._id ?? "",
           name: selectedPet?.name ?? "-",
-          pid: selectedPet?.pid ?? "-",
-          avatarUrl: selectedPet?.avatarUrl,
+          pid: selectedPet?._id ?? "-",
+          avatarUrl: selectedPet?.profile_image,
         }}
       />
     </div>

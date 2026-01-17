@@ -6,18 +6,37 @@ import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 
-import { mockPets } from "@/mocks/pets.mock"; 
+import { usePets } from "@/lib/hooks/usePets";
 import { mockOwner } from "@/mocks/owner";
-import { Pet } from "@/types/pet"; 
 
 import { Page } from "@/styles/myPetsPage.styled";
 
 export default function MyPets() {
-  const pets: Pet[] = mockPets;
-  
+  const { pets, loading, error } = usePets();
+
   const allPetsCount = pets.length;
-  const inMedicalCount = 0; 
-  
+  const inMedicalCount = 0;
+
+  if (loading) {
+    return (
+      <Page>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-zinc-500">Loading pets...</div>
+        </div>
+      </Page>
+    );
+  }
+
+  if (error) {
+    return (
+      <Page>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-red-500">Error: {error}</div>
+        </div>
+      </Page>
+    );
+  }
+
   return (
     <Page>
       <div className="flex flex-col gap-4">
@@ -43,7 +62,7 @@ export default function MyPets() {
         <div className="space-y-3">
           {pets.length === 0 ? (
             <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
-              No pets yet. Click “New Pet” to add one.
+              No pets yet. Click "New Pet" to add one.
             </div>
           ) : (
             pets.map((pet) => <PetCard key={pet._id} pet={pet} />)

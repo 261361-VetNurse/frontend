@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
 
 /**
@@ -117,7 +117,7 @@ export default function CalendarModule({
 
   const container =
     variant === "card"
-      ? "rounded-2xl bg-white border border-zinc-100 shadow-sm p-4"
+      ? "rounded-2xl bg-white border border-zinc-100 shadow-sm p-2"
       : "";
 
   const weekdayRowClass =
@@ -125,7 +125,7 @@ export default function CalendarModule({
       ? "mt-3 grid grid-cols-7 text-center text-[11px] text-zinc-400"
       : "mt-3 grid grid-cols-7 text-center text-xs text-zinc-400";
 
-  const dayGridClass = "mt-1 grid grid-cols-7 gap-y-1";
+  const dayGridClass = "mt-[0.5px] grid grid-cols-7 gap-y-[0.5px]";
 
   return (
     <div className={["w-full", container, className].join(" ")}>

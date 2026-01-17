@@ -1,68 +1,68 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
-import { SelectInput } from '../../shared/form/SelectInput';
-import { PrimaryButton } from '../../shared/form/PrimaryButton';
+
 import { theme } from '@/styles/theme';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
-import { Add, Remove, Pets } from '@mui/icons-material';
+import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { authStorage, editMedicine } from '@/lib/api-client';
+import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
+import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
+import { Pet } from '@/types/pet';
 
-const Overlay = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.2);
-  padding: 0 16px;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
-const PopupCard = styled.div`
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
-  padding: 24px;
-  width: 100%;
-  max-width: 393px;
-  position: relative;
-  gap: 16px;
+const DaySelectorContainer = styled.div`
   display: flex;
   flex-direction: column;
-  color: ${theme.colors.textPrimary};
-  max-height: 90vh;
-  overflow-y: auto;
+  gap: 8px;
 `;
 
-const SelectPet = styled.div`
+const DayButtonRow = styled.div`
   display: flex;
   flex-direction: row;
-  align-items: center;
-  gap: 16px;
+  gap: 8px;
+  justify-content: flex-start;
 `;
 
-const PetIconWrap = styled.div`
-  width: 60px;
-  height: 60px;
-  min-width: 60px;
-  min-height: 60px;
-  border-radius: 50%;
-  background: #edeef0;
+const EverydayContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  width: fit-content;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const EverydayText = styled.span<{ $selected: boolean }>`
+  font-size: 14px;
+  color: ${props => props.$selected ? theme.colors.primary : theme.colors.textPrimary};
+  font-weight: 500;
+`;
+
+const DayButton = styled.button<{ $selected: boolean }>`
+  flex: 1;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid ${props => props.$selected ? theme.colors.primary : '#e0e0e0'};
+  background-color: ${props => props.$selected ? theme.colors.primary : 'transparent'};
+  color: ${props => props.$selected ? '#fff' : theme.colors.textPrimary};
+  font-size: 12px;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    background-color: ${props => props.$selected ? theme.colors.primary : '#f5f5f5'};
+  }
 `;
 
-const Title = styled.div`
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-`;
+
 
 const Row = styled.div`
   display: flex;
@@ -195,34 +195,6 @@ const ReasonInput = styled.textarea`
   }
 `;
 
-const ButtonRow = styled.div`
-  display: flex;
-  gap: 12px;
-  margin-top: 8px;
-`;
-
-const SecondaryButton = styled.button`
-  flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-  background-color: #fff;
-  color: ${theme.colors.textPrimary};
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  
-  &:hover {
-    background-color: #f5f5f5;
-  }
-`;
-
-type Pet = {
-  id: string;
-  name: string;
-  avatarUrl?: string;
-};
-
 type ReminderTime = {
   id: string;
   time: string;
@@ -236,11 +208,7 @@ type EditMedicationPopupProps = {
   onClose: () => void;
   medicineReminder?: MedicineReminderVM;
   pets: Pet[];
-  onSave: (data: {
-    medicineReminder: MedicineReminderVM;
-    isStopped: boolean;
-    reason?: string;
-  }) => void;
+  onSuccess: () => void;
 };
 
 export default function EditMedicationPopup({
@@ -248,12 +216,16 @@ export default function EditMedicationPopup({
   onClose,
   medicineReminder,
   pets,
-  onSave
+  onSuccess
 }: EditMedicationPopupProps) {
   const [petId, setPetId] = useState('');
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
-  const [frequency, setFrequency] = useState('everyday');
+
+  // Frequency State
+  const [isEveryday, setIsEveryday] = useState(true);
+  const [selectedDays, setSelectedDays] = useState<number[]>([]); // 0=Mon, 6=Sun
+
   const [startDate, setStartDate] = useState('');
   const [reminders, setReminders] = useState<ReminderTime[]>([]);
   const [isStopped, setIsStopped] = useState(false);
@@ -261,28 +233,44 @@ export default function EditMedicationPopup({
 
   useEffect(() => {
     if (medicineReminder) {
-      setPetId(medicineReminder.pet._id);
-      setMedicineName(medicineReminder.medicine.name);
-      setDosage(medicineReminder.medicine.dosage);
-      setFrequency(medicineReminder.schedule.frequency.key);
-      setStartDate(medicineReminder.schedule.starting_date);
-      setReminders(medicineReminder.schedule.reminders.map(r => ({
+      setPetId(medicineReminder.pet?._id || '');
+      setMedicineName(medicineReminder.medicine?.name || '');
+      setDosage(medicineReminder.medicine?.dosage || '');
+
+      // Parse frequency
+      const freqKey = medicineReminder.schedule?.frequency?.key as string;
+      if (freqKey === 'everyday' || freqKey === '-1') {
+        setIsEveryday(true);
+        setSelectedDays([]);
+      } else {
+        // Try to parse "0,1,2"
+        const parts = freqKey.split(',').map(s => parseInt(s.trim()));
+        if (parts.some(isNaN)) {
+          // Fallback if key says "custom" but no days, or unparseable
+          setIsEveryday(true);
+          setSelectedDays([]);
+        } else {
+          setIsEveryday(false);
+          setSelectedDays(parts);
+        }
+      }
+
+      setStartDate(medicineReminder.schedule?.starting_date || '');
+      setReminders(medicineReminder.schedule?.reminders?.map(r => ({
         id: r.id,
         time: r.time,
         is_taken: false,
         taken_at: undefined,
         status: r.status,
-      })));
-      setIsStopped(medicineReminder.medication_status.is_stopped);
-      setStopReason(medicineReminder.medication_status.reason || '');
+      })) || []);
+      setIsStopped(medicineReminder.medication_status?.is_stopped || false);
+      setStopReason(medicineReminder.medication_status?.reason || '');
     }
   }, [medicineReminder]);
 
   if (!open || !medicineReminder) return null;
 
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
+
 
   const addReminder = () => {
     const newId = `r${Date.now()}`;
@@ -306,7 +294,38 @@ export default function EditMedicationPopup({
     ));
   };
 
-  const handleSave = () => {
+  const handleDayToggle = (dayIndex: number) => {
+    if (isEveryday) {
+      setIsEveryday(false);
+      setSelectedDays([dayIndex]);
+    } else {
+      let newDays: number[];
+      if (selectedDays.includes(dayIndex)) {
+        newDays = selectedDays.filter(d => d !== dayIndex);
+      } else {
+        newDays = [...selectedDays, dayIndex];
+      }
+
+      // If all days are selected, toggle back to everyday
+      if (newDays.length === 7) {
+        setIsEveryday(true);
+        setSelectedDays([]);
+      } else if (newDays.length === 0) {
+        // If no days selected, toggle back to everyday
+        setIsEveryday(true);
+        setSelectedDays([]);
+      } else {
+        setSelectedDays(newDays);
+      }
+    }
+  };
+
+  const handleEverydayClick = () => {
+    setIsEveryday(true);
+    setSelectedDays([]);
+  };
+
+  const handleSave = async () => {
     if (!petId || !medicineName || !dosage || reminders.length === 0) {
       alert('Please fill in all required fields');
       return;
@@ -317,89 +336,79 @@ export default function EditMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => p.id === petId);
+    const selectedPet = pets.find(p => p._id === petId);
     if (!selectedPet) {
       alert('Please select a valid pet');
       return;
     }
 
-    const frequencyLabels: Record<string, string> = {
-      everyday: 'Everyday',
-      twice_daily: 'Twice daily',
-      three_times_daily: 'Three times daily',
-      custom: 'Custom schedule'
-    };
+    if (!isEveryday && selectedDays.length === 0) {
+      alert('Please select at least one day or choose Everyday');
+      return;
+    }
 
-    const updatedMedicineReminder: MedicineReminderVM = {
-      ...medicineReminder,
-      pet: {
-        _id: selectedPet.id,
-        name: selectedPet.name,
-        profile_image: selectedPet.avatarUrl || medicineReminder.pet.profile_image,
-      },
-      medicine: {
-        ...medicineReminder.medicine,
+    // Generate frequency string
+    // Determine frequency string
+    let frequencyVal = '-1';
+
+    if (!isEveryday) {
+      const sortedDays = [...selectedDays].sort((a, b) => a - b);
+      frequencyVal = sortedDays.join(',');
+    }
+
+    try {
+      const token = authStorage.getToken();
+      if (!token) {
+        alert('Authentication error');
+        return;
+      }
+
+      const payload = {
+        pet_id: selectedPet._id,
         name: medicineName,
         dosage: dosage,
-      },
-      schedule: {
-        ...medicineReminder.schedule,
-        frequency: {
-          key: frequency as "everyday" | "interval_hours" | "custom",
-          label: frequencyLabels[frequency] || 'Everyday',
-        },
-        reminders: reminders.map(reminder => ({
-          id: reminder.id,
-          time: reminder.time,
-          is_taken: reminder.is_taken,
-          status: reminder.status,
-          taken_at: reminder.taken_at,
-        })),
-        measurement_times_per_day: reminders.length,
+        frequency: frequencyVal,
         starting_date: startDate,
-      },
-    };
+        reminders: reminders.map(r => r.time),
+        is_stopped: isStopped,
+        reason: isStopped ? stopReason : undefined
+      };
 
-    onSave({
-      medicineReminder: updatedMedicineReminder,
-      isStopped,
-      reason: isStopped ? stopReason : undefined,
-    });
+      await editMedicine(
+        token,
+        medicineReminder.notification_id,
+        medicineReminder.medicine._id,
+        payload
+      );
+
+      onSuccess();
+      onClose();
+    } catch (err: any) {
+      console.error(err);
+      alert(`Failed to update medication: ${err.message}`);
+    }
   };
 
-  const selectedPet = pets.find(p => p.id === petId);
+  const selectedPet = pets.find(p => p._id === petId);
 
   return (
-    <Overlay onClick={handleOverlayClick}>
-      <PopupCard>
-        <Title>Edit Medication</Title>
-
-        <SelectPet>
-          <PetIconWrap>
-            {selectedPet?.avatarUrl ? (
-              <img
-                src={selectedPet.avatarUrl}
-                alt={selectedPet.name}
-                width={40}
-                height={40}
-                style={{ borderRadius: '50%', objectFit: 'cover' }}
-              />
-            ) : (
-              <Pets style={{ fontSize: 40, color: '#888' }} />
-            )}
-          </PetIconWrap>
-          <FormField label="Pet" htmlFor="pet-select">
-            <SelectInput
-              id="pet-select"
-              value={petId}
-              onChange={e => setPetId(e.target.value)}
-              options={[
-                { value: '', label: 'Select your pet' },
-                ...pets.map(p => ({ value: p.id, label: p.name }))
-              ]}
-            />
-          </FormField>
-        </SelectPet>
+    <FormDialog
+      open={open}
+      onClose={onClose}
+      title="Edit Medication"
+      primaryLabel="Save Changes"
+      onPrimary={handleSave}
+      secondaryLabel="Cancel"
+      onSecondary={onClose}
+    >
+      <div className="flex flex-col gap-4">
+        <PetFilterSelector
+          mode="filter"
+          allowAllPets={false}
+          pets={pets}
+          value={petId}
+          onChange={(id) => setPetId(String(id))}
+        />
 
         <FormField label="Medicine Name" htmlFor="medication-name">
           <TextInput
@@ -419,20 +428,44 @@ export default function EditMedicationPopup({
               placeholder="e.g., 250mg, 1 tablet"
             />
           </FormField>
-          <FormField label="Frequency" htmlFor="frequency">
-            <SelectInput
-              id="frequency"
-              value={frequency}
-              onChange={e => setFrequency(e.target.value)}
-              options={[
-                { value: 'everyday', label: 'Everyday' },
-                { value: 'twice_daily', label: 'Twice daily' },
-                { value: 'three_times_daily', label: 'Three times daily' },
-                { value: 'custom', label: 'Custom' }
-              ]}
-            />
-          </FormField>
         </Row>
+        <FormField label={
+          <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+            <span>Frequency</span>
+            <span style={{ fontSize: '13px', color: theme.colors.primary, fontWeight: 500 }}>
+              {isEveryday
+                ? 'Everyday'
+                : selectedDays.length > 0
+                  ? selectedDays
+                    .sort((a, b) => a - b)
+                    .map(d => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d])
+                    .join(', ')
+                  : 'Select days'}
+            </span>
+          </div>
+        } htmlFor="frequency-select">
+          <DaySelectorContainer>
+            <EverydayContainer onClick={handleEverydayClick}>
+              {isEveryday ? (
+                <CheckBox style={{ color: theme.colors.primary }} />
+              ) : (
+                <CheckBoxOutlineBlank style={{ color: '#ccc' }} />
+              )}
+              <EverydayText $selected={isEveryday}>Everyday</EverydayText>
+            </EverydayContainer>
+            <DayButtonRow>
+              {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => (
+                <DayButton
+                  key={day}
+                  $selected={!isEveryday && selectedDays.includes(index)}
+                  onClick={() => handleDayToggle(index)}
+                >
+                  {day}
+                </DayButton>
+              ))}
+            </DayButtonRow>
+          </DaySelectorContainer>
+        </FormField>
 
         <FormField label="Start Date" htmlFor="start-date">
           <TextInput
@@ -515,30 +548,7 @@ export default function EditMedicationPopup({
             </div>
           )}
         </StatusSection>
-
-        <ButtonRow>
-          <SecondaryButton onClick={onClose}>
-            Cancel
-          </SecondaryButton>
-          <PrimaryButton size={'md'} style={{ flex: 1 }} onClick={handleSave}>
-            Save Changes
-          </PrimaryButton>
-        </ButtonRow>
-
-        <div
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 18,
-            cursor: 'pointer',
-            fontSize: 22,
-            color: theme.colors.textPrimary
-          }}
-          onClick={onClose}
-        >
-          ×
-        </div>
-      </PopupCard>
-    </Overlay>
+      </div>
+    </FormDialog>
   );
 }

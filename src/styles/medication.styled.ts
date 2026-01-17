@@ -10,51 +10,6 @@ export const Page = styled.div`
   gap: 10px;
 `;
 
-export const PetSelectButton = styled.button`
-  width: 100%;
-  background-color: ${theme.colors.white};
-  border: none;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px 0 #00000025;
-  display: flex;
-  align-items: center;
-  padding: 8px 16px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  .PetIcon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: #e9ecef;
-    color: ${theme.colors.textSecondary};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .PetSelectText {
-    flex: 1;
-    font-size: 18px;
-    font-weight: 600;
-    color: ${theme.colors.textPrimary};
-    text-align: left;
-    margin-left: 16px;
-  }
-
-  .ChevronIcon {
-    color: ${theme.colors.textSecondary};
-    display: flex;
-    align-items: center;
-  }
-`;
-
-
 export const TabsWrap = styled.div`
   width: 100%;
   background-color: ${theme.colors.white};

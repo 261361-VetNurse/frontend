@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { PrimaryButton } from '@/components/pet-owners/shared/form/PrimaryButton';
 import {
@@ -10,8 +10,8 @@ import {
     Title,
     Subtitle,
 } from '@/styles/register.styled';
-import { redirectToLineLogin, getAuthCodeFromUrl, getErrorFromUrl } from '@/lib/line-liff';
-import { exchangeLineToken, authStorage } from '@/lib/api-client';
+
+import { authStorage } from '@/lib/api-client';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -69,18 +69,18 @@ export default function LoginPage() {
     ) => {
         setLoading(true);
         try {
-            // Store authentication data
-            authStorage.setToken(token);
+            // // Store authentication data
+            // authStorage.setToken(token);
 
-            // Store user info if available
-            if (userId && displayName) {
-                authStorage.setUser({
-                    id: userId,
-                    display_name: displayName,
-                    picture_url: '',
-                    line_id: ''
-                });
-            }
+            // // Store user info if available
+            // if (userId && displayName) {
+            //     authStorage.setUser({
+            //         id: userId,
+            //         display_name: displayName,
+            //         picture_url: '',
+            //         line_id: ''
+            //     });
+            // }
 
             // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
@@ -104,7 +104,21 @@ export default function LoginPage() {
 
     const handleLoginClick = () => {
         setError(null);
-        redirectToLineLogin();
+        setLoading(true);
+
+        // Mock Login
+        setTimeout(() => {
+            // Use specific long-lived token as requested
+            authStorage.setToken("mock_token_user_1_long_live");
+            authStorage.setUser({
+                id: "mock-user-id",
+                display_name: "Mock User",
+                picture_url: "",
+                line_id: "mock-line-id"
+            });
+            setLoading(false);
+            router.push('/pet-owners/home-page');
+        }, 1000);
     };
 
     return (

@@ -67,7 +67,7 @@ export default function RegisterNewPetPage() {
     };
 
     console.log("CREATE PET:", payload);
-    router.push("/pet-owners/mypets");
+    router.push("/pet-owners/my-pets-page");
   }
 
   return (
