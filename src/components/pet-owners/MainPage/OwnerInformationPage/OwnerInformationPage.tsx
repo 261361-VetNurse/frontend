@@ -4,7 +4,6 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { getUserProfile, authStorage } from '@/lib/api-client';
 import {
   Container,
   TopHeader,
@@ -35,16 +34,11 @@ const OwnerInformationPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = authStorage.getToken();
-        if (!token) {
-          router.push('/pet-owners/login-page');
-          return;
-        }
-
-        const profile = await getUserProfile(token);
-        setUserData(profile);
+        // Use mock data instead of API call
+        const { mockUserProfile } = await import('@/mocks/owner');
+        setUserData(mockUserProfile);
       } catch (err) {
-        console.error('Failed to fetch user profile:', err);
+        console.error('Failed to load user profile:', err);
         setError('Failed to load profile data');
       } finally {
         setLoading(false);

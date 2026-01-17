@@ -6,7 +6,6 @@ import { TextInput } from '../../shared/form/TextInput';
 import { theme } from '@/styles/theme';
 import { MedicineReminderVM } from '@/types/medicine-reminder';
 import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
-import { authStorage, editMedicine } from '@/lib/api-client';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { Pet } from '@/types/pet';
@@ -348,7 +347,6 @@ export default function EditMedicationPopup({
     }
 
     // Generate frequency string
-    // Determine frequency string
     let frequencyVal = '-1';
 
     if (!isEveryday) {
@@ -357,13 +355,10 @@ export default function EditMedicationPopup({
     }
 
     try {
-      const token = authStorage.getToken();
-      if (!token) {
-        alert('Authentication error');
-        return;
-      }
-
-      const payload = {
+      // Simulate API call with console.log instead of actual API request
+      console.log('[MOCK] Editing medication with payload:', {
+        notification_id: medicineReminder.notification_id,
+        medicine_id: medicineReminder.medicine._id,
         pet_id: selectedPet._id,
         name: medicineName,
         dosage: dosage,
@@ -372,15 +367,10 @@ export default function EditMedicationPopup({
         reminders: reminders.map(r => r.time),
         is_stopped: isStopped,
         reason: isStopped ? stopReason : undefined
-      };
+      });
 
-      await editMedicine(
-        token,
-        medicineReminder.notification_id,
-        medicineReminder.medicine._id,
-        payload
-      );
-
+      // Simulate success
+      alert('Medication updated successfully!');
       onSuccess();
       onClose();
     } catch (err: any) {

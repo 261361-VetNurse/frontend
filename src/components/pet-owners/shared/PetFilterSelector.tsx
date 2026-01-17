@@ -185,6 +185,7 @@ export default function PetFilterSelector({
           <div role="listbox" className="max-h-72 overflow-auto">
             {allowAllPets ? (
               <PetRow
+                key="all"
                 active={value === "all"}
                 onClick={() => pick("all")}
                 size={size}

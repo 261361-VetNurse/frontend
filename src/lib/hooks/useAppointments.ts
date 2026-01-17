@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getAppointments, authStorage } from '@/lib/api-client';
 
 interface UseAppointmentsReturn {
     appointments: any[];
@@ -21,16 +20,23 @@ export function useAppointments(status?: string): UseAppointmentsReturn {
         try {
             setLoading(true);
             setError(null);
-            const token = authStorage.getToken();
-            if (!token) {
-                throw new Error('No authentication token found');
+
+            // Use mock data instead of API call
+            const { allMockAppointments } = await import('@/mocks/appointments');
+
+            // Client-side filtering by status
+            let filteredAppointments = allMockAppointments;
+
+            if (status) {
+                filteredAppointments = filteredAppointments.filter(
+                    apt => apt.status.toLowerCase() === status.toLowerCase()
+                );
             }
 
-            const data = await getAppointments(token, status);
-            setAppointments(data);
+            setAppointments(filteredAppointments);
         } catch (err) {
-            console.error('Error fetching appointments:', err);
-            setError(err instanceof Error ? err.message : 'Failed to fetch appointments');
+            console.error('Error loading mock appointments:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load appointments');
         } finally {
             setLoading(false);
         }

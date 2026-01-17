@@ -13,11 +13,9 @@ import {
   formatTimeForDisplay,
 } from "@/lib/reminder-utils";
 import ReminderCard from "./ReminderCard";
-import { getDashboardHome, authStorage } from "@/lib/api-client";
 import { DashboardData, DashboardNotification } from "@/types/dashboard";
 import { Appointment } from "@/types/Appointment";
 import { MedicineReminderVM } from "@/types/medicine-reminder";
-import { getMedicationDetail, markMedicationTaken } from "@/lib/api-client";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 
 export default function HomePage() {
@@ -34,14 +32,10 @@ export default function HomePage() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const token = authStorage.getToken();
-        if (!token) {
-          router.push("/pet-owners/login-page");
-          return;
-        }
-        const response = await getDashboardHome(token);
-        if (response.success) {
-          setData(response.data);
+        // Use mock data instead of API call
+        const { mockDashboardData } = await import('@/mocks/dashboard.mock');
+        if (mockDashboardData.success) {
+          setData(mockDashboardData.data);
         }
       } catch (err) {
         console.error(err);
@@ -64,14 +58,19 @@ export default function HomePage() {
   const handleReminderClick = async (notif: DashboardNotification) => {
     try {
       setPopupLoading(true);
-      const token = authStorage.getToken();
-      if (!token) return;
 
-      const detail = await getMedicationDetail(token, notif.medicine_id);
-      setSelectedReminder(detail);
-      setHighlightedReminderId(notif._id);
+      // Use mock data instead of API call
+      const { getMockMedicationDetail } = await import('@/mocks/dashboard.mock');
+      const detail = getMockMedicationDetail(notif._id);
+
+      if (detail) {
+        setSelectedReminder(detail);
+        setHighlightedReminderId(notif._id);
+      } else {
+        alert("Medication details not found.");
+      }
     } catch (err) {
-      console.error("Failed to fetch medication detail:", err);
+      console.error("Failed to load medication detail:", err);
       alert("Failed to load medication details.");
     } finally {
       setPopupLoading(false);
@@ -89,21 +88,17 @@ export default function HomePage() {
       setSelectedReminder({ ...selectedReminder, schedule: updatedSchedule });
     }
 
-    // 2. Call API
-    try {
-      const token = authStorage.getToken();
-      if (token) {
-        await markMedicationTaken(token, reminderId, isTaken);
-        // 3. Refresh Dashboard Data to reflect changes on Home Page list
-        const response = await getDashboardHome(token);
-        if (response.success) {
-          setData(response.data);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to update status");
-      // Revert if needed, or just let the next fetch fix it
+    // 2. Update local state (no API call)
+    console.log(`[MOCK] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'not taken'}`);
+
+    // 3. Update dashboard data to reflect changes
+    if (data) {
+      const updatedNotifications = data.medicines_notifications.map(notif =>
+        notif._id === highlightedReminderId
+          ? { ...notif, istaken: isTaken, status: isTaken ? 'taken' : 'pending' }
+          : notif
+      );
+      setData({ ...data, medicines_notifications: updatedNotifications });
     }
   };
 

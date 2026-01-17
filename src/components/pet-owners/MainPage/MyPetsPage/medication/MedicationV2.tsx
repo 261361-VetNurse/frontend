@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, { PetSelectorValue, PetLite as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
+import PetFilterSelector, { PetSelectorValue, PetSelectorValue as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
@@ -84,19 +84,10 @@ export default function MedicationPageV2() {
   }, [petId, apiPets, selectedPetId]);
 
 
-  const petOptions: SharedPetLite[] = useMemo(() => {
-    return apiPets.map(p => ({
-      id: p._id,
-      name: p.name,
-      pid: p._id, // fallback
-      avatarUrl: p.profile_image
-    }));
-  }, [apiPets]);
-
   const selectedPet = useMemo(() => {
     // If selectedPetId matches a pet, use it
-    return petOptions.find(p => p.id === selectedPetId);
-  }, [petOptions, selectedPetId]);
+    return apiPets.find(p => p._id === selectedPetId);
+  }, [apiPets, selectedPetId]);
 
   // Tabs
   const [activeTab, setActiveTab] = useState<TabType>('today');
@@ -268,27 +259,18 @@ export default function MedicationPageV2() {
 
   const loading = remindersLoading || petsLoading;
 
-  // Need to map apiPets to ComponentPet for popups
-  const popupPets = useMemo(() => {
-    return apiPets.map(p => ({
-      id: p._id,
-      name: p.name,
-      avatarUrl: p.profile_image
-    }));
-  }, [apiPets]);
-
 
   return (
     <div className="flex flex-col gap-4">
       <TopBar
         title="Medication"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
       />
 
       <PetFilterSelector
         mode="filter"
         allowAllPets={false}
-        pets={petOptions}
+        pets={apiPets}
         value={selectedPetId as PetSelectorValue}
         onChange={handlePetSelect}
       />
@@ -406,7 +388,7 @@ export default function MedicationPageV2() {
         open={showCreatePopup}
         onClose={handleCloseCreatePopup}
         onSuccess={handleSubmitCreatePopup}
-        pets={popupPets}
+        pets={apiPets}
         initialPetId={selectedPetId}
       />
 
@@ -428,7 +410,7 @@ export default function MedicationPageV2() {
           open={!!editingReminder}
           onClose={() => setEditingReminder(null)}
           medicineReminder={editingReminder}
-          pets={popupPets}
+          pets={apiPets}
           onSuccess={handleSaveEdit}
         />
       )}

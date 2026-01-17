@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getPets, authStorage } from '@/lib/api-client';
 import { Pet } from '@/types/pet';
 
 interface UsePetsReturn {
@@ -21,21 +20,13 @@ export function usePets(): UsePetsReturn {
         try {
             setLoading(true);
             setError(null);
-            const token = authStorage.getToken();
-            if (!token) {
-                throw new Error('No authentication token found');
-            }
 
-            const data = await getPets(token);
-            setPets(data);
-        } catch (err) {
-            console.error('Error fetching pets:', err);
-            // Fallback to mock data if API fails
-            console.warn('Using mock data for pets due to API error');
+            // Use mock data instead of API call
             const { mockPets } = await import('@/mocks/pets.mock');
             setPets(mockPets);
-            // setError(err instanceof Error ? err.message : 'Failed to fetch pets (using mock data)');
-            setError(null); // Clear error to allow rendering of mock data
+        } catch (err) {
+            console.error('Error loading mock pets:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load pets');
         } finally {
             setLoading(false);
         }

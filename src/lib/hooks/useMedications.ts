@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { getMedications, authStorage } from '@/lib/api-client';
 
 interface UseMedicationsReturn {
     medications: any[];
@@ -22,16 +21,27 @@ export function useMedications(petId?: string, date?: string): UseMedicationsRet
         try {
             setLoading(true);
             setError(null);
-            const token = authStorage.getToken();
-            if (!token) {
-                throw new Error('No authentication token found');
+
+            // Use mock data instead of API call
+            const { mockMedicineReminderVMs } = await import('@/mocks/medicine-reminders.mock');
+
+            // Client-side filtering by petId and date
+            let filteredMedications = mockMedicineReminderVMs;
+
+            if (petId) {
+                filteredMedications = filteredMedications.filter(
+                    med => med.pet._id === petId
+                );
             }
 
-            const data = await getMedications(token, petId, date);
-            setMedications(data);
+            // Note: Date filtering would require additional logic to check if medication
+            // schedule applies to the given date. For now, returning all medications.
+            // You can implement date filtering based on schedule.starting_date and frequency
+
+            setMedications(filteredMedications);
         } catch (err) {
-            console.error('Error fetching medications:', err);
-            setError(err instanceof Error ? err.message : 'Failed to fetch medications');
+            console.error('Error loading mock medications:', err);
+            setError(err instanceof Error ? err.message : 'Failed to load medications');
         } finally {
             setLoading(false);
         }

@@ -15,3 +15,11 @@ export type Pet = {
 };
 
 export type PetId = Pet['_id'];
+
+export type PetLite = {
+  id: string;
+  name: string;
+  pid: string;
+  avatarUrl: string;
+};
+
