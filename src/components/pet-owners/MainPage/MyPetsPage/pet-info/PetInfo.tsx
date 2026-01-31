@@ -3,18 +3,18 @@
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-import { usePet } from "@/lib/hooks/usePets";
-import { Pet } from "@/types/pet";
+
+import { usePet } from "@/hooks";
+import { Pet } from "@/types/domain/pet";
 
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
 import { formatAge } from "@/app/lib/pets/age";
-import { Page } from "@/styles/myPetsPage.styled";
+import { Page } from "@/styles/components/my-pets-page.styled";
 
 // shared component
 import PetFilterSelector, {
-  type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -60,14 +60,8 @@ export default function PetInfo() {
   const currentPet = pet;
   const ageText = formatAge(currentPet.birth_date);
 
-  const petsForSelector: PetLite[] = useMemo(
-    () =>
-      pets.map((p) => ({
-        id: String(p._id),
-        name: p.name,
-        pid: String(p._id),
-        avatarUrl: p.profile_image,
-      })),
+  const petsForSelector: Pet[] = useMemo(
+    () => pets,
     [pets]
   );
 

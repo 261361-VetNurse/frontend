@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { theme } from "./theme";
+import { theme } from "../tokens/theme";
 
 export const Page = styled.div`
   padding: 8px 24px;

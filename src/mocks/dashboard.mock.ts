@@ -1,4 +1,4 @@
-import { DashboardResponse, DashboardNotification, DashboardAppointment } from "@/types/dashboard";
+import { DashboardResponse, DashboardNotification, DashboardAppointment } from "@/types/domain/dashboard";
 import { mockPets } from "./pets.mock";
 
 // Mock dashboard data for HomePage

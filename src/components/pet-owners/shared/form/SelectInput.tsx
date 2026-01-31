@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { SelectWrapper, StyledSelect, Chevron } from '@/styles/formStyled/SelectInput.styles';
+import { SelectWrapper, StyledSelect, Chevron } from '@/styles/components/form/SelectInput.styles';
 
 interface SelectOption {
   label: string;

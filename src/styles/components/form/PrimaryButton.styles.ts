@@ -1,5 +1,5 @@
 import styled, { css, keyframes } from 'styled-components';
-import { theme } from '../theme';
+import { theme } from '../../tokens/theme';
 
 const spin = keyframes`
   from { stroke-dashoffset: 31.416; }

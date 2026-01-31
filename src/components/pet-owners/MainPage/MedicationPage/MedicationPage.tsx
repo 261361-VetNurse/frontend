@@ -6,9 +6,9 @@ import {
   Page,
   Header,
   CardList,
-} from '@/styles/medication.styled';
-import { PetId } from '@/types/pet';
-import { theme } from '@/styles/theme';
+} from '@/styles/components/medication.styled';
+import type { Pet, PetId } from '@/types/domain/pet';
+import { theme } from '@/styles/tokens/theme';
 import { Tabs } from '@/components/pet-owners/shared/Tabs';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
@@ -17,17 +17,17 @@ import {
   formatTimeForDisplay,
   buildOccurrencesForDate,
   ReminderOccurrence
-} from '@/lib/reminder-utils';
+} from '@/utils/reminder-utils';
 import MedicineCard, { TimeSlot } from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
 
 // Hooks
-import { usePets } from '@/lib/hooks/usePets';
+import { usePets } from '@/hooks';
 
 // Types
-import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { MedicineReminderVM } from '@/types/domain/medication';
 
 // Mock Data
 import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';

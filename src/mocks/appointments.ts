@@ -1,4 +1,4 @@
-import type { Appointment } from "@/types/Appointment";
+import type { Appointment } from "@/types/domain/appointment";
 import { mockPets } from "@/mocks/pets.mock";
 
 const [mochi, taro, luna] = mockPets;

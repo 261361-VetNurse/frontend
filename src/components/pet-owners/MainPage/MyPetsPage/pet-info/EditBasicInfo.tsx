@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import dayjs from "dayjs";
 import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 import { formatAge } from "@/app/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";

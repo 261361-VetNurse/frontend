@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import dayjs from "dayjs";
 import styled from "styled-components";
 
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 import {
   type PetSelectorValue,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Pet } from '@/types/pet';
+import type { Pet } from '@/types/domain/pet';
 
 interface UsePetsReturn {
     pets: Pet[];

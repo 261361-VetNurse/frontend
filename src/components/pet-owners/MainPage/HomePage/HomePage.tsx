@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { HomePageStyled } from "@/styles/homepage.styled";
+import { HomePageStyled } from "@/styles/components/homepage.styled";
 import AppointmentCard from "./AppointmentCard";
 import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import { theme } from "@/styles/theme";
+import { theme } from "@/styles/tokens/theme";
 import {
   formatTimeForDisplay,
-} from "@/lib/reminder-utils";
+} from "@/utils/reminder-utils";
 import ReminderCard from "./ReminderCard";
-import { DashboardData, DashboardNotification } from "@/types/dashboard";
-import { Appointment } from "@/types/Appointment";
-import { MedicineReminderVM } from "@/types/medicine-reminder";
+import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
+import { Appointment } from "@/types/domain/appointment";
+import { MedicineReminderVM } from "@/types/domain/medication";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 
 export default function HomePage() {

@@ -15,7 +15,7 @@ import { MedicalFab } from "./AddMedicalPopup";
 
 import { mockPets } from "@/mocks/pets.mock"; // ใช้ไฟล์นี้ (ถ้า import ผิดให้แก้เป็น @/mocks/pets)
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import { Pet } from "@/types/pet"; // เพิ่ม Type
+import { Pet } from "@/types/domain/pet"; // เพิ่ม Type
 
 type PetOption = {
   id: string;

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 function formatAge(birthDateISO: string) {
   const birth = new Date(birthDateISO);

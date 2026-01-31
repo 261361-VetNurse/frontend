@@ -1,4 +1,4 @@
-import { Owner } from "@/types/Owner";
+import { Owner } from "@/types/domain/owner";
 
 export const mockOwner: Owner = {
   id: "098765345",

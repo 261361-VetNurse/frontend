@@ -4,7 +4,7 @@ import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { theme } from "@/styles/theme";
+import { theme } from "@/styles/tokens/theme";
 
 interface ImageUploadProps {
     /**

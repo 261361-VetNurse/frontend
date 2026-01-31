@@ -3,12 +3,12 @@ import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 
-import { theme } from '@/styles/theme';
-import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { theme } from '@/styles/tokens/theme';
+import { MedicineReminderVM } from '@/types/domain/medication';
 import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
-import { Pet } from '@/types/pet';
+import type { Pet } from '@/types/domain/pet';
 
 const DaySelectorContainer = styled.div`
   display: flex;

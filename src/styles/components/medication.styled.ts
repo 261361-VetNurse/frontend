@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from './theme';
+import { theme } from '../tokens/theme';
 
 // Styled components
 export const Page = styled.div`

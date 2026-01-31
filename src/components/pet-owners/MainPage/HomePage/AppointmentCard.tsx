@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { Appointment } from "@/types/Appointment";
+import { Appointment } from "@/types/domain/appointment";
 import Profile from "@/components/pet-owners/shared/Profile";
 
 const CardContainer = styled.div`

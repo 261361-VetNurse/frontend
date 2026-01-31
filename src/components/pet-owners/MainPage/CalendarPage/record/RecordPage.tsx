@@ -15,7 +15,7 @@ import CalendarModule, {
   localDateToISO,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
+import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
 import AddRecordPopup, { type AddSymptomPayload } from "./AddRecordPopup";
@@ -26,7 +26,7 @@ import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton"
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 /* ---------------- styled ---------------- */
 /* ---------------- styled ---------------- */

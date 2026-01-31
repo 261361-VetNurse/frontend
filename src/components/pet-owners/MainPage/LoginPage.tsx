@@ -9,9 +9,9 @@ import {
     Header,
     Title,
     Subtitle,
-} from '@/styles/register.styled';
+} from '@/styles/components/register.styled';
 
-import { authStorage } from '@/lib/api-client';
+import { authStorage } from '@/services/api/client';
 
 export default function LoginPage() {
     const router = useRouter();

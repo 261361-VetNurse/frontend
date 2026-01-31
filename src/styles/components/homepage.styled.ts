@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { theme } from './theme';
+import { theme } from '../tokens/theme';
 
 export const HomePageStyled = styled.div `
     display: flex;

@@ -1,7 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { theme } from './theme';
+import { theme } from '../tokens/theme';
 
 export const Container = styled.div`
   background: #f5f5f5;

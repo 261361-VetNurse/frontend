@@ -83,7 +83,7 @@ export async function getCurrentUser(token: string): Promise<UserResponse> {
 /**
  * Get dashboard home data
  */
-export async function getDashboardHome(token: string): Promise<import('../types/dashboard').DashboardResponse> {
+export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`${API_BASE_URL}/v1/dashboard/home`, {
         headers: {
             'access_token': token

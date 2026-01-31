@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import styled, { css } from 'styled-components';
-import {theme} from "@/styles/theme";
+import {theme} from "@/styles/tokens/theme";
 
 export type ProfileSize = number | string;
 

@@ -6,10 +6,10 @@ import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 
-import { usePets } from "@/lib/hooks/usePets";
+import { usePets } from "@/hooks";
 import { mockOwner } from "@/mocks/owner";
 
-import { Page } from "@/styles/myPetsPage.styled";
+import { Page } from "@/styles/components/my-pets-page.styled";
 
 export default function MyPets() {
   const { pets, loading, error } = usePets();

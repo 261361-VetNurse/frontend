@@ -23,7 +23,7 @@ import {
   InfoItem,
   InfoLabel,
   InfoValue
-} from '../../../../styles/OwnerInformationPage.styles';
+} from '@/styles/components/owner-information.styled';
 
 const OwnerInformationPage = () => {
   const router = useRouter();

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";

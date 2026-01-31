@@ -14,11 +14,11 @@ import {
     Header,
     CardList,
 } from '../../../../styles/medication.styled';
-import { theme } from '@/styles/theme';
+import { theme } from '@/styles/tokens/theme';
 import { QuickDialButton } from '../../shared/QuickDialButton';
 import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';
-import { MedicineReminderVM } from '@/types/medicine-reminder';
-import { OccurrenceStatus } from '@/types/medication-occurrence';
+import { MedicineReminderVM } from '@/types/domain/medication';
+import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
 import {
     formatTimeForDisplay,
     updateReminderTakenStatus,
@@ -27,7 +27,7 @@ import {
     buildOccurrenceId,
     getTodayInLocalTimezone,
     getUserTimezone,
-} from '@/lib/reminder-utils';
+} from '@/utils/reminder-utils';
 import MedicineCard from './MedicineCard';
 
 // Types

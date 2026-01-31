@@ -1,4 +1,4 @@
-// // import {MedicineReminderVM} from "@/types/medicine-reminder";
+// // import {MedicineReminderVM} from "@/types/domain/medication";
 
 // // export const mockMedicineReminderVMs: MedicineReminderVM[] = [
 // //     {
@@ -144,7 +144,7 @@
 // //         },
 // //     },
 // // ];
-// import { MedicineReminderVM } from "@/types/medicine-reminder";
+// import { MedicineReminderVM } from "@/types/domain/medication";
 
 // export const mockMedicineReminderVMs: MedicineReminderVM[] = [
 //   {
@@ -296,7 +296,7 @@
 //   },
 // ];
 
-import { MedicineReminderVM } from "@/types/medicine-reminder";
+import { MedicineReminderVM } from "@/types/domain/medication";
 
 export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   {

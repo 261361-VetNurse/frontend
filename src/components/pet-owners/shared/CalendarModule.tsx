@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
+import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 
 /**
  * CalendarModule (shared)

@@ -1,5 +1,5 @@
 // src/mocks/pets.ts
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 export const mockPets: Pet[] = [
   {

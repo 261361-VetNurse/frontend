@@ -7,11 +7,10 @@ import AppointmentPage from "@/components/pet-owners/MainPage/CalendarPage/appoi
 import { RecordPage } from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPage";
 import { Tabs } from "@/components/pet-owners/shared/Tabs";
 import PetFilterSelector, {
-    type PetLite,
     type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/pet";
+import type { Pet, PetLite } from "@/types/domain/pet";
 
 export default function Page() {
     const searchParams = useSearchParams();

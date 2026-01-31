@@ -6,7 +6,7 @@ import { FormField } from "../../../shared/form/FormField";
 import { TextInput } from "../../../shared/form/TextInput";
 import { PrimaryButton } from "../../../shared/form/PrimaryButton";
 import { Pets } from "@mui/icons-material";
-import { theme } from "@/styles/theme";
+import { theme } from "@/styles/tokens/theme";
 
 const Overlay = styled.div`
   position: fixed;

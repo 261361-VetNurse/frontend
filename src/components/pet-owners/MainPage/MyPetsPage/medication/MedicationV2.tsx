@@ -9,8 +9,8 @@ import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import { MedicineReminderVM } from '@/types/medicine-reminder';
-import { OccurrenceStatus } from '@/types/medication-occurrence';
+import { MedicineReminderVM } from '@/types/domain/medication';
+import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
 import {
   formatTimeForDisplay,
   updateReminderTakenStatus,
@@ -19,13 +19,13 @@ import {
   buildOccurrenceId,
   getTodayInLocalTimezone,
   getUserTimezone,
-} from '@/lib/reminder-utils';
-import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/lib/api-client';
-import { usePets } from '@/lib/hooks/usePets';
-import { theme } from '@/styles/theme';
-import { FabButton } from "@/styles/appointments.styled";
+} from '@/utils/reminder-utils';
+import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/services/api/client';
+import { usePets } from '@/hooks';
+import { theme } from '@/styles/tokens/theme';
+import { FabButton } from "@/styles/components/appointments.styled";
 import { Add } from "@mui/icons-material";
-import { TabsWrap, TabButton, Header, CardList } from "../../../../../styles/medication.styled";
+import { TabsWrap, TabButton, Header, CardList } from "@/styles/components/medication.styled";
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';

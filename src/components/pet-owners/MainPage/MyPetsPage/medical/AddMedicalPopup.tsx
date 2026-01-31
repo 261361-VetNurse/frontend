@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { Add } from "@mui/icons-material";
 
-import { FabButton } from "@/styles/medical.styled";
+import { FabButton } from "@/styles/components/medical.styled";
 
 type PetLite = {
   id: string;

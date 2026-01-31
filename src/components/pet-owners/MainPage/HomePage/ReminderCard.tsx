@@ -3,7 +3,7 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Profile from "../../shared/Profile";
-import { ReminderCardStyle } from "@/styles/homepage.styled";
+import { ReminderCardStyle } from "@/styles/components/homepage.styled";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 
 export type OccurrenceStatus = "pending" | "taken" | "missed";

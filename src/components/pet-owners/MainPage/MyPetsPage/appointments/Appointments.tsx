@@ -7,7 +7,7 @@ import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetFilterSelector, {
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
 import AppointmentTabs, {
@@ -17,10 +17,10 @@ import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/
 
 import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
-import type { Appointment } from "@/types/Appointment";
+import type { Appointment } from "@/types/domain/appointment";
 
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
-import { FabButton } from "@/styles/appointments.styled";
+import { FabButton } from "@/styles/components/appointments.styled";
 import { Add } from "@mui/icons-material";
 
 export default function Appointments() {

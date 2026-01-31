@@ -13,7 +13,7 @@ import {
   Title,
   Subtitle,
   Form
-} from '@/styles/register.styled';
+} from '@/styles/components/register.styled';
 
 interface FormData {
   firstName: string;

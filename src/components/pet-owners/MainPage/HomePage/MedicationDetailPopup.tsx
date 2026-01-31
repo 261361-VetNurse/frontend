@@ -1,9 +1,9 @@
-import { formatTimeForDisplay } from '@/lib/reminder-utils';
-import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { formatTimeForDisplay } from '@/utils/reminder-utils';
+import { MedicineReminderVM } from '@/types/domain/medication';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/medication.styled';
+import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';

@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -20,7 +24,36 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ],
+      "@/types/*": [
+        "./src/types/*"
+      ],
+      "@/styles/*": [
+        "./src/styles/*"
+      ],
+      "@/components/*": [
+        "./src/components/*"
+      ],
+      "@/hooks/*": [
+        "./src/hooks/*"
+      ],
+      "@/services/*": [
+        "./src/services/*"
+      ],
+      "@/utils/*": [
+        "./src/utils/*"
+      ],
+      "@/constants/*": [
+        "./src/constants/*"
+      ],
+      "@/mocks/*": [
+        "./src/mocks/*"
+      ],
+      "@/lib/*": [
+        "./src/lib/*"
+      ]
     }
   },
   "include": [
@@ -29,7 +62,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
-, "src/app/(liff)/pet-owners/(with-navbar)/my-pets-page/[petId]/id"  ],
-  "exclude": ["node_modules"]
+    "**/*.mts",
+    "src/app/(liff)/pet-owners/(with-navbar)/my-pets-page/[petId]/id"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

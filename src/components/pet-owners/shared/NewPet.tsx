@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import IconButton from "@mui/material/IconButton";
 import AddIcon from "@mui/icons-material/Add";
-import {theme} from "@/styles/theme";
+import {theme} from "@/styles/tokens/theme";
 
 export default function NewPetButton() {
   const router = useRouter();

@@ -14,8 +14,8 @@ import {
   AvatarImg,
   OwnerName,
   OwnerId
-} from '../../../../styles/OwnerInformationPage.styles';
-import { theme } from '../../../../styles/theme';
+} from '@/styles/components/owner-information.styled';
+import { theme } from '@/styles/tokens/theme';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';

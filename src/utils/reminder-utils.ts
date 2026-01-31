@@ -1,8 +1,8 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { MedicineReminderVM } from "@/types/medicine-reminder";
-import { MedicationOccurrenceVM, OccurrenceStatus } from "@/types/medication-occurrence";
+import { MedicineReminderVM } from "@/types/domain/medication";
+import { MedicationOccurrenceVM, OccurrenceStatus } from "@/types/domain/medication-occurrence";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
