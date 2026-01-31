@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { K2D } from "next/font/google";
 import "./globals.css";
-import StyledComponentsRegistry from "./lib/registry";
+import StyledComponentsRegistry from "../lib/registry";
 
 const k2d = K2D({
   weight: ["300", "400", "500", "600", "700"],

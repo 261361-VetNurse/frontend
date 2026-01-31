@@ -6,7 +6,7 @@ import Image from "next/image";
 import dayjs from "dayjs";
 import { mockPets } from "@/mocks/pets.mock";
 import { Pet } from "@/types/domain/pet";
-import { formatAge } from "@/app/lib/pets/age";
+import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
 
@@ -41,10 +41,10 @@ export default function EditBasicInfo() {
   const [species, setSpecies] = useState(currentPet.species ?? "");
   const [breed, setBreed] = useState(currentPet.breed ?? "");
   const [dob, setDob] = useState(
-  currentPet.birth_date
-    ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
-    : ""
-);
+    currentPet.birth_date
+      ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
+      : ""
+  );
 
   const [sex, setSex] = useState<Sex>((currentPet.gender as Sex) ?? "Unknown");
   const [weight, setWeight] = useState(currentPet.weight_kg ?? "");
@@ -72,7 +72,7 @@ export default function EditBasicInfo() {
       .filter((s) => s !== "");
 
     const payload = {
-      ...currentPet, 
+      ...currentPet,
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
@@ -125,7 +125,7 @@ export default function EditBasicInfo() {
         </div>
 
         <div className="space-y-4 px-6 mt-4">
-          
+
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
@@ -214,28 +214,28 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
-                    {/* Infecund (Sterile) */}
+          {/* Infecund (Sterile) */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-2">
               Infecund
             </label>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input 
-                  type="radio" 
-                  checked={infecund === true} 
+                <input
+                  type="radio"
+                  checked={infecund === true}
                   onChange={() => setInfecund(true)}
                   className="accent-sky-500 w-4 h-4"
-                /> 
+                />
                 Yes
               </label>
               <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input 
-                  type="radio" 
-                  checked={infecund === false} 
+                <input
+                  type="radio"
+                  checked={infecund === false}
                   onChange={() => setInfecund(false)}
                   className="accent-sky-500 w-4 h-4"
-                /> 
+                />
                 No
               </label>
             </div>

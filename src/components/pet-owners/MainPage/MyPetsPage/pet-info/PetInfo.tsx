@@ -2,17 +2,13 @@
 
 import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-
-
 import { usePet } from "@/hooks";
 import { Pet } from "@/types/domain/pet";
-
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
-import { formatAge } from "@/app/lib/pets/age";
+import { formatAge } from "@/lib/pets/age";
 import { Page } from "@/styles/components/my-pets-page.styled";
-
 // shared component
 import PetFilterSelector, {
   type PetSelectorValue,
