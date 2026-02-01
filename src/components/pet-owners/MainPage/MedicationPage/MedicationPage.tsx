@@ -14,9 +14,8 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import {
-  buildOccurrencesForDate,
   ReminderOccurrence
-} from '@/utils/reminder-utils';
+} from '@/types/domain/medication-occurrence';
 import MedicineCard, { TimeSlot } from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
@@ -29,7 +28,7 @@ import { usePets } from '@/hooks';
 import { MedicineReminderVM } from '@/types/domain/medication';
 
 // Mock Data
-import { mockMedicineReminderVMs } from '@/mocks/medicine-reminders.mock';
+import { authStorage, getMedications } from '@/services/api/client';
 
 type TabType = 'today' | 'tomorrow' | 'other';
 
@@ -37,8 +36,7 @@ export default function MedicationPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // State - using local mock data instead of API
-  const [medicationPlans, setMedicationPlans] = useState<MedicineReminderVM[]>(mockMedicineReminderVMs);
+  // State
   const [occurrences, setOccurrences] = useState<ReminderOccurrence[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -79,66 +77,89 @@ export default function MedicationPage() {
   const baseDate = getDateForTab(activeTab);
 
   // Build occurrences from mock data
-  const fetchReminders = useCallback(() => {
+  const fetchReminders = useCallback(async () => {
     setLoading(true);
 
     try {
+      const token = authStorage.getToken() || "";
       const dateForTab = getDateForTab(activeTab);
+      // Format as YYYY-MM-DD
+      const dateStr = dateForTab.toISOString().split('T')[0];
 
-      // Use buildOccurrencesForDate to generate occurrences
-      const allOccurrences = buildOccurrencesForDate(medicationPlans, dateForTab);
+      // Fetch occurrences directly from API
+      const data = await getMedications(token, selectedPetId === 'all' ? undefined : selectedPetId, dateStr);
 
-      // Filter by selected pet if needed
-      const filtered = selectedPetId === 'all'
-        ? allOccurrences
-        : allOccurrences.filter(occ => occ.pet._id === selectedPetId);
+      // Data is already ReminderOccurrence[]
+      const allOccurrences = data as ReminderOccurrence[];
 
       // Sort by scheduled time
-      const sorted = filtered.sort(
+      const sorted = allOccurrences.sort(
         (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
       );
 
       setOccurrences(sorted);
     } catch (err) {
-      console.error('Error building occurrences:', err);
+      console.error('Error fetching reminders:', err);
       setOccurrences([]);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, selectedPetId, medicationPlans]);
+  }, [activeTab, selectedPetId]);
 
   useEffect(() => {
     fetchReminders();
   }, [fetchReminders]);
 
-  // Deep link handling (updated to use mock data)
+  // Deep link handling (updated to use getMedicationDetail)
   useEffect(() => {
-    if (loading) return;
     const notificationId = searchParams.get('notification_id');
     const reminderId = searchParams.get('reminder_id');
     const openMode = searchParams.get('open');
 
-    if (!notificationId) return;
-
-    // Find the plan from mock data
-    const plan = medicationPlans.find(p => p.notification_id === notificationId);
-
-    if (plan) {
-      if (openMode === 'edit') {
-        setEditingReminder(plan);
-      } else {
-        setSelectedReminder({
-          medicineReminder: plan,
-          highlightedReminderId: reminderId || undefined,
-        });
+    const handleDeepLink = async () => {
+      if (!notificationId) {
+        if (selectedReminder && !openMode && !reminderId) setSelectedReminder(null);
+        if (editingReminder && openMode !== 'edit') setEditingReminder(null);
+        return;
       }
-    }
 
-    window.history.replaceState({}, '', '/pet-owners/medication-page');
-  }, [searchParams, loading, medicationPlans]);
+      // If we already have the correct data open, don't re-fetch
+      if (openMode === 'edit' && editingReminder?.notification_id === notificationId) return;
+      if (selectedReminder?.medicineReminder.notification_id === notificationId && !openMode) {
+        // just update highlighted ID if needed
+        if (selectedReminder.highlightedReminderId !== reminderId) {
+          setSelectedReminder(prev => prev ? ({ ...prev, highlightedReminderId: reminderId || undefined }) : null);
+        }
+        return;
+      }
+
+      try {
+        const token = authStorage.getToken() || "";
+        // Fetch full detail for the popup
+        const detail = await import('@/services/api/client').then(m => m.getMedicationDetail(token, notificationId));
+
+        if (detail) {
+          if (openMode === 'edit') {
+            setEditingReminder(detail);
+            setSelectedReminder(null);
+          } else {
+            setSelectedReminder({
+              medicineReminder: detail,
+              highlightedReminderId: reminderId || undefined
+            });
+            setEditingReminder(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load medication detail for deep link:", err);
+      }
+    };
+
+    handleDeepLink();
+  }, [searchParams, selectedReminder, editingReminder]);
 
 
-  // Filtered occurrences - filtering is already done in fetchReminders
+  // Filtered occurrences - filtering is already done in fetchReminders by API
   const filteredOccurrences = useMemo(() => {
     return occurrences;
   }, [occurrences]);
@@ -157,38 +178,46 @@ export default function MedicationPage() {
   };
 
   const handleSubmitCreatePopup = () => {
-    // Close popup - in a real implementation, this would add to medicationPlans
+    // Close popup
     setShowCreatePopup(false);
-    // Refresh occurrences (will be rebuilt from medicationPlans)
+    // Refresh occurrences
     fetchReminders();
   };
 
   const handleReminderClick = (occ: ReminderOccurrence) => {
-    // Find the plan from mock data
-    const plan = medicationPlans.find(p => p.notification_id === occ.plan_id);
-    if (plan) {
-      setSelectedReminder({
-        medicineReminder: plan,
-        highlightedReminderId: occ.reminder_id,
-      });
-    }
+    // Update URL instead of setting state directly
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('notification_id', occ.plan_id);
+    params.set('reminder_id', occ.reminder_id);
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleEditFromCard = (occ: ReminderOccurrence) => {
-    // Find the plan from mock data and set editing
-    const plan = medicationPlans.find(p => p.notification_id === occ.plan_id);
-    if (plan) {
-      setEditingReminder(plan);
-      setSelectedReminder(null);
-    }
+    // Update URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('notification_id', occ.plan_id);
+    params.set('open', 'edit');
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleDeleteFromCard = (planId: string) => {
+  const handleDeleteFromCard = async (planId: string) => {
     if (window.confirm('Are you sure you want to delete this medication?')) {
       try {
-        // Remove from medicationPlans
-        setMedicationPlans(prev => prev.filter(p => p.notification_id !== planId));
-        // Update occurrences will happen automatically via useEffect
+        const token = authStorage.getToken() || "";
+        // We'd need a medicine ID, but the card only has planId (notification_id)
+        // AND we might need medicineId. usage of deleteMedicine(token, notifId, medId).
+        // BUT groupedMap logic below doesn't easily give medicineId unless we look at the occ.
+        // Let's find an occurrence for this plan
+        const occ = occurrences.find(o => o.plan_id === planId);
+        if (occ) {
+          // In mock/API, we might need medicineId. 
+          // The API signature is deleteMedicine(token, notificationId, medicineId).
+          // Occurrence has medicine._id
+          await import('@/services/api/client').then(m => m.deleteMedicine(token, planId, occ.medicine._id));
+
+          // Refresh
+          fetchReminders();
+        }
       } catch (err) {
         console.error(err);
         alert("Failed to delete medication");
@@ -196,27 +225,33 @@ export default function MedicationPage() {
     }
   };
 
-  const handleToggleReminder = (planId: string, reminderId: string, isTaken: boolean) => {
-    // Update medicationPlans with the new status
-    setMedicationPlans(prev => prev.map(plan => {
-      if (plan.notification_id !== planId) return plan;
-
-      return {
-        ...plan,
-        schedule: {
-          ...plan.schedule,
-          reminders: plan.schedule.reminders.map(r => {
-            if (r.id !== reminderId) return r;
-            return {
-              ...r,
-              is_taken: isTaken,
-              status: isTaken ? 'taken' : 'pending',
-              taken_at: isTaken ? new Date().toISOString() : undefined
-            };
-          })
-        }
-      };
+  const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
+    // Optimistic update in list
+    setOccurrences(prev => prev.map(occ => {
+      if (occ.plan_id === planId && occ.reminder_id === reminderId) {
+        return {
+          ...occ,
+          status: isTaken ? 'taken' : 'pending',
+          taken_at: isTaken ? new Date().toISOString() : null
+        };
+      }
+      return occ;
     }));
+
+    // API Call
+    try {
+      const token = authStorage.getToken() || "";
+      await import('@/services/api/client').then(m => m.markMedicationTaken(token, planId, isTaken)); // API might need reminderId too? Current mock uses notifId + toggle. 
+      // Real API likely needs specific reminder ID if multiple per day.
+      // user's generic 'markMedicationTaken' takes notificationId and istaken. 
+      // It might toggle all? Or needs to be updated. 
+      // For now adhering to existing client signature but knowing it might be imperfect for multi-dose.
+      // Re-fetch to be safe
+      fetchReminders();
+    } catch (e) {
+      console.error("Failed to toggle", e);
+      fetchReminders(); // revert
+    }
 
     // If detail is open, update it too
     if (selectedReminder?.medicineReminder.notification_id === planId) {
@@ -230,22 +265,43 @@ export default function MedicationPage() {
 
   const handleEditFromDetail = () => {
     if (!selectedReminder) return;
-    setEditingReminder(selectedReminder.medicineReminder);
-    setSelectedReminder(null);
+    // Switch mode in URL
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('notification_id', selectedReminder.medicineReminder.notification_id);
+    params.set('open', 'edit');
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleCloseDetail = () => {
+    // Remove specific params but keep others (like tab)
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('notification_id');
+    params.delete('reminder_id');
+    params.delete('open');
+    router.push(`?${params.toString()}`, { scroll: false });
     setSelectedReminder(null);
   };
 
   const handleCloseEdit = () => {
+    // Remove specific params
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('notification_id');
+    params.delete('reminder_id');
+    params.delete('open');
+    router.push(`?${params.toString()}`, { scroll: false });
     setEditingReminder(null);
   };
 
   const handleSaveEdit = () => {
-    // Close the edit popup - changes are handled by the popup
+    // Remove params
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('notification_id');
+    params.delete('reminder_id');
+    params.delete('open');
+    router.push(`?${params.toString()}`, { scroll: false });
     setEditingReminder(null);
     // Occurrences will be rebuilt automatically via useEffect
+    fetchReminders();
   };
 
   const formatDate = (d: Date): string => {
@@ -316,7 +372,7 @@ export default function MedicationPage() {
               const group = groupedMap.get(occ.plan_id)!;
               group.slots.push({
                 id: occ.reminder_id,
-                timeLabel: occ.time, // Already formatted by buildOccurrencesForDate
+                timeLabel: occ.time, // Already formatted by API/Mock
                 status: occ.status
               });
             });

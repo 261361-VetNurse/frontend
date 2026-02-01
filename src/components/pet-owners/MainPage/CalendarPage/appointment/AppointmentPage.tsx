@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import dayjs from "dayjs";
+import { useSearchParams, useRouter } from "next/navigation";
 
 import { Page } from "@/styles/components/calendar.styled";
 
@@ -27,8 +28,8 @@ import EditAppointment from "@/components/pet-owners/shared/appointment/EditAppo
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { mockAppointmentsByPetId } from "@/mocks/appointments";
+import { useAppointments } from "@/hooks/useAppointments";
+import { usePets } from "@/hooks/usePets";
 
 /* ---------------- tabs ---------------- */
 
@@ -47,6 +48,11 @@ export default function AppointmentPage({
   /* -------- pets -------- */
   // Removed local petOptions and selectedPetId state
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const appointmentIdParam = searchParams.get("appointment_id");
+  const openParam = searchParams.get("open");
+
   /* -------- calendar -------- */
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -57,28 +63,28 @@ export default function AppointmentPage({
   const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
 
   /* -------- appointment data -------- */
+  const { appointments: apiAppointments, loading: loadingApps } = useAppointments();
+  const { pets, loading: loadingPets } = usePets();
 
   const appointments: AppointmentDetailItem[] = useMemo(() => {
-    return Object.values(mockAppointmentsByPetId)
-      .flat()
-      .map((item) => {
-        const pet = mockPets.find(
-          (p) => String(p._id) === String(item.petId)
-        );
+    return apiAppointments.map((item) => {
+      const pet = pets.find(
+        (p) => String(p._id) === String(item.petId)
+      );
 
-        return {
-          id: item.id,
-          petId: String(item.petId),
-          petName: item.petName,
-          petPid: pet ? String(pet._id) : "-",
-          avatarUrl: pet?.profile_image,
-          date: item.date,
-          time: item.time,
-          location: item.location,
-          status: item.status,
-        };
-      });
-  }, []);
+      return {
+        id: item.id,
+        petId: String(item.petId),
+        petName: item.petName,
+        petPid: pet ? String(pet._id) : "-",
+        avatarUrl: pet?.profile_image,
+        date: item.date,
+        time: item.time,
+        location: item.location,
+        status: item.status,
+      };
+    });
+  }, [apiAppointments, pets]);
 
   const filteredByPet = useMemo(() => {
     if (selectedPetId === "all") return appointments;
@@ -119,13 +125,32 @@ export default function AppointmentPage({
   // Re-creating petOptions for popup usage since we removed the main one
   const petOptions: PetLite[] = useMemo(
     () =>
-      mockPets.map((p: Pet) => ({
+      pets.map((p: Pet) => ({
         _id: String(p._id),
         name: p.name,
         profile_image: p.profile_image,
       })),
-    []
+    [pets]
   );
+
+  // Deep linking for Edit
+  useEffect(() => {
+    if (appointmentIdParam && openParam === "edit" && !loadingApps && appointments.length > 0) {
+      const target = appointments.find((a) => a.id === appointmentIdParam);
+      if (target) {
+        setEditing(target);
+      }
+    }
+  }, [appointmentIdParam, openParam, loadingApps, appointments]);
+
+  const closeEdit = () => {
+    setEditing(null);
+    // Clear query params
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete("appointment_id");
+    newParams.delete("open");
+    router.replace(`?${newParams.toString()}`);
+  };
 
   return (
     <Page>
@@ -159,8 +184,8 @@ export default function AppointmentPage({
       <EditAppointment
         open={!!editing}
         appointment={editing}
-        onClose={() => setEditing(null)}
-        onSave={() => setEditing(null)}
+        onClose={closeEdit}
+        onSave={closeEdit}
       />
 
       {/* FAB */}

@@ -24,6 +24,7 @@ import {
   InfoLabel,
   InfoValue
 } from '@/styles/components/owner-information.styled';
+import { getUserProfile, authStorage } from '@/services/api/client';
 
 const OwnerInformationPage = () => {
   const router = useRouter();
@@ -34,9 +35,9 @@ const OwnerInformationPage = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Use mock data instead of API call
-        const { mockUserProfile } = await import('@/mocks/owner');
-        setUserData(mockUserProfile);
+        const token = authStorage.getToken() || "";
+        const data = await getUserProfile(token);
+        setUserData(data);
       } catch (err) {
         console.error('Failed to load user profile:', err);
         setError('Failed to load profile data');

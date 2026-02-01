@@ -1,12 +1,17 @@
 import { DashboardResponse, DashboardNotification, DashboardAppointment } from "@/types/domain/dashboard";
 import { mockPets } from "./pets.mock";
+import { mockUserProfile } from "./owner";
+
+// Helper to find pet by name/ID for consistent data
+const mochi = mockPets.find(p => p.name === "Mochi") || mockPets[0];
+const taro = mockPets.find(p => p.name === "Taro") || mockPets[1];
 
 // Mock dashboard data for HomePage
 export const mockDashboardData: DashboardResponse = {
     success: true,
     data: {
-        fname: "สมหญิง",
-        lname: "ใจบุญ",
+        fname: mockUserProfile.fname,
+        lname: mockUserProfile.lname,
         pets: mockPets.map(pet => ({
             pet_id: pet._id,
             profile_image: pet.profile_image || "",
@@ -18,9 +23,9 @@ export const mockDashboardData: DashboardResponse = {
                 title: "Probiotics Capsule - 02:00",
                 medicine_id: "65f1a9c2b0f3c1a2d3e4f811",
                 medicine_name: "Probiotics Capsule",
-                pet_id: "430242", // Mochi
-                pet_name: "Mochi",
-                pet_image: "/pets-example/pet-ex1.svg",
+                pet_id: mochi._id,
+                pet_name: mochi.name,
+                pet_image: mochi.profile_image || "",
                 notification_at: new Date().toISOString(), // Current time
                 status: "pending",
                 istaken: false,
@@ -30,9 +35,9 @@ export const mockDashboardData: DashboardResponse = {
                 title: "Amoxicillin - 06:00",
                 medicine_id: "65f1a9c2b0f3c1a2d3e4f812",
                 medicine_name: "Amoxicillin",
-                pet_id: "430243", // Taro
-                pet_name: "Taro",
-                pet_image: "/pets-example/pet-ex2.svg",
+                pet_id: taro._id,
+                pet_name: taro.name,
+                pet_image: taro.profile_image || "",
                 notification_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // 1 hour from now
                 status: "pending",
                 istaken: false,
@@ -42,9 +47,9 @@ export const mockDashboardData: DashboardResponse = {
                 title: "Vitamin D - 12:00",
                 medicine_id: "65f1a9c2b0f3c1a2d3e4f814",
                 medicine_name: "Vitamin D",
-                pet_id: "430242", // Mochi
-                pet_name: "Mochi",
-                pet_image: "/pets-example/pet-ex1.svg",
+                pet_id: mochi._id,
+                pet_name: mochi.name,
+                pet_image: mochi.profile_image || "",
                 notification_at: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
                 status: "pending",
                 istaken: false,
@@ -53,9 +58,9 @@ export const mockDashboardData: DashboardResponse = {
         appointments: [
             {
                 _id: "apt-001",
-                pet_id: "430242", // Mochi
-                pet_name: "Mochi",
-                pet_image: "/pets-example/pet-ex1.svg",
+                pet_id: mochi._id,
+                pet_name: mochi.name,
+                pet_image: mochi.profile_image || "",
                 appointment_date: "2026-01-20T11:00:00.000Z",
                 status: "upcoming",
                 notification_status: "pending",
@@ -63,9 +68,9 @@ export const mockDashboardData: DashboardResponse = {
             },
             {
                 _id: "apt-002",
-                pet_id: "430243", // Taro
-                pet_name: "Taro",
-                pet_image: "/pets-example/pet-ex2.svg",
+                pet_id: taro._id,
+                pet_name: taro.name,
+                pet_image: taro.profile_image || "",
                 appointment_date: "2026-01-18T10:30:00.000Z",
                 status: "upcoming",
                 notification_status: "pending",

@@ -297,14 +297,19 @@
 // ];
 
 import { MedicineReminderVM } from "@/types/domain/medication";
+import { mockPets } from "./pets.mock";
+
+const mochi = mockPets.find(p => p.name === "Mochi") || mockPets[0];
+const taro = mockPets.find(p => p.name === "Taro") || mockPets[1];
+const luna = mockPets.find(p => p.name === "Luna") || mockPets[2];
 
 export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   {
-    notification_id: "65f1a9c2b0f3c1a2d3e4fa10",
+    notification_id: "notif-001",
     pet: {
-      _id: "65f1a9c2b0f3c1a2d3e4f601",      // ✅ แก้ id -> _id
-      name: "Mochi",
-      profile_image: "/pets-example/pet-ex1.svg", // ✅ แก้ image_url -> profile_image
+      _id: mochi._id,      // ✅ แก้ id -> _id
+      name: mochi.name,
+      profile_image: mochi.profile_image || "", // ✅ แก้ image_url -> profile_image
     },
     medicine: {
       _id: "65f1a9c2b0f3c1a2d3e4f811",      // ✅ แก้ id -> _id
@@ -337,11 +342,11 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   },
 
   {
-    notification_id: "65f1a9c2b0f3c1a2d3e4fa11",
+    notification_id: "notif-002",
     pet: {
-      _id: "65f1a9c2b0f3c1a2d3e4f602",
-      name: "Taro",
-      profile_image: "/pets-example/pet-ex2.svg",
+      _id: taro._id,
+      name: taro.name,
+      profile_image: taro.profile_image || "",
     },
     medicine: {
       _id: "65f1a9c2b0f3c1a2d3e4f812",
@@ -364,11 +369,11 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   },
 
   {
-    notification_id: "65f1a9c2b0f3c1a2d3e4fa12",
+    notification_id: "notif-003",
     pet: {
-      _id: "65f1a9c2b0f3c1a2d3e4f603",
-      name: "Luna",
-      profile_image: "/pets-example/pet-ex3.svg",
+      _id: luna._id,
+      name: luna.name,
+      profile_image: luna.profile_image || "",
     },
     medicine: {
       _id: "65f1a9c2b0f3c1a2d3e4f813",
@@ -394,9 +399,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   {
     notification_id: "65f1a9c2b0f3c1a2d3e4fa13",
     pet: {
-      _id: "65f1a9c2b0f3c1a2d3e4f601",
-      name: "Mochi",
-      profile_image: "/pets-example/pet-ex1.svg",
+      _id: mochi._id,
+      name: mochi.name,
+      profile_image: mochi.profile_image || "",
     },
     medicine: {
       _id: "65f1a9c2b0f3c1a2d3e4f814",
@@ -424,9 +429,9 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
   {
     notification_id: "65f1a9c2b0f3c1a2d3e4fa14",
     pet: {
-      _id: "65f1a9c2b0f3c1a2d3e4f602",
-      name: "Taro",
-      profile_image: "/pets-example/pet-ex2.svg",
+      _id: taro._id,
+      name: taro.name,
+      profile_image: taro.profile_image || "",
     },
     medicine: {
       _id: "65f1a9c2b0f3c1a2d3e4f815",
@@ -449,5 +454,65 @@ export const mockMedicineReminderVMs: MedicineReminderVM[] = [
     medication_status: {
       is_stopped: false,
     },
+  },
+];
+
+import { ReminderOccurrence } from "@/types/domain/medication-occurrence";
+
+// Mock occurrences for "Today" and "Tomorrow"
+const today = new Date().toISOString().split('T')[0];
+const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
+export const mockMedicineOccurrences: ReminderOccurrence[] = [
+  // Today's occurrences
+  {
+    occurrence_id: `occ_notif-001_${today}_0200`,
+    plan_id: "notif-001",
+    reminder_id: "r1",
+    pet: { _id: mochi._id, name: mochi.name, profile_image: mochi.profile_image || "" },
+    medicine: { _id: "65f1a9c2b0f3c1a2d3e4f811", name: "Probiotics Capsule", dosage: "150mg" },
+    scheduled_at: `${today}T02:00:00+07:00`,
+    time: "02:00",
+    frequency_label: "Everyday",
+    status: "pending",
+    taken_at: null,
+  },
+  {
+    occurrence_id: `occ_notif-001_${today}_2000`,
+    plan_id: "notif-001",
+    reminder_id: "r2",
+    pet: { _id: mochi._id, name: mochi.name, profile_image: mochi.profile_image || "" },
+    medicine: { _id: "65f1a9c2b0f3c1a2d3e4f811", name: "Probiotics Capsule", dosage: "150mg" },
+    scheduled_at: `${today}T20:00:00+07:00`,
+    time: "20:00",
+    frequency_label: "Everyday",
+    status: "taken",
+    taken_at: `${today}T20:03:00+07:00`,
+  },
+  {
+    occurrence_id: `occ_notif-002_${today}_0600`,
+    plan_id: "notif-002",
+    reminder_id: "r1",
+    pet: { _id: taro._id, name: taro.name, profile_image: taro.profile_image || "" },
+    medicine: { _id: "65f1a9c2b0f3c1a2d3e4f812", name: "Amoxicillin", dosage: "5 ml" },
+    scheduled_at: `${today}T06:00:00+07:00`,
+    time: "06:00",
+    frequency_label: "Every 8 hours",
+    status: "pending",
+    taken_at: null,
+  },
+
+  // Tomorrow's occurrences
+  {
+    occurrence_id: `occ_notif-001_${tomorrow}_0200`,
+    plan_id: "notif-001",
+    reminder_id: "r1",
+    pet: { _id: mochi._id, name: mochi.name, profile_image: mochi.profile_image || "" },
+    medicine: { _id: "65f1a9c2b0f3c1a2d3e4f811", name: "Probiotics Capsule", dosage: "150mg" },
+    scheduled_at: `${tomorrow}T02:00:00+07:00`,
+    time: "02:00",
+    frequency_label: "Everyday",
+    status: "pending",
+    taken_at: null,
   },
 ];

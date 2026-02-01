@@ -116,10 +116,8 @@ export default function MedicationPageV2() {
         const data = await getMedications(token, petIdParam, dateParam);
         setMedicineReminders(data);
       } catch (apiErr: any) {
-        console.warn('API failed, using mock data:', apiErr?.message);
-        const { mockMedicineReminderVMs } = await import('@/mocks/medicine-reminders.mock');
-        setMedicineReminders(mockMedicineReminderVMs);
-        setError('Using mock data (API unavailable)');
+        console.error('API failed:', apiErr);
+        setError(apiErr.message || 'Failed to load medication reminders');
       }
     } catch (err) {
       console.error(err);

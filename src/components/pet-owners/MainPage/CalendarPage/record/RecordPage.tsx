@@ -25,8 +25,8 @@ import RecordDetailPopup, { type RecordDetailItem } from "@/components/pet-owner
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-import { mockPets } from "@/mocks/pets.mock";
 import { Pet, PetLite } from "@/types/domain/pet";
+import { usePets } from "@/hooks/usePets";
 
 type RecordEntry = {
   id: string;
@@ -42,7 +42,7 @@ const recordSamples: RecordEntry[] = [
     id: "record-1",
     dateKey: "2026-01-03",
     time: "11:00",
-    petId: String(mockPets?.[0]?._id ?? "4302459"),
+    petId: "4302459", // Default fallback ID if no pets loaded yet
     note: "มีอาการซึมไม่อยากอาหาร\nมีอาเจียนเล็กน้อย",
     images: ["/pets-example/pet-ex1.svg"],
   },
@@ -87,13 +87,15 @@ export const RecordPage = ({
   const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
   const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
 
+  const { pets } = usePets();
+
   const petOptions: PetLite[] = useMemo(() => {
-    return (mockPets ?? []).map((p: Pet) => ({
-      _id: p._id,
+    return (pets ?? []).map((p: Pet) => ({
+      _id: String(p._id),
       name: p.name ?? "-",
       profile_image: p.profile_image,
     }));
-  }, []);
+  }, [pets]);
 
   const petById = useMemo(() => {
     const m = new Map<string, PetLite>();

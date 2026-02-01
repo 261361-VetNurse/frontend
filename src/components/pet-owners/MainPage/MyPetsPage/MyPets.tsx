@@ -7,12 +7,27 @@ import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 
 import { usePets } from "@/hooks";
-import { mockOwner } from "@/mocks/owner";
+import { getUserProfile, authStorage } from "@/services/api/client";
+import { useState, useEffect } from "react";
 
 import { Page } from "@/styles/components/my-pets-page.styled";
 
 export default function MyPets() {
   const { pets, loading, error } = usePets();
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const token = authStorage.getToken() || "";
+        const data = await getUserProfile(token);
+        setUserProfile(data);
+      } catch (e) {
+        console.error("Failed to load user profile", e);
+      }
+    };
+    fetchUser();
+  }, []);
 
   const allPetsCount = pets.length;
   const inMedicalCount = 0;
@@ -41,9 +56,9 @@ export default function MyPets() {
     <Page>
       <div className="flex flex-col gap-4">
         <OwnerHeaderCard
-          name={mockOwner.name}
-          ownerId={mockOwner.id}
-          avatarUrl={mockOwner.avatarUrl ?? "/Ava.svg"}
+          name={userProfile ? `${userProfile.fname} ${userProfile.lname}` : "Loading..."}
+          ownerId={userProfile ? userProfile.id : "..."}
+          avatarUrl={userProfile?.picture_url ?? "/images/profile-test.png"}
           OwnerPageUrl="/pet-owners/owner-info-page"
         />
 

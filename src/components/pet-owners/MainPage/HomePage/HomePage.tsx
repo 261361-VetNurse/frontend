@@ -17,25 +17,30 @@ import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import { MedicineReminderVM } from "@/types/domain/medication";
 import MedicationDetailPopup from "./MedicationDetailPopup";
+import AppointmentDetailPopup from "./AppointmentDetailPopup";
+import { getDashboardHome, getMedicationDetail, authStorage, getUserProfile } from "@/services/api/client";
 
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [userData, setUserData] = useState<any>(null);
+
 
   /* New State for Popup */
   const [selectedReminder, setSelectedReminder] = useState<MedicineReminderVM | null>(null);
   const [highlightedReminderId, setHighlightedReminderId] = useState<string | undefined>(undefined);
   const [popupLoading, setPopupLoading] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        // Use mock data instead of API call
-        const { mockDashboardData } = await import('@/mocks/dashboard.mock');
-        if (mockDashboardData.success) {
-          setData(mockDashboardData.data);
+        const token = authStorage.getToken() || "";
+        const response = await getDashboardHome(token);
+        if (response.success) {
+          setData(response.data);
         }
       } catch (err) {
         console.error(err);
@@ -46,6 +51,23 @@ export default function HomePage() {
     };
 
     fetchDashboard();
+  }, [router]);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = authStorage.getToken() || "";
+        const data = await getUserProfile(token);
+        setUserData(data);
+      } catch (err) {
+        console.error('Failed to load user profile:', err);
+        setError('Failed to load profile data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
   }, [router]);
 
   if (loading) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
@@ -59,9 +81,8 @@ export default function HomePage() {
     try {
       setPopupLoading(true);
 
-      // Use mock data instead of API call
-      const { getMockMedicationDetail } = await import('@/mocks/dashboard.mock');
-      const detail = getMockMedicationDetail(notif._id);
+      const token = authStorage.getToken() || "";
+      const detail = await getMedicationDetail(token, notif._id);
 
       if (detail) {
         setSelectedReminder(detail);
@@ -112,7 +133,7 @@ export default function HomePage() {
     <HomePageStyled>
       <div className="header-box">
         <Profile
-          imageUrl={"/images/profile-test.png"}
+          imageUrl={userData?.picture_url}
           size={50}
           href={"/pet-owners/owner-info-page"}
         />
@@ -298,6 +319,7 @@ export default function HomePage() {
                 key={apt._id}
                 appointment={appointment}
                 petImageUrl={apt.pet_image || "/pets-example/pet-ex1.svg"}
+                onClick={() => setSelectedAppointment(appointment)}
               />
             );
           })
@@ -314,6 +336,18 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Appointment Detail Popup */}
+      {selectedAppointment && (
+        <AppointmentDetailPopup
+          appointment={selectedAppointment}
+          petImageUrl={appointments.find(a => a._id === selectedAppointment.id)?.pet_image}
+          onClose={() => setSelectedAppointment(null)}
+          onEdit={() => {
+            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.id}&open=edit`);
+          }}
+        />
+      )}
     </HomePageStyled>
   );
 }

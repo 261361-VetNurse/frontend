@@ -89,13 +89,15 @@ export default function MedicationDetailPopup({
         </ScheduleSection>
 
         <RemindersSection >
-          {medicineReminder.schedule.reminders
-            .filter((reminder: any) =>
-              // If on medication page, show all.
-              // If on home page, only show the highlighted one (if provided).
+          {(() => {
+            const allReminders = medicineReminder.schedule.reminders;
+            const filteredReminders = allReminders.filter((reminder: any) =>
               !highlightedReminderId || reminder.id === highlightedReminderId
-            )
-            .map((reminder: any) => {
+            );
+            // Fallback to showing all if no match found (e.g. ID mismatch from Home Page)
+            const remindersToShow = filteredReminders.length > 0 ? filteredReminders : allReminders;
+
+            return remindersToShow.map((reminder: any) => {
               const status = getStatus(reminder);
               const { label, Icon } = getStatusMeta(status);
               const isTaken = status === 'taken';
@@ -122,7 +124,8 @@ export default function MedicationDetailPopup({
                   </div>
                 </ReminderItem>
               );
-            })}
+            });
+          })()}
         </RemindersSection>
       </div>
     </FormDialog>

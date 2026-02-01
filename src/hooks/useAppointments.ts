@@ -21,21 +21,22 @@ export function useAppointments(status?: string): UseAppointmentsReturn {
             setLoading(true);
             setError(null);
 
-            // Use mock data instead of API call
-            const { allMockAppointments } = await import('@/mocks/appointments');
+            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') || '' : '';
 
-            // Client-side filtering by status
-            let filteredAppointments = allMockAppointments;
+            // Dynamic import to avoid circular dependency
+            const { getAppointments } = await import('@/services/api/client');
+            const { USE_MOCK_DATA } = await import('@/utils/mock-helper');
 
-            if (status) {
-                filteredAppointments = filteredAppointments.filter(
-                    apt => apt.status.toLowerCase() === status.toLowerCase()
-                );
-            }
+            const tokenToUse = token || (USE_MOCK_DATA ? 'mock_token' : '');
 
-            setAppointments(filteredAppointments);
+            // Should handle token missing case for real API? 
+            // relying on client to throw or handle.
+
+            const data = await getAppointments(tokenToUse, status);
+
+            setAppointments(data);
         } catch (err) {
-            console.error('Error loading mock appointments:', err);
+            console.error('Error loading appointments:', err);
             setError(err instanceof Error ? err.message : 'Failed to load appointments');
         } finally {
             setLoading(false);

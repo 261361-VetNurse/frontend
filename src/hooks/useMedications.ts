@@ -22,25 +22,23 @@ export function useMedications(petId?: string, date?: string): UseMedicationsRet
             setLoading(true);
             setError(null);
 
-            // Use mock data instead of API call
-            const { mockMedicineReminderVMs } = await import('@/mocks/medicine-reminders.mock');
+            const currentToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
 
-            // Client-side filtering by petId and date
-            let filteredMedications = mockMedicineReminderVMs;
+            // Dynamic import to avoid circular dep if any (though client shouldn't)
+            const { getMedications } = await import('@/services/api/client');
+            const { USE_MOCK_DATA } = await import('@/utils/mock-helper');
 
-            if (petId) {
-                filteredMedications = filteredMedications.filter(
-                    med => med.pet._id === petId
-                );
+            const tokenToUse = currentToken || (USE_MOCK_DATA ? 'mock_token' : '');
+
+            if (!tokenToUse) {
+                // optionally handle no token
             }
 
-            // Note: Date filtering would require additional logic to check if medication
-            // schedule applies to the given date. For now, returning all medications.
-            // You can implement date filtering based on schedule.starting_date and frequency
+            const data = await getMedications(tokenToUse, petId, date);
+            setMedications(data);
 
-            setMedications(filteredMedications);
         } catch (err) {
-            console.error('Error loading mock medications:', err);
+            console.error('Error loading medications:', err);
             setError(err instanceof Error ? err.message : 'Failed to load medications');
         } finally {
             setLoading(false);

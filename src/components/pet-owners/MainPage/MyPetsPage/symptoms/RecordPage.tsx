@@ -24,7 +24,8 @@ import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopu
 // Import UI Library & Icons
 import { Add } from "@mui/icons-material";
 import Button from "@/components/pet-owners/shared/Button"; // ตรวจสอบ Path ไฟล์ Button ที่คุณให้มาอีกครั้ง
-import { mockPets } from "@/mocks/pets.mock";
+import { usePets } from "@/hooks/usePets";
+import { Pet } from "@/types/domain/pet";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -43,13 +44,15 @@ export default function RecordPage() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
+  const { pets } = usePets();
+
   const petOptions: PetLite[] = useMemo(() => {
-    return (mockPets ?? []).map((p) => ({
+    return (pets ?? []).map((p: Pet) => ({
       _id: String(p._id),
       name: p.name ?? "-",
       profile_image: p.profile_image,
     }));
-  }, []);
+  }, [pets]);
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
     const fallback = petOptions[0]?._id ?? "";
@@ -73,23 +76,17 @@ export default function RecordPage() {
   }, [petOptions, selectedPetId]);
 
   const [items, setItems] = useState<RecordItem[]>(() => {
-    const a = mockPets?.[0];
-    const b = mockPets?.[1];
+    // Initial empty state or fetch from API if available
+    // For now returning empty array as we are removing mock dependency
     const base: RecordItem[] = [];
 
-    if (a) {
-      base.push({
-        id: "rec-001",
-        petId: String(a._id),
-        petName: a.name ?? "-",
-        petPid: String(a._id),
-        avatarUrl: a.profile_image,
-        date: "2025-12-17",
-        time: "11:00",
-        note: "มีอาการซึมไม่อยากอาหาร มีอาเจียนเล็กน้อย",
-        imageUrls: ["/pets-example/pet-ex1.svg"],
-      });
-    }
+    /* 
+    // Commented out mock initialization logic as we don't have direct access to mockPets anymore
+    // and we shouldn't rely on it for initial state if we want real data eventually.
+    const a = mockPets?.[0];
+    if (a) { ... }
+    */
+
     return base;
   });
 

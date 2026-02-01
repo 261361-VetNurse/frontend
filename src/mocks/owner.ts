@@ -1,14 +1,16 @@
 import { Owner } from "@/types/domain/owner";
 
+export const MOCK_USER_ID = "65f1a9c2b0f3c1a2d3e4f501";
+
 export const mockOwner: Owner = {
-  id: "098765345",
+  id: MOCK_USER_ID,
   name: "สมหญิง ใจบุญ",
   avatarUrl: "/Ava.svg",
 };
 
 // Mock user profile data for OwnerInformationPage
 export const mockUserProfile = {
-  id: "65f1a9c2b0f3c1a2d3e4f501",
+  id: MOCK_USER_ID,
   fname: "สมหญิง",
   lname: "ใจบุญ",
   line_id: "somying.jaiboon",

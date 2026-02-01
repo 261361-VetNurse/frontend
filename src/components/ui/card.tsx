@@ -5,7 +5,7 @@ import { ComponentPropsWithoutRef, ElementType } from "react";
 
 type Props<T extends ElementType> = {
   as?: T;
-  headerRight?: React.ReactNode; 
+  headerRight?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 } & ComponentPropsWithoutRef<T>;
@@ -30,12 +30,14 @@ export function Card<T extends ElementType = "button">({
       )}
     >
       {/* Header — EXACT SAME AS RECORD */}
-      <div className="px-4 pt-3">
-        <div className="text-right text-xs text-zinc-500">
-          {headerRight}
+      {headerRight && (
+        <div className="px-4 pt-3">
+          <div className="text-right text-xs text-zinc-500">
+            {headerRight}
+          </div>
+          <div className="mt-2 h-px w-full bg-zinc-200" />
         </div>
-        <div className="mt-2 h-px w-full bg-zinc-200" />
-      </div>
+      )}
 
       {/* Body — SAME PADDING RHYTHM */}
       <div className="px-4 pb-4 pt-3">

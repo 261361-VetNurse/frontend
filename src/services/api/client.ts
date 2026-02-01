@@ -2,7 +2,24 @@
  * API Client for VetNurse Backend
  */
 
+import { z } from 'zod';
+import { UserSchema, UserProfileSchema } from '@/types/schemas/user';
+import { PetSchema } from '@/types/schemas/pet';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
+
+
+// Mock Data Imports (Lazy load where possible or just direct if simple)
+import { mockPets } from '@/mocks/pets.mock';
+import { mockDashboardData, getMockMedicationDetail } from '@/mocks/dashboard.mock';
+import { allMockAppointments as mockAppointments } from '@/mocks/appointments';
+import { mockUserProfile } from '@/mocks/owner';
+import { mockMedicineOccurrences } from '@/mocks/medicine-reminders.mock';
+
+// Mock Helper
+import { fetchWithMock } from '@/utils/mock-helper';
+
+
 
 /**
  * Wrapper for fetch to add logging
@@ -23,6 +40,18 @@ async function loggedFetch(input: RequestInfo | URL, init?: RequestInit): Promis
     }
 }
 
+/**
+ * Validate API response against a Zod schema
+ */
+function validateResponse<T>(data: unknown, schema: z.ZodSchema<T>): T {
+    const result = schema.safeParse(data);
+    if (!result.success) {
+        console.error('❌ [API Validation Error]', result.error.format());
+        throw new Error(`API Validation Failed: ${JSON.stringify(result.error.flatten())}`);
+    }
+    return result.data;
+}
+
 interface LineExchangeResponse {
     access_token: string;
     token_type: string;
@@ -35,13 +64,8 @@ interface LineExchangeResponse {
     };
 }
 
-interface UserResponse {
-    id: string;
-    display_name: string;
-    picture_url: string;
-    role: string;
-    is_registered: boolean;
-}
+import { User, UserProfile } from '@/types/domain/user';
+import { Pet } from '@/types/domain/pet';
 
 /**
  * Exchange LINE authorization code for access token
@@ -64,38 +88,67 @@ export async function exchangeLineToken(code: string): Promise<LineExchangeRespo
 }
 
 /**
+ * Mock User Data
+ */
+const MOCK_USER: User = {
+    id: mockUserProfile.id,
+    display_name: `${mockUserProfile.fname} ${mockUserProfile.lname}`,
+    picture_url: mockUserProfile.picture_url,
+    role: "user",
+    is_registered: true
+};
+
+/**
  * Get current user information
  */
-export async function getCurrentUser(token: string): Promise<UserResponse> {
-    const response = await loggedFetch(`${API_BASE_URL}/me`, {
-        headers: {
-            'access_token': token
+export async function getCurrentUser(token: string): Promise<User> {
+    return fetchWithMock({
+        mockData: MOCK_USER,
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/me`, {
+                headers: {
+                    'access_token': token
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get user information');
+            }
+
+            const data = await response.json();
+            return validateResponse(data, UserSchema);
         },
+        mockLabel: 'getCurrentUser'
     });
-
-    if (!response.ok) {
-        throw new Error('Failed to get user information');
-    }
-
-    return response.json();
 }
 
 /**
  * Get dashboard home data
  */
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/dashboard/home`, {
-        headers: {
-            'access_token': token
+    return fetchWithMock({
+        mockData: () => {
+            if (mockDashboardData.success) {
+                return mockDashboardData;
+            }
+            throw new Error("Mock dashboard data missing");
         },
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/dashboard/home`, {
+                headers: {
+                    'access_token': token
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get dashboard data');
+            }
+
+            return response.json();
+        },
+        mockLabel: 'getDashboardHome'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get dashboard data');
-    }
-
-    return response.json();
 }
 
 /**
@@ -151,53 +204,84 @@ export const authStorage = {
 // ============================================================================
 // MEDICATIONS API
 // ============================================================================
-
 /**
- * Get medication notifications
+ * Get medication notifications (Occurrences)
  * @param token - Access token
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD format)
  */
 export async function getMedications(token: string, petId?: string, date?: string): Promise<any> {
-    let url = `${API_BASE_URL}/v1/medications`;
-    const params = new URLSearchParams();
-    if (petId) params.append('pets_id', petId);
-    if (date) params.append('date', date);
-    if (params.toString()) url += `?${params.toString()}`;
+    return fetchWithMock({
+        mockData: () => {
+            // Client-side filtering logic for mocks
+            let filteredOccurrences = mockMedicineOccurrences;
+            if (petId) {
+                filteredOccurrences = filteredOccurrences.filter(
+                    occ => occ.pet._id === petId
+                );
+            }
 
-    const response = await loggedFetch(url, {
-        headers: {
-            'access_token': token,
+            // Date filtering (Simplified for mock: if date is provided, filter by scheduled_at date part)
+            if (date) {
+                filteredOccurrences = filteredOccurrences.filter(occ =>
+                    occ.scheduled_at.startsWith(date)
+                );
+            }
+
+            return filteredOccurrences;
         },
+        apiCall: async () => {
+            let url = `${API_BASE_URL}/v1/medications`;
+            const params = new URLSearchParams();
+            if (petId) params.append('pets_id', petId);
+            if (date) params.append('date', date);
+            if (params.toString()) url += `?${params.toString()}`;
+
+            const response = await loggedFetch(url, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get medications');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: 'getMedications'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get medications');
-    }
-
-    const json = await response.json();
-    console.log('json', json);
-    return json.data || json;
 }
 
 /**
  * Get medication notification detail
  */
 export async function getMedicationDetail(token: string, notificationId: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
-        headers: {
-            'access_token': token,
+    return fetchWithMock({
+        mockData: () => {
+            const detail = getMockMedicationDetail(notificationId);
+            if (!detail) throw new Error("Medication detail not found in mock");
+            return detail;
         },
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get medication detail');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: `getMedicationDetail(${notificationId})`
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get medication detail');
-    }
-
-    const json = await response.json();
-    return json.data || json;
 }
 
 /**
@@ -337,22 +421,33 @@ export async function createMedicine(token: string, medicineData: any): Promise<
  * @param status - Optional status filter ("Upcoming", "Completed", "Canceled")
  */
 export async function getAppointments(token: string, status?: string): Promise<any> {
-    let url = `${API_BASE_URL}/v1/appointments`;
-    if (status) url += `?status=${encodeURIComponent(status)}`;
-
-    const response = await loggedFetch(url, {
-        headers: {
-            'access_token': token,
+    return fetchWithMock({
+        mockData: () => {
+            if (status) {
+                return mockAppointments.filter(evt => evt.status?.toLowerCase() === status.toLowerCase());
+            }
+            return mockAppointments;
         },
+        apiCall: async () => {
+            let url = `${API_BASE_URL}/v1/appointments`;
+            if (status) url += `?status=${encodeURIComponent(status)}`;
+
+            const response = await loggedFetch(url, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get appointments');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: 'getAppointments'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get appointments');
-    }
-
-    const json = await response.json();
-    return json.data || json;
 }
 
 /**
@@ -465,43 +560,61 @@ export async function deleteAppointment(token: string, appointmentId: string): P
 /**
  * Get all pets
  */
-export async function getPets(token: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets`, {
-        headers: {
-            'access_token': token,
+export async function getPets(token: string): Promise<Pet[]> {
+    return fetchWithMock({
+        mockData: mockPets as unknown as Pet[],
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/pets`, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get pets');
+            }
+
+            const data = await response.json();
+            return validateResponse(data, z.array(PetSchema));
         },
+        mockLabel: 'getPets'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get pets');
-    }
-
-    return response.json();
 }
 
 /**
  * Get pet detail
  */
-export async function getPetDetail(token: string, petId: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
-        headers: {
-            'access_token': token,
+export async function getPetDetail(token: string, petId: string): Promise<Pet> {
+    return fetchWithMock({
+        mockData: () => {
+            const pet = mockPets.find(p => p._id === petId);
+            if (pet) return pet as unknown as Pet;
+            throw new Error("Mock pet not found");
         },
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get pet detail');
+            }
+
+            const data = await response.json();
+            return validateResponse(data, PetSchema);
+        },
+        mockLabel: `getPetDetail(${petId})`
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get pet detail');
-    }
-
-    return response.json();
 }
 
 /**
  * Create new pet (register pet)
  */
-export async function createPet(token: string, petData: any): Promise<any> {
+export async function createPet(token: string, petData: Partial<Pet>): Promise<Pet> {
     const response = await loggedFetch(`${API_BASE_URL}/v1/pets`, {
         method: 'POST',
         headers: {
@@ -516,13 +629,14 @@ export async function createPet(token: string, petData: any): Promise<any> {
         throw new Error(error.detail || 'Failed to create pet');
     }
 
-    return response.json();
+    const data = await response.json();
+    return validateResponse(data, PetSchema);
 }
 
 /**
  * Update pet information
  */
-export async function updatePet(token: string, petId: string, petData: any): Promise<any> {
+export async function updatePet(token: string, petId: string, petData: Partial<Pet>): Promise<Pet> {
     const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
         method: 'PATCH',
         headers: {
@@ -537,7 +651,8 @@ export async function updatePet(token: string, petId: string, petData: any): Pro
         throw new Error(error.detail || 'Failed to update pet');
     }
 
-    return response.json();
+    const data = await response.json();
+    return validateResponse(data, PetSchema);
 }
 
 /**
@@ -657,39 +772,57 @@ export async function deleteImage(filename: string, token: string): Promise<void
 /**
  * Get user profile
  */
-export async function getUserProfile(token: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
-        headers: {
-            'access_token': token,
+export async function getUserProfile(token: string): Promise<UserProfile> {
+    return fetchWithMock({
+        mockData: () => {
+            return mockUserProfile as unknown as UserProfile;
         },
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
+                headers: {
+                    'access_token': token,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get user profile');
+            }
+
+            const data = await response.json();
+            return validateResponse(data.data, UserProfileSchema);
+        },
+        mockLabel: 'getUserProfile'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get user profile');
-    }
-
-    const data = await response.json();
-    return data.data;
 }
 
 /**
  * Update user profile
  */
-export async function updateUserProfile(token: string, profileData: any): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
-        method: 'PATCH',
-        headers: {
-            'Content-Type': 'application/json',
-            'access_token': token,
+export async function updateUserProfile(token: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+    return fetchWithMock({
+        mockData: () => {
+            // Return merged mock data
+            return { ...mockUserProfile, ...profileData } as unknown as UserProfile;
         },
-        body: JSON.stringify(profileData),
+        apiCall: async () => {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'access_token': token,
+                },
+                body: JSON.stringify(profileData),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to update user profile');
+            }
+
+            const data = await response.json();
+            return validateResponse(data.data, UserProfileSchema);
+        },
+        mockLabel: 'updateUserProfile'
     });
-
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to update user profile');
-    }
-
-    return response.json();
 }

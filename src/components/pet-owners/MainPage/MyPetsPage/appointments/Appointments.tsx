@@ -15,9 +15,9 @@ import AppointmentTabs, {
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import type { Appointment } from "@/types/domain/appointment";
+import { usePets } from "@/hooks/usePets";
+import { useAppointments } from "@/hooks/useAppointments";
 
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -28,7 +28,8 @@ export default function Appointments() {
   const { petId } = useParams<{ petId: string }>();
 
   // Use mockPets directly as it matches Pet[] expected by PetFilterSelector
-  const petOptions: Pet[] = mockPets;
+  const { pets } = usePets();
+  const petOptions: Pet[] = pets;
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
     const fromUrl = String(petId ?? "");
@@ -57,9 +58,11 @@ export default function Appointments() {
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
+  const { appointments } = useAppointments(); // Fetch all appointments
+
   const allAppointments: Appointment[] = useMemo(() => {
-    return mockAppointmentsByPetId[selectedPetId] ?? [];
-  }, [selectedPetId]);
+    return appointments.filter(a => String(a.petId) === String(selectedPetId));
+  }, [appointments, selectedPetId]);
 
   const filtered = useMemo(() => {
     return allAppointments.filter((a) => a.status === tab);

@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import dayjs from "dayjs";
-import { mockPets } from "@/mocks/pets.mock";
+import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
@@ -16,9 +16,11 @@ export default function EditBasicInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
+  const { pets } = usePets();
+
   const pet: Pet | undefined = useMemo(
-    () => mockPets.find((p) => String(p._id) === String(petId)),
-    [petId]
+    () => pets.find((p) => String(p._id) === String(petId)),
+    [pets, petId]
   );
 
   if (!pet) {
@@ -86,10 +88,15 @@ export default function EditBasicInfo() {
 
     console.log("UPDATE PET:", payload);
 
+    // TODO: Call API to update pet
+    console.log("UPDATE PET:", payload);
+
+    /*
     const index = mockPets.findIndex((p) => p._id === currentPet._id);
     if (index !== -1) {
       mockPets[index] = payload;
     }
+    */
 
     router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
   }

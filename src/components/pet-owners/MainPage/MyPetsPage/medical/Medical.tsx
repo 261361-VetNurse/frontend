@@ -13,7 +13,7 @@ import MedicalItem from "./MedicalItem";
 import AddMedicalPopup, { type AddMedicalPayload } from "./AddMedicalPopup";
 import { MedicalFab } from "./AddMedicalPopup";
 
-import { mockPets } from "@/mocks/pets.mock";
+import { usePets } from "@/hooks/usePets";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
 export type MedicalRecord = {
@@ -54,13 +54,16 @@ export default function Medical() {
   const { petId } = useParams<{ petId: string }>();
 
   // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
+  // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
+  const { pets } = usePets();
+
   const petOptions: PetLite[] = useMemo(() => {
-    return (mockPets ?? []).map((p: Pet) => ({
+    return (pets ?? []).map((p: Pet) => ({
       _id: String(p._id),
       name: p.name ?? "-",
       profile_image: p.profile_image,    // ✅ ใช้ profile_image ตาม PetLite type
     }));
-  }, []);
+  }, [pets]);
 
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {

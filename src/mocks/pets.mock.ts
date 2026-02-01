@@ -1,25 +1,26 @@
 // src/mocks/pets.ts
 import { Pet } from "@/types/domain/pet";
+import { MOCK_USER_ID } from "./owner";
 
 export const mockPets: Pet[] = [
   {
     _id: "430242",
-    user_id: "65f1a9c2b0f3c1a2d3e4f501",
+    user_id: MOCK_USER_ID,
     name: "Mochi",
     species: "cat",
     breed: "Scottish Fold",
     birth_date: "2023-05-10T00:00:00.000Z",
-    gender: "female",        
-    weight_kg: null,         
+    gender: "female",
+    weight_kg: null,
     allergies: [],
-    infecund: true,     
-    color: null,            
-    profile_image: "/pets-example/pet-ex1.svg", 
-    created_at: "2026-01-01T10:00:00.000Z",     
+    infecund: true,
+    color: null,
+    profile_image: "/pets-example/pet-ex1.svg",
+    created_at: "2026-01-01T10:00:00.000Z",
   },
   {
     _id: "430243",
-    user_id: "65f1a9c2b0f3c1a2d3e4f501",
+    user_id: MOCK_USER_ID,
     name: "Taro",
     species: "dog",
     breed: "Shiba Inu",
@@ -27,7 +28,7 @@ export const mockPets: Pet[] = [
     gender: "male",
     weight_kg: null,
     allergies: [],
-    infecund: true, 
+    infecund: true,
     color: null,
     profile_image: "/pets-example/pet-ex2.svg",
     created_at: "2026-01-01T10:05:00.000Z",
@@ -42,7 +43,7 @@ export const mockPets: Pet[] = [
     gender: "female",
     weight_kg: null,
     allergies: [],
-    infecund: false, 
+    infecund: false,
     color: null,
     profile_image: "/pets-example/pet-ex3.svg",
     created_at: "2026-01-02T11:00:00.000Z",

@@ -62,10 +62,11 @@ type AppointmentCardProps = {
 
 export default function AppointmentCard({
     appointment,
-    petImageUrl = "/pets-example/pet-ex1.svg"
-}: AppointmentCardProps) {
+    petImageUrl = "/pets-example/pet-ex1.svg",
+    onClick
+}: AppointmentCardProps & { onClick?: () => void }) {
     return (
-        <CardContainer>
+        <CardContainer onClick={onClick}>
             <Profile imageUrl={petImageUrl} size={40} />
             <div className="name-location">
                 <div className="name">{appointment.petName}</div>
