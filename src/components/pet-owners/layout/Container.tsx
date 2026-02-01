@@ -20,7 +20,6 @@ const StyledContainer = styled.div<StyledContainerProps>`
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  min-height: 100vh;
   box-sizing: border-box;
 
   width: ${({ $width }) => $width};

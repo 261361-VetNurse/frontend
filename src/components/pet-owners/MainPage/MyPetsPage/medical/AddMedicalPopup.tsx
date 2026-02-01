@@ -2,9 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import { Add } from "@mui/icons-material";
-
-import { FabButton } from "@/styles/components/medical.styled";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { QuickDialButton } from "@/components/shared";
 
 type PetLite = {
   id: string;
@@ -16,15 +15,19 @@ type PetLite = {
 export type AddMedicalPayload = {
   petId: string;
   date: string; // YYYY-MM-DD
-  time: string; 
+  time: string;
   note: string;
 };
 
 export function MedicalFab({ onClick }: { onClick: () => void }) {
   return (
-    <FabButton onClick={onClick} aria-label="Add medical history">
-      <Add />
-    </FabButton>
+    <QuickDialButton
+      iconColor="#fff"
+      position="bottom-right"
+      icon={<AddRoundedIcon />}
+      color="#09BFF8"
+      onClickAction={onClick}
+    />
   );
 }
 

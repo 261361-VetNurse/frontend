@@ -21,10 +21,9 @@ export default function Page() {
     const petOptions: PetLite[] = useMemo(
         () =>
             mockPets.map((p: Pet) => ({
-                id: String(p._id),
+                _id: p._id,
                 name: p.name,
-                pid: String(p._id),
-                avatarUrl: p.profile_image,
+                profile_image: p.profile_image,
             })),
         []
     );

@@ -16,16 +16,14 @@ import {
   updateReminderTakenStatus,
   ReminderOccurrence,
   buildOccurrencesForDate,
-  buildOccurrenceId,
   getTodayInLocalTimezone,
   getUserTimezone,
 } from '@/utils/reminder-utils';
 import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
-import { theme } from '@/styles/tokens/theme';
-import { FabButton } from "@/styles/components/appointments.styled";
-import { Add } from "@mui/icons-material";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { TabsWrap, TabButton, Header, CardList } from "@/styles/components/medication.styled";
+import { QuickDialButton } from '@/components/shared';
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';
@@ -380,9 +378,13 @@ export default function MedicationPageV2() {
         )}
       </div>
 
-      <FabButton onClick={handleAdd}>
-        <Add />
-      </FabButton>
+      <QuickDialButton
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
+        onClickAction={handleAdd}
+      />
 
       <CreateMedicationPopup
         open={showCreatePopup}

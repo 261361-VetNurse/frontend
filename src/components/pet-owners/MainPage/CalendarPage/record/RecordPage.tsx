@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import styled from "styled-components";
+
+import { Page } from "@/styles/components/calendar.styled";
 
 import {
-  type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -26,37 +26,7 @@ import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton"
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/domain/pet";
-
-/* ---------------- styled ---------------- */
-/* ---------------- styled ---------------- */
-const Page = styled.div`
-  width: 100%;
-  min-height: 100vh;
-
-  .scroll-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 80px;
-  }
-
-  .head-text {
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  .date-text {
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .line {
-    width: 100%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.15);
-  }
-`;
+import { Pet, PetLite } from "@/types/domain/pet";
 
 type RecordEntry = {
   id: string;
@@ -119,16 +89,15 @@ export const RecordPage = ({
 
   const petOptions: PetLite[] = useMemo(() => {
     return (mockPets ?? []).map((p: Pet) => ({
-      id: String(p._id),
+      _id: p._id,
       name: p.name ?? "-",
-      pid: String(p._id),
-      avatarUrl: p.profile_image,
+      profile_image: p.profile_image,
     }));
   }, []);
 
   const petById = useMemo(() => {
     const m = new Map<string, PetLite>();
-    petOptions.forEach((p) => m.set(p.id, p));
+    petOptions.forEach((p) => m.set(p._id, p));
     return m;
   }, [petOptions]);
 
@@ -227,14 +196,14 @@ export const RecordPage = ({
                   petName={pet?.name ?? "-"}
                   time={formatTime12h(record.time)}
                   note={record.note}
-                  avatarUrl={pet?.avatarUrl}
+                  avatarUrl={pet?.profile_image}
                   imageUrls={record.images ?? []}
                   onClick={() => {
                     setDetailRecord({
                       ...record,
                       petName: pet?.name ?? "-",
-                      petPid: pet?.pid ?? "-",
-                      avatarUrl: pet?.avatarUrl,
+                      petPid: pet?._id ?? "-",
+                      avatarUrl: pet?.profile_image,
                       date: record.dateKey,
                       imageUrls: record.images ?? [],
                     });

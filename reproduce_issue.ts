@@ -1,5 +1,5 @@
 
-import { buildOccurrencesForDate, ReminderOccurrence, getUserTimezone } from './src/lib/reminder-utils';
+import { buildOccurrencesForDate, ReminderOccurrence, getUserTimezone } from './src/utils/reminder-utils';
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";

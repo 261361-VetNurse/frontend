@@ -14,7 +14,6 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import {
-  formatTimeForDisplay,
   buildOccurrencesForDate,
   ReminderOccurrence
 } from '@/utils/reminder-utils';

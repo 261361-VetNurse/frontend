@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { LocationOn } from "@mui/icons-material";
-import type { PetLite } from "@/components/pet-owners/shared/PetFilterSelector";
+import type { PetLite } from "@/types/domain/pet";
 
 
 export type AddAppointmentPayload = {
@@ -18,7 +18,7 @@ type AddAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
   pets: PetLite[];
-initialPetId?: string;
+  initialPetId?: string;
 
   onSubmit?: (data: AddAppointmentPayload) => void;
   pet?: PetLite;              // optional (ถ้ามาจาก calendar ที่เลือก pet แล้ว)
@@ -42,18 +42,18 @@ export default function AddAppointmentPopup({
       setTime("");
       setLocation("");
     }
-  }, [open, pet?.id]);
+  }, [open, pet?._id]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(pet?.id && date && time && location.trim());
-  }, [pet?.id, date, time, location]);
+    return Boolean(pet?._id && date && time && location.trim());
+  }, [pet?._id, date, time, location]);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
     try {
       await onSubmit?.({
-        petId: pet!.id,
+        petId: pet!._id,
         date,
         time,
         location: location.trim(),
@@ -82,9 +82,9 @@ export default function AddAppointmentPopup({
       {pet ? (
         <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
           <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-            {pet.avatarUrl ? (
+            {pet.profile_image ? (
               <Image
-                src={pet.avatarUrl}
+                src={pet.profile_image}
                 alt={pet.name}
                 width={40}
                 height={40}
@@ -97,7 +97,7 @@ export default function AddAppointmentPopup({
               {pet.name}
             </div>
             <div className="text-xs text-zinc-500 truncate">
-              PID: {pet.pid}
+              PID: {pet._id}
             </div>
           </div>
         </div>

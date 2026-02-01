@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { theme } from "@/styles/tokens/theme";
+import { theme } from "../tokens/theme";
 
 export const BackButton = styled.button`
   background: none;

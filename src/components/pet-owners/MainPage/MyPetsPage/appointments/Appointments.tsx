@@ -20,8 +20,8 @@ import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import type { Appointment } from "@/types/domain/appointment";
 
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
-import { FabButton } from "@/styles/components/appointments.styled";
-import { Add } from "@mui/icons-material";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { QuickDialButton } from "@/components/shared";
 
 export default function Appointments() {
   const router = useRouter();
@@ -129,9 +129,13 @@ export default function Appointments() {
         )}
       </div>
 
-      <FabButton onClick={handleAdd}>
-        <Add />
-      </FabButton>
+      <QuickDialButton
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
+        onClickAction={handleAdd}
+      />
 
       <AddAppointmentPopup
         open={showCreatePopup}

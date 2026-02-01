@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+import { PetLite } from "@/types/domain/pet";
+
 // Import Components
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetFilterSelector, {
-  type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 import RecordScreen, {
@@ -44,32 +45,31 @@ export default function RecordPage() {
 
   const petOptions: PetLite[] = useMemo(() => {
     return (mockPets ?? []).map((p) => ({
-      id: String(p._id),
+      _id: String(p._id),
       name: p.name ?? "-",
-      pid: String(p._id),
-      avatarUrl: p.profile_image,
+      profile_image: p.profile_image,
     }));
   }, []);
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    const fallback = petOptions[0]?.id ?? "";
+    const fallback = petOptions[0]?._id ?? "";
     return String(petId ?? fallback);
   });
 
   useEffect(() => {
     if (!petId) return;
     const idFromUrl = String(petId);
-    const exists = petOptions.some((p) => String(p.id) === idFromUrl);
+    const exists = petOptions.some((p) => String(p._id) === idFromUrl);
     if (exists) {
       setSelectedPetId(idFromUrl);
       return;
     }
-    if (petOptions[0]?.id) setSelectedPetId(String(petOptions[0].id));
+    if (petOptions[0]?._id) setSelectedPetId(String(petOptions[0]._id));
   }, [petId, petOptions]);
 
   const selectedPet: PetLite | null = useMemo(() => {
     if (!petOptions.length) return null;
-    return petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0] ?? null;
+    return petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0] ?? null;
   }, [petOptions, selectedPetId]);
 
   const [items, setItems] = useState<RecordItem[]>(() => {
@@ -125,7 +125,7 @@ export default function RecordPage() {
     <>
       <TopBar
         title="Pets Record"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id ?? ""}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id ?? ""}`)}
       />
 
       <RecordScreen
@@ -140,10 +140,10 @@ export default function RecordPage() {
               shape="pill"
               icon="only"
               onClick={() => setOpenCreate(true)}
-              style={{ 
-                width: '56px', 
+              style={{
+                width: '56px',
                 height: '56px',
-                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)' 
+                boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.3)'
               }}
               aria-label="Add record"
             >
@@ -164,18 +164,18 @@ export default function RecordPage() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
-            id: selectedPet.id,
+            id: selectedPet._id,
             name: selectedPet.name ?? "-",
-            pid: selectedPet.pid ?? "-",
-            avatarUrl: selectedPet.avatarUrl,
+            pid: selectedPet._id ?? "-",
+            avatarUrl: selectedPet.profile_image,
           }}
           onSubmit={(data: any) => {
             const newItem: RecordItem = {
               id: `rec-${String(Date.now())}`,
-              petId: selectedPet.id,
+              petId: selectedPet._id,
               petName: selectedPet.name ?? "-",
-              petPid: selectedPet.pid ?? "-",
-              avatarUrl: selectedPet.avatarUrl,
+              petPid: selectedPet._id ?? "-",
+              avatarUrl: selectedPet.profile_image,
               date: String(data.date ?? todayISO()),
               time: String(data.time ?? "00:00"),
               note: String(data.note ?? ""),

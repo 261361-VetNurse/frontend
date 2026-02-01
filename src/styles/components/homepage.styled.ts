@@ -1,15 +1,14 @@
 import styled from 'styled-components';
 import { theme } from '../tokens/theme';
 
-export const HomePageStyled = styled.div `
+export const HomePageStyled = styled.div`
     display: flex;
     flex-direction: column;
     align-items: stretch;
     gap: 16px;
     width: 100%;
     height: 100%;
-    margin-bottom: 60px;
-
+    
     .header-box{
         width: 100%;
         height: 50px;
@@ -77,7 +76,7 @@ export const HomePageStyled = styled.div `
     }
 `;
 
-export const ReminderCardStyle = styled.div<{ status: string}>`
+export const ReminderCardStyle = styled.div<{ status: string }>`
   width: 100%;
   background: #fff;
   padding: 8px 16px;

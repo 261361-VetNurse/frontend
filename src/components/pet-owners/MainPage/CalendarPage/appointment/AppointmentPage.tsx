@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from "react";
 import dayjs from "dayjs";
-import styled from "styled-components";
 
-import { Pet } from "@/types/domain/pet";
+import { Page } from "@/styles/components/calendar.styled";
+
+import { Pet, PetLite } from "@/types/domain/pet";
 
 import {
   type PetSelectorValue,
@@ -29,50 +30,12 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
 
-// Simplified type for pet selector options
-type PetOption = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl: string;
-};
-
 /* ---------------- tabs ---------------- */
 
 const appointmentTabs = [
   { name: "Appointment", path: "/appointment", params: "appointment" },
   { name: "Record", path: "/record", params: "record" },
 ];
-
-/* ---------------- styled ---------------- */
-
-const Page = styled.div`
-  width: 100%;
-  min-height: 100vh;
-
-  .scroll-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 80px;
-  }
-
-  .head-text {
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  .date-text {
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .line {
-    width: 100%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.15);
-  }
-`;
 
 /* ================= page ================= */
 
@@ -154,18 +117,15 @@ export default function AppointmentPage({
     useState<AppointmentDetailItem | null>(null);
 
   // Re-creating petOptions for popup usage since we removed the main one
-  const petOptions: PetOption[] = useMemo(
+  const petOptions: PetLite[] = useMemo(
     () =>
       mockPets.map((p: Pet) => ({
-        id: String(p._id),
+        _id: String(p._id),
         name: p.name,
-        pid: String(p._id),
-        avatarUrl: p.profile_image,
+        profile_image: p.profile_image,
       })),
     []
   );
-
-  /* ================= render ================= */
 
   return (
     <Page>
