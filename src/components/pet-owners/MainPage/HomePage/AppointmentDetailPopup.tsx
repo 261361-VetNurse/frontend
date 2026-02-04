@@ -43,6 +43,7 @@ const InfoText = styled.div`
 interface AppointmentDetailPopupProps {
     appointment: Appointment;
     petImageUrl?: string;
+    petName?: string;
     onClose: () => void;
     onEdit?: () => void;
 }
@@ -50,9 +51,13 @@ interface AppointmentDetailPopupProps {
 export default function AppointmentDetailPopup({
     appointment,
     petImageUrl,
+    petName,
     onClose,
     onEdit,
 }: AppointmentDetailPopupProps) {
+    const d = new Date(appointment.appointment_date);
+    const dateStr = d.toLocaleDateString("en-US", { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false });
     return (
         <FormDialog
             open={true}
@@ -66,8 +71,8 @@ export default function AppointmentDetailPopup({
                 <PetSection>
                     <Profile imageUrl={petImageUrl || "/pets-example/pet-ex1.svg"} size={50} />
                     <div className='pet-info'>
-                        <div className="pet-name">{appointment.petName}</div>
-                        <div className="pet-id">id: {appointment.petId}</div>
+                        <div className="pet-name">{petName || "-"}</div>
+                        <div className="pet-id">id: {appointment.pet_id}</div>
                     </div>
                 </PetSection>
 
@@ -76,7 +81,7 @@ export default function AppointmentDetailPopup({
                         <CalendarTodayIcon sx={{ color: theme.colors.primary }} />
                         <InfoText>
                             <span className="label">Date</span>
-                            <span className="value">{appointment.date}</span>
+                            <span className="value">{dateStr}</span>
                         </InfoText>
                     </InfoRow>
 
@@ -84,7 +89,7 @@ export default function AppointmentDetailPopup({
                         <AccessTimeIcon sx={{ color: theme.colors.primary }} />
                         <InfoText>
                             <span className="label">Time</span>
-                            <span className="value">{appointment.time}</span>
+                            <span className="value">{timeStr}</span>
                         </InfoText>
                     </InfoRow>
 

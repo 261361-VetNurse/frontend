@@ -5,7 +5,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Profile from "../../shared/Profile";
 import { ReminderCardStyle } from "@/styles/components/homepage.styled";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import { MedicineNotification } from '@/types/domain/medication';
+import { DashboardMedicineNotification } from '@/types/domain/dashboard';
 
 export type OccurrenceStatus = "pending" | "taken" | "missed";
 
@@ -22,7 +22,7 @@ const getStatusIcon = (status: string) => {
 };
 
 export type ReminderBoxProps = {
-  datas: MedicineNotification;
+  datas: DashboardMedicineNotification;
   petImageSize?: number;
   onClick?: () => void;
 };

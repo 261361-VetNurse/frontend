@@ -9,16 +9,12 @@ import Profile from "@/components/pet-owners/shared/Profile";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { theme } from "@/styles/tokens/theme";
-import {
-  formatTimeForDisplay,
-} from "@/utils/reminder-utils";
 import ReminderCard from "./ReminderCard";
-import { DashboardData } from "@/types/domain/dashboard";
+import { DashboardData, DashboardMedicineDetail } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken } from "@/services/api/client";
-import { Medicine, MedicineNotification } from "@/types";
+import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken, getMedicationNotificationDetail } from "@/services/api/client";
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,9 +23,7 @@ export default function HomePage() {
   const [data, setData] = useState<DashboardData | null>(null);
 
   /* New State for Popup */
-  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
-  const [selectedPet, setSelectedPet] = useState<{ _id: string, name: string, profile_image: string } | null>(null);
-  const [selectedNotification, setSelectedNotification] = useState<MedicineNotification | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<DashboardMedicineDetail | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
@@ -56,40 +50,15 @@ export default function HomePage() {
   if (error) return <div style={{ padding: 20, textAlign: "center", color: "red" }}>{error}</div>;
   if (!data) return null;
 
-  const { fname, profile_image,  pets, medicines_notifications, appointments } = data;
-
   /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
-  /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
-  const handleReminderClick = async (notif: MedicineNotification) => {
+  const handleReminderClick = async (noti: string) => {
     try {
       setPopupLoading(true);
-
       const token = authStorage.getToken() || "";
-      // We need to get Medicine Detail. 
-      // Assuming getMedicineDetail(token, notif._id, notif.medicine_id) works or we can mock it.
-      // Since client.ts exports getMedicineDetail taking (token, notificationId, medicineId)...
-      const medicine = await getMedicineDetail(token, notif._id, notif.medicine_id);
-
-      // Find Pet Info from local dashboard data
-      const petInfo = pets.find(p => p.pet_id === notif.pet_id);
-
-      if (medicine && petInfo) {
-        setSelectedMedicine(medicine);
-        // Map DashboardPet to object compatible with Pet type for Popup (need basic fields)
-        setSelectedPet({
-          _id: petInfo.pet_id,
-          name: petInfo.name,
-          profile_image: petInfo.profile_image
-        });
-
-        setSelectedNotification(notif);
-
-      } else {
-        alert("Medication details not found.");
-      }
+      const notiDetail = await getMedicationNotificationDetail(token, noti);
+      setSelectedNotification(notiDetail);
     } catch (err) {
       console.error("Failed to load medication detail:", err);
-      // alert("Failed to load medication details."); 
     } finally {
       setPopupLoading(false);
     }
@@ -97,50 +66,48 @@ export default function HomePage() {
 
   /* Handler: Toggle Reminder Status in Popup */
   const handleToggleReminder = async (reminderId: string, isTaken: boolean) => {
-    // 1. Optimistic Update (Popup)
-    // Update the selected notification locally
-    if (selectedNotification && selectedNotification._id === reminderId) {
-      setSelectedNotification({ ...selectedNotification, istaken: isTaken, status: isTaken ? 'taken' : 'pending', updated_at: new Date().toISOString() });
-    }
-
-    // 2. Update dashboard data to reflect changes
-    if (data) {
-      const updatedNotifications = data.medicines_notifications.map(notif =>
-        notif._id === reminderId
-          ? { ...notif, istaken: isTaken, status: isTaken ? 'taken' : 'pending' }
-          : notif
-      );
-      setData({ ...data, medicines_notifications: updatedNotifications });
-    }
-
-    // 3. API Call (Fail gracefully for offline/mock support)
+    // API Call Only (Pessimistic Update)
     try {
       if (reminderId) {
         const token = authStorage.getToken() || "";
+        // 1. Send API Request
         await markMedicationTaken(token, reminderId, isTaken);
         console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
+
+        // 2. Update local state ONLY after successful API response
+        if (selectedNotification && selectedNotification._id === reminderId) {
+          setSelectedNotification({ ...selectedNotification, istaken: isTaken, status: isTaken ? 'taken' : 'pending' });
+        }
+
+        if (data) {
+          const updatedNotifications = data.medicines_notifications.map(noti =>
+            noti._id === reminderId
+              ? { ...noti, istaken: isTaken, status: isTaken ? 'taken' : 'pending' }
+              : noti
+          );
+          setData({ ...data, medicines_notifications: updatedNotifications });
+        }
       }
     } catch (err) {
-      console.warn("[API] Failed to update medication status, keeping optimistic update:", err);
+      console.warn("[API] Failed to update medication status:", err);
+      alert("Failed to update status. Please try again.");
     }
   };
 
   const handleClosePopup = () => {
-    setSelectedMedicine(null);
-    setSelectedPet(null);
     setSelectedNotification(null);
+    setSelectedAppointment(null);
   };
-
 
   return (
     <HomePageStyled>
       <div className="header-box">
         <Profile
-          imageUrl={profile_image}
+          imageUrl={data.profile_image}
           size={50}
           href={"/pet-owners/owner-info-page"}
         />
-        <span>Hi! {fname}</span>
+        <span>Hi! {data.fname}</span>
         <HelpOutlineIcon
           sx={{
             ml: "auto",
@@ -172,7 +139,7 @@ export default function HomePage() {
 
       <div className="mypet-section">
         <div className="pet-list">
-          {pets.map((pet) => (
+          {data.pets.map((pet) => (
             <Profile
               key={pet.pet_id}
               imageUrl={pet.profile_image}
@@ -204,8 +171,8 @@ export default function HomePage() {
       </div>
 
       <div className="reminder-box">
-        {medicines_notifications.length > 0 ? (
-          medicines_notifications.map((med_noti) => {
+        {data.medicines_notifications.length > 0 ? (
+          data.medicines_notifications.map((med_noti) => {
             // Parse time from notification_at ISO and format it
             const dateObj = new Date(med_noti.notification_at);
             const hours = dateObj.getHours().toString().padStart(2, '0');
@@ -217,7 +184,7 @@ export default function HomePage() {
                 <ReminderCard
                   datas={med_noti}
                   petImageSize={40}
-                  onClick={() => handleReminderClick(med_noti)}
+                  onClick={() => handleReminderClick(med_noti._id)}
                 />
               </div>
             );
@@ -237,17 +204,15 @@ export default function HomePage() {
       </div>
 
       {/* Medication Detail Popup */}
-      {selectedMedicine && selectedPet && selectedNotification && (
+      {selectedNotification && (
         <MedicationDetailPopup
           page="home-page"
-          medicine={selectedMedicine}
-          notification={selectedNotification}
-          pet={selectedPet as any}
+          noti={selectedNotification}
           onClose={handleClosePopup}
           onToggleReminder={handleToggleReminder}
           onEdit={() => {
             // Optional: Handle edit if needed
-            router.push(`/pet-owners/medication-page?notification_id=${selectedNotification._id}&open=edit`);
+            router.push(`/pet-owners/medication-page?noti_id=${selectedNotification._id}&med_id=${selectedNotification.medicine_id}&open=edit`);
           }}
         />
       )}

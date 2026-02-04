@@ -48,4 +48,19 @@ export const mockPets: Pet[] = [
     profile_image: "/pets-example/pet-ex3.svg",
     created_at: "2026-01-02T11:00:00.000Z",
   },
+  {
+    _id: "430245",
+    user_id: MOCK_USER_ID,
+    name: "Kiwi",
+    species: "bird",
+    breed: "Parrot",
+    birth_date: "2023-08-20T00:00:00.000Z",
+    gender: "male",
+    weight_kg: 0.3,
+    allergies: [],
+    infecund: false,
+    color: "Green",
+    profile_image: "/pets-example/pet-ex1.svg", // Reusing for now or placeholder
+    created_at: "2026-01-10T09:00:00.000Z",
+  },
 ];

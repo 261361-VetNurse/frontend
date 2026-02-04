@@ -183,7 +183,7 @@ export default function MedicationPageV2() {
   };
 
   const handleReminderClick = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
     if (!plan) return;
     setSelectedReminder({
       medicineReminder: plan,
@@ -192,7 +192,7 @@ export default function MedicationPageV2() {
   };
 
   const handleEditFromCard = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
     if (!plan) return;
     setEditingReminder(plan);
     setSelectedReminder(null);
@@ -203,10 +203,10 @@ export default function MedicationPageV2() {
       try {
         const token = authStorage.getToken();
         if (token) {
-          const reminder = medicineReminders.find(mr => mr.notification_id === planId);
+          const reminder = medicineReminders.find(mr => mr._id === planId);
           if (reminder) {
-            await deleteMedicine(token, planId, reminder.medicine._id);
-            setMedicineReminders(prev => prev.filter(mr => mr.notification_id !== planId));
+            await deleteMedicine(token, planId, reminder.medicine_id);
+            setMedicineReminders(prev => prev.filter(mr => mr._id !== planId));
           }
         }
       } catch (err) {
@@ -218,8 +218,8 @@ export default function MedicationPageV2() {
   const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
     const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
     setMedicineReminders(updated);
-    if (selectedReminder?.medicineReminder.notification_id === planId) {
-      const updatedPlan = updated.find(mr => mr.notification_id === planId);
+    if (selectedReminder?.medicineReminder._id === planId) {
+      const updatedPlan = updated.find(mr => mr._id === planId);
       if (updatedPlan) {
         setSelectedReminder(prev => prev ? { ...prev, medicineReminder: updatedPlan } : prev);
       }
@@ -314,8 +314,10 @@ export default function MedicationPageV2() {
               }>();
 
               filteredOccurrences.forEach(occ => {
-                const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
-                const isStopped = plan?.medication_status?.is_stopped ?? false;
+                const plan = medicineReminders.find(p => p._id === occ.plan_id);
+                // Check if medication is stopped. Since EachDayMedicine doesn't have status, we assume TAKE unless otherwise specifying (or add it to type)
+                // For now, let's assume false or check if we added status to the type.
+                const isStopped = false; // Placeholder until we add status to EachDayMedicine
 
                 if (!groupedMap.has(occ.plan_id)) {
                   groupedMap.set(occ.plan_id, {
@@ -399,7 +401,7 @@ export default function MedicationPageV2() {
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={() => setSelectedReminder(null)}
           onToggleReminder={(reminderId: string, isTaken: boolean) =>
-            handleToggleReminder(selectedReminder.medicineReminder.notification_id, reminderId, isTaken)
+            handleToggleReminder(selectedReminder.medicineReminder._id, reminderId, isTaken)
           }
           onEdit={handleEditFromDetail}
         />

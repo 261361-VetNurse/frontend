@@ -71,7 +71,7 @@ export default function Appointments() {
   const grouped = useMemo(() => {
     const map = new Map<string, Appointment[]>();
     for (const a of filtered) {
-      const label = formatDateHeader(a.date);
+      const label = formatDateHeader(a.appointment_date);
       map.set(label, [...(map.get(label) ?? []), a]);
     }
     return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
@@ -115,12 +115,12 @@ export default function Appointments() {
             <AppointmentDateSection key={sec.label} label={sec.label}>
               {sec.items.map((a) => (
                 <AppointmentCard
-                  key={a.id}
+                  key={a._id}
                   appointment={{
-                    id: a.id,
-                    petName: a.petName,
-                    date: normalizeDateText(a.date),
-                    time: a.time,
+                    id: a._id,
+                    petName: selectedPet?.name || "-",
+                    date: normalizeDateText(a.appointment_date),
+                    time: new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
                     location: a.location,
                     status: a.status,
                   }}

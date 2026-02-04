@@ -11,10 +11,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env
 
 // Mock Data Imports (Lazy load where possible or just direct if simple)
 import { mockPets } from '@/mocks/pets.mock';
-import { mockDashboardData } from '@/mocks/dashboard.mock';
+import { mockDashboardData, mockMedicationNotificationDetail } from '@/mocks/dashboard.mock';
 import { allMockAppointments as mockAppointments } from '@/mocks/appointments';
 import { mockUserProfile } from '@/mocks/owner';
-import { getMockMedicationNotificationDetail, mockMedicineOccurrences, mockMedicines } from '@/mocks/medication.mock';
+import { mockEachDayMedicines, mockMedicines } from '@/mocks/medication.mock';
 
 // Mock Helper
 import { fetchWithMock } from '@/utils/mock-helper';
@@ -66,6 +66,7 @@ interface LineExchangeResponse {
 
 import { User, UserProfile } from '@/types/domain/user';
 import { Pet } from '@/types/domain/pet';
+import { DashboardMedicineDetailData, DashboardMedicineNotification } from '@/types';
 
 /**
  * Exchange LINE authorization code for access token
@@ -205,7 +206,7 @@ export const authStorage = {
 // MEDICATIONS API
 // ============================================================================
 /**
- * Get medication notifications (Occurrences)
+ * Get medication notifications
  * @param token - Access token
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD format)
@@ -214,21 +215,14 @@ export async function getMedications(token: string, petId?: string, date?: strin
     return fetchWithMock({
         mockData: () => {
             // Client-side filtering logic for mocks
-            let filteredOccurrences = mockMedicineOccurrences;
+            let filteredMedicines = mockEachDayMedicines;
             if (petId) {
-                filteredOccurrences = filteredOccurrences.filter(
-                    occ => occ.pet._id === petId
+                filteredMedicines = filteredMedicines.filter(
+                    occ => occ.pet_id === petId
                 );
             }
 
-            // Date filtering (Simplified for mock: if date is provided, filter by scheduled_at date part)
-            if (date) {
-                filteredOccurrences = filteredOccurrences.filter(occ =>
-                    occ.scheduled_at.startsWith(date)
-                );
-            }
-
-            return filteredOccurrences;
+            return filteredMedicines;
         },
         apiCall: async () => {
             let url = `${API_BASE_URL}/v1/medications`;
@@ -261,9 +255,11 @@ export async function getMedications(token: string, petId?: string, date?: strin
 export async function getMedicationNotificationDetail(token: string, notificationId: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
-            const detail = getMockMedicationNotificationDetail(notificationId);
-            if (!detail) throw new Error("Medication detail not found in mock");
-            return detail;
+            if (notificationId) {
+                const found = mockMedicationNotificationDetail.data.find(d => d._id === notificationId);
+                if (!found) throw new Error("Medication detail not found in mock");
+                return found;
+            }
         },
         apiCall: async () => {
             const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {

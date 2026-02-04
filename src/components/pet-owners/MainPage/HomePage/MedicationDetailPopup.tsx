@@ -1,5 +1,5 @@
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { Medicine, MedicineNotification } from '@/types/domain/medication';
+import { Medicine } from '@/types/domain/medication';
 import { Pet } from '@/types/domain/pet';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
@@ -8,41 +8,23 @@ import { PetSection, MedicineSection, ScheduleSection, RemindersSection, Reminde
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
+import { DashboardMedicineDetail } from '@/types/domain/dashboard';
+import { Icon } from 'lucide-react';
 
 interface MedicationDetailPopupProps {
-  medicine: Medicine;
-  notification: MedicineNotification;
-  pet: Pet;
+  noti: DashboardMedicineDetail;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
   onToggleReminder: (reminderId: string, isTaken: boolean) => void;
   onEdit: () => void;
 }
 
-type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'skipped' | 'active';
-
-const getStatus = (notification: MedicineNotification): OccurrenceStatus => {
-  if (notification.istaken) return 'taken';
-  // If skipped is a status in MedicineNotification? Schema says "status: string", "istaken: boolean".
-  // Assuming status string can be 'skipped'.
-  if (notification.status === 'skipped') return 'skipped';
-  // Check if missed (time passed and not taken)
-  const notifTime = new Date(notification.notification_at);
-  const now = new Date();
-  if (!notification.istaken && notifTime < now && notification.status !== 'skipped') {
-    // return 'missed'; // Optional: if we want to show missed
-  }
-  return 'pending';
-};
-
-const getStatusMeta = (status: OccurrenceStatus) => {
+const getStatusMeta = (status: string) => {
   switch (status) {
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon };
     case 'missed':
       return { label: 'Missed', Icon: ErrorOutlineIcon };
-    case 'skipped':
-      return { label: 'Skipped', Icon: ErrorOutlineIcon }; // Use suitable icon
     case 'pending':
     default:
       return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
@@ -65,9 +47,7 @@ const getFrequencyLabel = (freq: string): string => {
 
 
 export default function MedicationDetailPopup({
-  medicine,
-  notification,
-  pet,
+  noti,
   onClose,
   onToggleReminder,
   onEdit,
@@ -83,31 +63,30 @@ export default function MedicationDetailPopup({
   };
 
   const renderNotification = () => {
-    const status = getStatus(notification);
-    const { label, Icon } = getStatusMeta(status);
-    const isTaken = status === 'taken';
+    const { Icon } = getStatusMeta(noti.status);
 
-    const notifDate = new Date(notification.notification_at);
-    const timeStr = `${notifDate.getHours().toString().padStart(2, '0')}:${notifDate.getMinutes().toString().padStart(2, '0')}`;
+    // const notifDate = new Date(notification._at);
+    const notiDate = new Date(noti.notification_at);
+    const timeStr = `${notiDate.getHours().toString().padStart(2, '0')}:${notiDate.getMinutes().toString().padStart(2, '0')}`;
 
     return (
       <ReminderItem
-        key={notification._id}
+        key={noti._id}
       >
         <div className='reminder-time'>{formatTimeForDisplay(timeStr)}</div>
 
         <div className='reminder-status'>
           <StatusButton
-            $status={status}
-            onClick={() => onToggleReminder(notification._id, !isTaken)}
-            title={label}
+            $status={noti.status}
+            onClick={() => onToggleReminder(noti._id, !noti.istaken)}
+            title={noti.status}
           >
             <Icon style={{ width: 16, height: 16 }} />
-            <span>{label}</span>
+            <span>{noti.status}</span>
           </StatusButton>
 
-          {isTaken && (
-            <div className='taken-time'>{formatTakenTime(notification.updated_at)}</div>
+          {noti.istaken && (
+            <div className='taken-time'>{formatTakenTime(noti.taken_at)}</div>
           )}
         </div>
       </ReminderItem>
@@ -124,28 +103,28 @@ export default function MedicationDetailPopup({
     >
       <div className='flex flex-col gap-4'>
         <PetSection>
-          <Profile imageUrl={pet.profile_image} size={50} />
+          <Profile imageUrl={noti.pet_image} size={50} />
           <div className='pet-info'>
-            <div className="pet-name">{pet.name}</div>
-            <div className="pet-id">id: {pet._id}</div>
+            <div className="pet-name">{noti.pet_name}</div>
+            <div className="pet-id">id: {noti.pet_id}</div>
           </div>
         </PetSection>
 
         <MedicineSection>
           <MedicationIcon style={{ color: '#cccccc' }} />
-          <div className="medicine-name">{medicine.name}</div>
-          <div className="medicine-dosage">({medicine.dosage})</div>
+          <div className="medicine-name">{noti.medicine_name}</div>
+          <div className="medicine-dosage">({noti.dosage})</div>
         </MedicineSection>
 
         <ScheduleSection>
           <div className='schedule-info'>
             <div className='info-row'>
               <div className='info-label'>Frequency:</div>
-              <div className='info-value'>{getFrequencyLabel(medicine.frequency)}</div>
+              <div className='info-value'>{getFrequencyLabel(noti.frequency)}</div>
             </div>
             <div className='info-row'>
               <div className='info-label'>Times per day:</div>
-              <div className='info-value'>{medicine.reminder_time.length}</div>
+              <div className='info-value'>{noti.time_per_day}</div>
             </div>
           </div>
         </ScheduleSection>

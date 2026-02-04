@@ -80,7 +80,7 @@ export default function EditBasicInfo() {
       breed: breed.trim(),
       birth_date: dob,
       gender: sex,
-      weight_kg: weight.trim() === "" ? null : weight,
+      weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : weight) : weight,
       infecund: infecund,
       allergies: allergiesArray,
       profile_image: avatarUrl,

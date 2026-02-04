@@ -1,7 +1,10 @@
 import type { Appointment } from "@/types/domain/appointment";
 import { mockPets } from "@/mocks/pets.mock";
 
-const [mochi, taro, luna] = mockPets;
+const mochi = mockPets.find(p => p.name === "Mochi") || mockPets[0];
+const taro = mockPets.find(p => p.name === "Taro") || mockPets[1];
+const luna = mockPets.find(p => p.name === "Luna") || mockPets[2];
+const kiwi = mockPets.find(p => p.name === "Kiwi") || mockPets[3];
 
 export const mockAppointmentsByPetId: Record<string, Appointment[]> = {
   [mochi._id]: [
@@ -60,6 +63,19 @@ export const mockAppointmentsByPetId: Record<string, Appointment[]> = {
       note: "Vaccination",
       created_at: "2026-01-01T10:00:00.000Z",
     },
+  ],
+
+  [kiwi._id]: [
+    {
+      _id: "apt-006",
+      pet_id: kiwi._id,
+      user_id: "65f1a9c2b0f3c1a2d3e4f501",
+      appointment_date: "2026-02-10T09:00:00.000Z",
+      location: "Exotic Pet Clinic",
+      status: "upcoming",
+      note: "Beak trimming",
+      created_at: "2026-01-15T10:00:00.000Z",
+    }
   ]
 };
 
@@ -93,5 +109,18 @@ export const mockAppointmentNotifications: AppointmentNotification[] = [
     sending_count: 1,
     created_at: "2026-01-05T10:00:00.000Z",
     updated_at: "2026-01-12T08:05:00.000Z",
+  },
+  {
+    _id: "notif-apt-006",
+    pet_id: kiwi._id,
+    user_id: "65f1a9c2b0f3c1a2d3e4f501",
+    appointment_id: "apt-006",
+    title: "Beak Trimming for Kiwi",
+    notification_at: "2026-02-09T08:00:00.000Z",
+    sending_status: "pending",
+    status: "pending",
+    sending_count: 0,
+    created_at: "2026-01-15T10:00:00.000Z",
+    updated_at: "2026-01-15T10:00:00.000Z",
   }
 ];

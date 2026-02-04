@@ -24,18 +24,20 @@ export interface Medicine {
 export type NotificationSendingStatus = "pending" | "sent" | "failed"; // Example status
 export type NotificationStatus = "pending" | "taken" | "skipped";
 
-export interface MedicineNotification {
+export interface EachDayMedicine {
     _id: string; // Implicit Mongo ID
     pet_id: string;
     user_id: string;
     medicine_id: string;
-    title: string;
+    medicine_name: string;
+    medicine_dosage: string;
+    medicine_frequency: string;
+    pet_name: string;
     pet_image: string;
-    notification_at: string;
-    sending_status: string; // Schema says string
-    status: string; // Schema says string
-    sending_count: number;
-    istaken: boolean;
+    reminder_time: string[];
+    status?: MedicineStatus; // Optional to handle backward compatibility or lack of it in some mocks
     created_at: string;
     updated_at: string;
 }
+
+export type MedicineReminderVM = EachDayMedicine;
