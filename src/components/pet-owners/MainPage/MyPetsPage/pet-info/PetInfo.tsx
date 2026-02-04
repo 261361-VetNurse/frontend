@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { usePet } from "@/lib/hooks/usePets";
@@ -14,7 +13,6 @@ import { Page } from "@/styles/myPetsPage.styled";
 
 // shared component
 import PetFilterSelector, {
-  type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -57,19 +55,8 @@ export default function PetInfo() {
     );
   }
 
-  const currentPet = pet;
+  const currentPet: Pet = pet;
   const ageText = formatAge(currentPet.birth_date);
-
-  const petsForSelector: PetLite[] = useMemo(
-    () =>
-      pets.map((p) => ({
-        id: String(p._id),
-        name: p.name,
-        pid: String(p._id),
-        avatarUrl: p.profile_image,
-      })),
-    [pets]
-  );
 
   const menus = [
     {
@@ -96,12 +83,12 @@ export default function PetInfo() {
         onBack={() => router.push(`/pet-owners/my-pets-page`)}
       />
 
-      {/* Pet selector (shared component) */}
+      {/* Pet selector */}
       <div className="mt-4">
         <PetFilterSelector
           mode="filter"
           allowAllPets={false}
-          pets={petsForSelector}
+          pets={pets} // ✅ ใช้ Pet[] ตรง ๆ
           value={String(currentPet._id) as PetSelectorValue}
           onChange={(v) => {
             router.push(`/pet-owners/my-pets-page/${String(v)}`);
@@ -120,7 +107,9 @@ export default function PetInfo() {
           ageText={ageText}
           sex={currentPet.gender}
           onEdit={() =>
-            router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`) // ✅ ใช้ _id
+            router.push(
+              `/pet-owners/my-pets-page/${currentPet._id}/edit`
+            )
           }
         />
       </div>
