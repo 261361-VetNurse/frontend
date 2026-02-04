@@ -1,89 +1,41 @@
-// export type MedicineReminderVM = {
-//     notification_id: string;
+export type MedicineStatus = "TAKE" | "STOP";
 
-//     pet: {
-//         id: string;
-//         name: string;
-//         image_url: string;
-//     };
+export type MedicineFrequencyEnum = "-1" | "0" | "1" | "2" | "3" | "4" | "5" | "6";
+// -1=Daily, 0=Mon, 6=Sun (Based on schema comment, though usually 0-6 is Sun-Sat or Mon-Sun depending on convention. Schema says 0=Mon, 6=Sun)
 
-//     medicine: {
-//         id: string;
-//         dosage: string;   
-//     };
+export interface Medicine {
+    _id: string;
+    user_id: string;
+    pet_id: string;
+    name: string;
+    notes: string[];
+    properties: string; // "properties" in schema is string, might need clarification if it's meant to be something else, but strictly following schema.
+    image_urls: string[];
+    dosage: string;
+    frequency: MedicineFrequencyEnum;
+    status: MedicineStatus; // "TAKE" | "STOP"
+    reminder_time: string[]; // Date array in schema, usually ISO strings in frontend
+    start_date: string;
+    end_date: string;
+    created_at: string;
+    updated_at: string;
+}
 
-//     schedule: {
-//         frequency: {
-//             key: "everyday" | "interval_hours" | "custom";
-//             label: string; 
-//             interval_hours?: number; 
-//             days_of_week?: Array<"mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun">; // ถ้าเป็น custom
-//         };
+export type NotificationSendingStatus = "pending" | "sent" | "failed"; // Example status
+export type NotificationStatus = "pending" | "taken" | "skipped";
 
-//         reminders: Array<{
-//             id: string;       
-//             time: string;  
-//             is_taken: boolean;
-//             taken_at?: string; 
-//         }>;
-
-//         measurement_times_per_day: number; // Measurement: "2 times"
-//         starting_date: string;          
-//     };
-
-//     medication_status: {
-//         is_stopped: boolean;  // สถานะหยุดยาแทน finish
-//         stopped_at?: string;  // ISO
-//         reason?: string;      // optional
-//     };
-// };
-
-
-// src/types/medicine-reminder.ts
-
-export type Frequency =
-    | { key: "everyday"; label: string }
-    | { key: "interval_hours"; label: string; interval_hours: number }
-    | { key: "custom"; label: string; days_of_week: string[] };
-
-export type MedicineReminderVM = {
-    notification_id: string;
-
-    pet: {
-        _id: string;            // ✅ แก้จาก id เป็น _id
-        name: string;
-        profile_image?: string; // ✅ แก้จาก image_url เป็น profile_image (ใส่ ? เผื่อไม่มีรูป)
-    };
-
-    medicine: {
-        _id: string;            // ✅ แก้จาก id เป็น _id
-        name: string;           // ✅ เพิ่ม field นี้ (ใน Mock มีแต่ Type เก่าไม่มี)
-        dosage: string;
-    };
-
-    schedule: {
-        frequency: {
-            key: "everyday" | "interval_hours" | "custom";
-            label: string;
-            interval_hours?: number;
-            days_of_week?: string[]; // ✅ แก้ให้รับ string[] ตาม mock
-        };
-
-        reminders: Array<{
-            id: string;
-            time: string;
-            is_taken: boolean;
-            status: string;
-            taken_at?: string;
-        }>;
-
-        measurement_times_per_day: number;
-        starting_date: string;
-    };
-
-    medication_status: {
-        is_stopped: boolean;
-        stopped_at?: string;
-        reason?: string;
-    };
-};
+export interface MedicineNotification {
+    _id: string; // Implicit Mongo ID
+    pet_id: string;
+    user_id: string;
+    medicine_id: string;
+    title: string;
+    pet_image: string;
+    notification_at: string;
+    sending_status: string; // Schema says string
+    status: string; // Schema says string
+    sending_count: number;
+    istaken: boolean;
+    created_at: string;
+    updated_at: string;
+}

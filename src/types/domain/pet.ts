@@ -7,11 +7,12 @@ export type Pet = {
   color: string | null;
   gender: string;
   birth_date: string;
-  weight_kg: string | null;
+  weight_kg: number | null;
   allergies: string[];
   infecund: boolean;
   profile_image: string;
   created_at: string;
+  updated_at?: string;
 };
 
 export type PetId = Pet['_id'];

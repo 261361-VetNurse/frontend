@@ -1,5 +1,5 @@
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { MedicineReminderVM } from '@/types/domain/medication';
+import { MedicineNotification } from '@/types/domain/medication';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -9,7 +9,7 @@ import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
-  medicineReminder: MedicineReminderVM;
+  medicineReminder: MedicineNotification;
   highlightedReminderId?: string;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
@@ -64,17 +64,17 @@ export default function MedicationDetailPopup({
     >
       <div className='flex flex-col gap-4'>
         <PetSection>
-          <Profile imageUrl={medicineReminder.pet.profile_image} size={50} />
+          <Profile imageUrl={medicineReminder.pet_image} size={50} />
           <div className='pet-info'>
-            <div className="pet-name">{medicineReminder.pet.name}</div>
-            <div className="pet-id">id: {medicineReminder.pet._id}</div>
+            <div className="pet-name">{medicineReminder.pet_name}</div>
+            <div className="pet-id">id: {medicineReminder.pet_id}</div>
           </div>
         </PetSection>
 
         <MedicineSection>
           <MedicationIcon style={{ color: '#cccccc' }} />
-          <div className="medicine-name">{medicineReminder.medicine.name}</div>
-          <div className="medicine-dosage">{medicineReminder.medicine.dosage}</div>
+          <div className="medicine-name">{medicineReminder.medicine_name}</div>
+          <div className="medicine-dosage">{medicineReminder.medicine_dosage}</div>
         </MedicineSection>
 
         <ScheduleSection>
@@ -83,16 +83,16 @@ export default function MedicationDetailPopup({
             <div className='schedule-info'>
               <div className='info-row'>
                 <div className='info-label'>Frequency:</div>
-                <div className='info-value'>{medicineReminder.schedule.frequency.label}</div>
+                <div className='info-value'>{medicineReminder.frequency}</div>
               </div>
               <div className='info-row'>
                 <div className='info-label'>Times per day:</div>
-                <div className='info-value'>{medicineReminder.schedule.measurement_times_per_day}</div>
+                <div className='info-value'>{medicineReminder.reminder_time.length}</div>
               </div>
             </div>
             <div className='info-row'>
               <div className='info-label'>Starting date:</div>
-              <div className='info-value'>{medicineReminder.schedule.starting_date}</div>
+              <div className='info-value'>{medicineReminder.created_at}</div>
             </div>
           </div>
 
@@ -100,7 +100,7 @@ export default function MedicationDetailPopup({
 
         <RemindersSection >
           <div className="section-title">Today's Reminders</div>
-          {medicineReminder.schedule.reminders
+          {medicineReminder.reminder_time
             .map((reminder: any) => {
               const status = getStatus(reminder);
               const { label, Icon } = getStatusMeta(status);

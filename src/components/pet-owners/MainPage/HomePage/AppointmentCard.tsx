@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { Appointment } from "@/types/domain/appointment";
 import Profile from "@/components/pet-owners/shared/Profile";
+import { DashboardAppointmentNotification } from "@/types";
 
 const CardContainer = styled.div`
     width: 100%;
@@ -56,31 +56,32 @@ const CardContainer = styled.div`
 `;
 
 type AppointmentCardProps = {
-    appointment: Appointment;
-    petImageUrl?: string;
+    datas: DashboardAppointmentNotification;
+    petImageSize?: number;
+    onClick?: () => void;
 };
 
 export default function AppointmentCard({
-    appointment,
-    petImageUrl = "/pets-example/pet-ex1.svg",
+    datas,
+    petImageSize = 40,
     onClick
 }: AppointmentCardProps & { onClick?: () => void }) {
     return (
         <CardContainer onClick={onClick}>
-            <Profile imageUrl={petImageUrl} size={40} />
+            <Profile imageUrl={datas.pet_image} size={petImageSize} />
             <div className="name-location">
-                <div className="name">{appointment.petName}</div>
+                <div className="name">{datas.pet_name}</div>
                 <div className="data-row">
                     <img className="data-icon" src="/location.svg" alt="location" />
-                    <span className="data-text">{appointment.location}</span>
+                    <span className="data-text">{datas.location}</span>
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/calendar.svg" alt="calendar" />
-                    <div className="data-text">{appointment.date}</div>
+                    <div className="data-text">{datas.appointment_date}</div>
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/clock.svg" alt="time" />
-                    <div className="data-text">{appointment.time}</div>
+                    <div className="data-text">{datas.notification_at}</div>
                 </div>
             </div>
 

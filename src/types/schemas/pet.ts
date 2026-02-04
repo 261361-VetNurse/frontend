@@ -9,9 +9,10 @@ export const PetSchema = z.object({
     color: z.string().nullable(),
     gender: z.string(),
     birth_date: z.string(),
-    weight_kg: z.string().nullable(),
+    weight_kg: z.number().nullable(),
     allergies: z.array(z.string()),
     infecund: z.boolean(),
     profile_image: z.string(),
     created_at: z.string(),
+    updated_at: z.string().optional(),
 });

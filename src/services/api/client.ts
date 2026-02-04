@@ -11,10 +11,10 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env
 
 // Mock Data Imports (Lazy load where possible or just direct if simple)
 import { mockPets } from '@/mocks/pets.mock';
-import { mockDashboardData, getMockMedicationDetail } from '@/mocks/dashboard.mock';
+import { mockDashboardData } from '@/mocks/dashboard.mock';
 import { allMockAppointments as mockAppointments } from '@/mocks/appointments';
 import { mockUserProfile } from '@/mocks/owner';
-import { mockMedicineOccurrences } from '@/mocks/medicine-reminders.mock';
+import { getMockMedicationNotificationDetail, mockMedicineOccurrences, mockMedicines } from '@/mocks/medication.mock';
 
 // Mock Helper
 import { fetchWithMock } from '@/utils/mock-helper';
@@ -258,10 +258,10 @@ export async function getMedications(token: string, petId?: string, date?: strin
 /**
  * Get medication notification detail
  */
-export async function getMedicationDetail(token: string, notificationId: string): Promise<any> {
+export async function getMedicationNotificationDetail(token: string, notificationId: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
-            const detail = getMockMedicationDetail(notificationId);
+            const detail = getMockMedicationNotificationDetail(notificationId);
             if (!detail) throw new Error("Medication detail not found in mock");
             return detail;
         },
@@ -317,22 +317,32 @@ export async function getMedicineDetail(
     notificationId: string,
     medicineId: string
 ): Promise<any> {
-    const response = await loggedFetch(
-        `${API_BASE_URL}/v1/medications/${notificationId}/${medicineId}`,
-        {
-            headers: {
-                'access_token': token,
-            },
-        }
-    );
+    return fetchWithMock({
+        mockData: () => {
+            const medicine = mockMedicines.find(m => m._id === medicineId);
+            if (!medicine) throw new Error("Medicine not found in mock");
+            return medicine;
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(
+                `${API_BASE_URL}/v1/medications/${notificationId}/${medicineId}`,
+                {
+                    headers: {
+                        'access_token': token,
+                    },
+                }
+            );
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get medicine detail');
-    }
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get medicine detail');
+            }
 
-    const json = await response.json();
-    return json.data || json;
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: `getMedicineDetail(${medicineId})`
+    });
 }
 
 /**

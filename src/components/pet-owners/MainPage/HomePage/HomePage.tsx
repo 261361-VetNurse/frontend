@@ -13,24 +13,23 @@ import {
   formatTimeForDisplay,
 } from "@/utils/reminder-utils";
 import ReminderCard from "./ReminderCard";
-import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
+import { DashboardData } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
-import { MedicineReminderVM } from "@/types/domain/medication";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, getMedicationDetail, authStorage, getUserProfile } from "@/services/api/client";
+import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken } from "@/services/api/client";
+import { Medicine, MedicineNotification } from "@/types";
 
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<DashboardData | null>(null);
-  const [userData, setUserData] = useState<any>(null);
-
 
   /* New State for Popup */
-  const [selectedReminder, setSelectedReminder] = useState<MedicineReminderVM | null>(null);
-  const [highlightedReminderId, setHighlightedReminderId] = useState<string | undefined>(undefined);
+  const [selectedMedicine, setSelectedMedicine] = useState<Medicine | null>(null);
+  const [selectedPet, setSelectedPet] = useState<{ _id: string, name: string, profile_image: string } | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<MedicineNotification | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
 
@@ -53,46 +52,44 @@ export default function HomePage() {
     fetchDashboard();
   }, [router]);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token = authStorage.getToken() || "";
-        const data = await getUserProfile(token);
-        setUserData(data);
-      } catch (err) {
-        console.error('Failed to load user profile:', err);
-        setError('Failed to load profile data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, [router]);
-
   if (loading) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
   if (error) return <div style={{ padding: 20, textAlign: "center", color: "red" }}>{error}</div>;
   if (!data) return null;
 
-  const { fname, pets, medicines_notifications, appointments } = data;
+  const { fname, profile_image,  pets, medicines_notifications, appointments } = data;
 
   /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
-  const handleReminderClick = async (notif: DashboardNotification) => {
+  /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
+  const handleReminderClick = async (notif: MedicineNotification) => {
     try {
       setPopupLoading(true);
 
       const token = authStorage.getToken() || "";
-      const detail = await getMedicationDetail(token, notif._id);
+      // We need to get Medicine Detail. 
+      // Assuming getMedicineDetail(token, notif._id, notif.medicine_id) works or we can mock it.
+      // Since client.ts exports getMedicineDetail taking (token, notificationId, medicineId)...
+      const medicine = await getMedicineDetail(token, notif._id, notif.medicine_id);
 
-      if (detail) {
-        setSelectedReminder(detail);
-        setHighlightedReminderId(notif._id);
+      // Find Pet Info from local dashboard data
+      const petInfo = pets.find(p => p.pet_id === notif.pet_id);
+
+      if (medicine && petInfo) {
+        setSelectedMedicine(medicine);
+        // Map DashboardPet to object compatible with Pet type for Popup (need basic fields)
+        setSelectedPet({
+          _id: petInfo.pet_id,
+          name: petInfo.name,
+          profile_image: petInfo.profile_image
+        });
+
+        setSelectedNotification(notif);
+
       } else {
         alert("Medication details not found.");
       }
     } catch (err) {
       console.error("Failed to load medication detail:", err);
-      alert("Failed to load medication details.");
+      // alert("Failed to load medication details."); 
     } finally {
       setPopupLoading(false);
     }
@@ -101,31 +98,37 @@ export default function HomePage() {
   /* Handler: Toggle Reminder Status in Popup */
   const handleToggleReminder = async (reminderId: string, isTaken: boolean) => {
     // 1. Optimistic Update (Popup)
-    if (selectedReminder) {
-      const updatedSchedule = { ...selectedReminder.schedule };
-      updatedSchedule.reminders = updatedSchedule.reminders.map(r =>
-        r.id === reminderId ? { ...r, is_taken: isTaken, status: isTaken ? 'taken' : 'pending' } : r
-      );
-      setSelectedReminder({ ...selectedReminder, schedule: updatedSchedule });
+    // Update the selected notification locally
+    if (selectedNotification && selectedNotification._id === reminderId) {
+      setSelectedNotification({ ...selectedNotification, istaken: isTaken, status: isTaken ? 'taken' : 'pending', updated_at: new Date().toISOString() });
     }
 
-    // 2. Update local state (no API call)
-    console.log(`[MOCK] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'not taken'}`);
-
-    // 3. Update dashboard data to reflect changes
+    // 2. Update dashboard data to reflect changes
     if (data) {
       const updatedNotifications = data.medicines_notifications.map(notif =>
-        notif._id === highlightedReminderId
+        notif._id === reminderId
           ? { ...notif, istaken: isTaken, status: isTaken ? 'taken' : 'pending' }
           : notif
       );
       setData({ ...data, medicines_notifications: updatedNotifications });
     }
+
+    // 3. API Call (Fail gracefully for offline/mock support)
+    try {
+      if (reminderId) {
+        const token = authStorage.getToken() || "";
+        await markMedicationTaken(token, reminderId, isTaken);
+        console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
+      }
+    } catch (err) {
+      console.warn("[API] Failed to update medication status, keeping optimistic update:", err);
+    }
   };
 
   const handleClosePopup = () => {
-    setSelectedReminder(null);
-    setHighlightedReminderId(undefined);
+    setSelectedMedicine(null);
+    setSelectedPet(null);
+    setSelectedNotification(null);
   };
 
 
@@ -133,7 +136,7 @@ export default function HomePage() {
     <HomePageStyled>
       <div className="header-box">
         <Profile
-          imageUrl={userData?.picture_url}
+          imageUrl={profile_image}
           size={50}
           href={"/pet-owners/owner-info-page"}
         />
@@ -202,25 +205,19 @@ export default function HomePage() {
 
       <div className="reminder-box">
         {medicines_notifications.length > 0 ? (
-          medicines_notifications.map((notif) => {
+          medicines_notifications.map((med_noti) => {
             // Parse time from notification_at ISO and format it
-            const dateObj = new Date(notif.notification_at);
+            const dateObj = new Date(med_noti.notification_at);
             const hours = dateObj.getHours().toString().padStart(2, '0');
             const minutes = dateObj.getMinutes().toString().padStart(2, '0');
             const timeStr = `${hours}:${minutes}`;
 
             return (
-              <div key={notif._id}>
+              <div key={med_noti._id}>
                 <ReminderCard
-                  petImageUrl={notif.pet_image || "/pets-example/pet-ex1.svg"}
-                  medicineName={notif.medicine_name}
-                  dosage={undefined} // API doesn't provide dosage - let component handle display
-                  schedule={{
-                    frequency_label: "Daily", // TODO: API should provide frequency_label
-                    time: formatTimeForDisplay(timeStr)
-                  }}
-                  status={notif.status}
-                  onClick={() => handleReminderClick(notif)}
+                  datas={med_noti}
+                  petImageSize={40}
+                  onClick={() => handleReminderClick(med_noti)}
                 />
               </div>
             );
@@ -240,16 +237,17 @@ export default function HomePage() {
       </div>
 
       {/* Medication Detail Popup */}
-      {selectedReminder && (
+      {selectedMedicine && selectedPet && selectedNotification && (
         <MedicationDetailPopup
           page="home-page"
-          medicineReminder={selectedReminder}
-          highlightedReminderId={highlightedReminderId}
+          medicine={selectedMedicine}
+          notification={selectedNotification}
+          pet={selectedPet as any}
           onClose={handleClosePopup}
           onToggleReminder={handleToggleReminder}
           onEdit={() => {
-            // Optional: Handle edit if needed, or just redirect to medication page for edit
-            router.push(`/pet-owners/medication-page?notification_id=${selectedReminder.notification_id}&open=edit`);
+            // Optional: Handle edit if needed
+            router.push(`/pet-owners/medication-page?notification_id=${selectedNotification._id}&open=edit`);
           }}
         />
       )}
@@ -283,7 +281,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="appoint-box">
+      {/* <div className="appoint-box">
         {appointments.length > 0 ? (
           appointments.slice(0, 3).map((apt) => {
             // Parse appointment date
@@ -303,23 +301,12 @@ export default function HomePage() {
               hour12: false
             });
 
-            // Map to Appointment type expected by card
-            const appointment: Appointment = {
-              id: apt._id,
-              petId: apt.pet_id,
-              petName: apt.pet_name,
-              date: formattedDate,
-              time: formattedTime,
-              location: "Veterinary Clinic", // TODO: API should provide location
-              status: apt.status as any
-            };
-
             return (
               <AppointmentCard
                 key={apt._id}
-                appointment={appointment}
-                petImageUrl={apt.pet_image || "/pets-example/pet-ex1.svg"}
-                onClick={() => setSelectedAppointment(appointment)}
+                datas={apt}
+                petImageSize={40}
+                onClick={() => setSelectedAppointment(apt)}
               />
             );
           })
@@ -335,10 +322,10 @@ export default function HomePage() {
             No upcoming appointments.
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Appointment Detail Popup */}
-      {selectedAppointment && (
+      {/* {selectedAppointment && (
         <AppointmentDetailPopup
           appointment={selectedAppointment}
           petImageUrl={appointments.find(a => a._id === selectedAppointment.id)?.pet_image}
@@ -347,7 +334,7 @@ export default function HomePage() {
             router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.id}&open=edit`);
           }}
         />
-      )}
+      )} */}
     </HomePageStyled>
   );
 }
