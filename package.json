@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+    "cypress:open:ios": "cypress open --env deviceGroup=ios",
+    "cypress:open:android": "cypress open --env deviceGroup=android",
+    "cypress:run": "cypress run",
+    "cypress:run:ios": "cypress run --env deviceGroup=ios",
+    "cypress:run:android": "cypress run --env deviceGroup=android",
+    "cypress:run:all-mobile": "cypress run --env deviceGroup=all"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

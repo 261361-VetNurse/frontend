@@ -20,6 +20,24 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Cypress (Mobile Responsive)
+
+Run the app first:
+
+```bash
+npm run dev
+```
+
+Then run Cypress with mobile groups:
+
+```bash
+npm run cypress:run:ios
+npm run cypress:run:android
+npm run cypress:run:all-mobile
+npm run cypress:open:ios
+npm run cypress:open:android
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
