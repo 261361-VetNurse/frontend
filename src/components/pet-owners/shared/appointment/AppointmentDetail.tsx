@@ -23,6 +23,7 @@ type Props = {
   onClose: () => void;
   onEdit?: (appt: AppointmentDetailItem) => void;
   onDelete?: (id: string) => void;
+  onAddToCalendar?: (appt: AppointmentDetailItem) => void;
   formatTime?: (t: string) => string;
 };
 
@@ -41,6 +42,7 @@ export default function AppointmentDetail({
   onClose,
   onEdit,
   onDelete,
+  onAddToCalendar,
   formatTime,
 }: Props) {
   if (!open || !appointment) return null;
@@ -132,6 +134,18 @@ export default function AppointmentDetail({
               {appointment.location}
             </div>
           </div>
+
+          {/* Add to Calendar */}
+          {onAddToCalendar && (
+            <Button
+              variant="secondary"
+              shape="pill"
+              fullWidth
+              onClick={() => onAddToCalendar(appointment)}
+            >
+              Add to Calendar
+            </Button>
+          )}
 
           {/* Status */}
           {appointment.status ? (

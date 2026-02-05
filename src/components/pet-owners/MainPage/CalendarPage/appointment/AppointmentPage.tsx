@@ -28,6 +28,8 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { mockPets } from "@/mocks/pets.mock";
 import { mockAppointmentsByPetId } from "@/mocks/appointments";
+import { exportICS } from "@/utils/exportICS";
+
 
 // Simplified type for pet selector options
 type PetOption = {
@@ -193,6 +195,18 @@ export default function AppointmentPage({
           setEditing(a);
         }}
         onDelete={() => setDetail(null)}
+        onAddToCalendar={(a) => {
+          const start = dayjs(`${a.date} ${a.time}`).toDate();
+          const end = dayjs(start).add(1, "hour").toDate();
+
+          exportICS({
+            title: `${a.petName} Appointment`,
+            description: `Pet ID: ${a.petPid}`,
+            location: a.location,
+            start,
+            end,
+          });
+        }}
       />
 
       {/* Edit */}
