@@ -67,7 +67,7 @@ export default function HomePage() {
       const token = authStorage.getToken();
       if (!token) return;
 
-      const detail = await getMedicationDetail(token, notif.medicine_id);
+      const detail = await getMedicationDetail(token, notif._id);
       setSelectedReminder(detail);
       setHighlightedReminderId(notif._id);
     } catch (err) {

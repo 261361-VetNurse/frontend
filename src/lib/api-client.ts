@@ -3,6 +3,9 @@
  */
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
+const USE_MOCK_DATA = ['1', 'true', 'yes', 'on'].includes(
+    (process.env.NEXT_PUBLIC_USE_MOCK_DATA || '').toLowerCase()
+);
 
 /**
  * Wrapper for fetch to add logging
@@ -84,6 +87,11 @@ export async function getCurrentUser(token: string): Promise<UserResponse> {
  * Get dashboard home data
  */
 export async function getDashboardHome(token: string): Promise<import('../types/dashboard').DashboardResponse> {
+    if (USE_MOCK_DATA) {
+        const { getMockDashboardHome } = await import('@/mocks/dashboard.mock');
+        return getMockDashboardHome();
+    }
+
     const response = await loggedFetch(`${API_BASE_URL}/v1/dashboard/home`, {
         headers: {
             'access_token': token
@@ -185,6 +193,11 @@ export async function getMedications(token: string, petId?: string, date?: strin
  * Get medication notification detail
  */
 export async function getMedicationDetail(token: string, notificationId: string): Promise<any> {
+    if (USE_MOCK_DATA) {
+        const { getMockMedicationDetail } = await import('@/mocks/dashboard.mock');
+        return getMockMedicationDetail(notificationId);
+    }
+
     const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
         headers: {
             'access_token': token,
@@ -208,6 +221,16 @@ export async function markMedicationTaken(
     notificationId: string,
     istaken: boolean = true
 ): Promise<any> {
+    if (USE_MOCK_DATA) {
+        return {
+            success: true,
+            data: {
+                notification_id: notificationId,
+                istaken,
+            },
+        };
+    }
+
     const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}/taken`, {
         method: 'PATCH',
         headers: {
