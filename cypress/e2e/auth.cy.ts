@@ -37,7 +37,7 @@ runForMobileViewports("Auth flow", () => {
                         lname: 'Smith',
                         line_id: 'line-001',
                         picture_url: '',
-                        Contact: {
+                        contact: {
                             gender: 'female',
                             phone: '0812345678',
                             email: 'alice@example.com',
