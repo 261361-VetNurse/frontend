@@ -12,6 +12,7 @@ export const PetSchema = z.object({
     weight_kg: z.number().nullable(),
     allergies: z.array(z.string()),
     infecund: z.boolean(),
+    in_medical: z.boolean(),
     profile_image: z.string(),
     created_at: z.string(),
     updated_at: z.string().optional(),

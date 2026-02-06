@@ -11,6 +11,7 @@ export type Pet = {
   allergies: string[];
   infecund: boolean;
   profile_image: string;
+  in_medical: boolean;
   created_at: string;
   updated_at?: string;
 };

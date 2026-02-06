@@ -13,6 +13,7 @@ export default function BasicInfoCard({
   weightKg,
   infecund,
   allergies,
+  inMedical,
   onEdit,
 }: {
   name: string;
@@ -24,6 +25,7 @@ export default function BasicInfoCard({
   weightKg?: string | null;
   infecund?: boolean;
   allergies?: string[];
+  inMedical?: boolean;
   onEdit?: () => void;
 }) {
   const sterileText = infecund ? "Yes" : "No";
@@ -58,7 +60,7 @@ export default function BasicInfoCard({
           <button
             type="button"
             onClick={onEdit}
-            className="text-sm text-sky-600 font-medium"
+            className="text-sm text-sky-600 font-medium underline"
           >
             Edit
           </button>
@@ -67,22 +69,20 @@ export default function BasicInfoCard({
 
       {/* Grid Section */}
       <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
-        <InfoRow label="Name" value={name} />
+        <div className="col-span-2">
+          <InfoRow label="Name" value={name} />
+        </div>
         <InfoRow label="Species" value={species} />
-
         <InfoRow label="Breed" value={breed} />
         <InfoRow label="Infecund" value={sterileText} />
-
         <InfoRow label="Date of birth" value={formattedBirthDate} />
         <InfoRow label="Age" value={ageText} />
-
         <InfoRow label="Gender" value={sex} />
         <InfoRow label="Weight (kg)" value={weightKg ?? "-"} />
-      </div>
-
-      {/* Allergies */}
-      <div className="mt-4">
-        <InfoRow label="Allergies" value={allergiesText} />
+        <InfoRow label="In Medical" value={inMedical ? "Yes" : "No"} />
+        <div className="col-span-2">
+          <InfoRow label="Allergies" value={allergiesText} />
+        </div>
       </div>
     </div>
   );

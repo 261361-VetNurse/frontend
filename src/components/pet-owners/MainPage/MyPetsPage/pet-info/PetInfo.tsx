@@ -160,6 +160,7 @@ export default function PetInfo() {
           birthDate={currentPet.birth_date}
           ageText={ageText}
           sex={currentPet.gender}
+          inMedical={currentPet.in_medical}
           onEdit={() =>
             router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`)
           }

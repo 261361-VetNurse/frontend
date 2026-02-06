@@ -48,8 +48,7 @@ export default function MyPets() {
   }, []);
 
   const allPetsCount = pets.length;
-  // TODO: Add logic to count pets in medical if needed, for now hardcoded to match previous behavior or derived if possible
-  const inMedicalCount = 0;
+  const inMedicalCount = pets.filter((pet) => pet.in_medical).length;
 
   if (loading) {
     return (
