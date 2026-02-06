@@ -680,7 +680,9 @@ export async function deleteAppointment(token: string, appointmentId: string): P
  */
 export async function getPets(token: string): Promise<Pet[]> {
     return fetchWithMock({
-        mockData: mockPets as unknown as Pet[],
+        mockData: () => {
+            return mockPets;
+        },
         apiCall: async () => {
             const response = await loggedFetch(`/api/pets`, {
                 headers: {
@@ -1191,5 +1193,58 @@ export async function deleteSymptomRecord(token: string, recordId: string): Prom
             return response.json();
         },
         mockLabel: `deleteSymptomRecord(${recordId})`
+    });
+}
+
+// ---------------- Notification API ----------------
+
+import { NotificationItem } from "@/types/domain/notification";
+import { mockNotifications } from "@/mocks/notification.mock";
+
+export async function getNotifications(token: string): Promise<NotificationItem[]> {
+    return fetchWithMock({
+        mockData: () => mockNotifications,
+        apiCall: async () => {
+            // Use proxyRequest or direct fetch. Proxy handles standard auth.
+            const response = await loggedFetch(`/api/notifications`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to fetch notifications');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: 'getNotifications'
+    });
+}
+
+
+export async function markNotificationAsRead(token: string, id: string): Promise<boolean> {
+    return fetchWithMock({
+        mockData: () => {
+            return true;
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(`/api/notifications/${id}/read`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to mark as read');
+            }
+
+            return true;
+        },
+        mockLabel: `markNotificationAsRead(${id})`
     });
 }

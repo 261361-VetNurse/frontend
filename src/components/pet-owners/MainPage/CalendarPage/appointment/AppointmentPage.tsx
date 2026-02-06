@@ -34,6 +34,8 @@ import {
   authStorage,
 } from "@/services/api/client";
 
+import SectionError from "@/components/pet-owners/shared/SectionError";
+
 /* ---------------- tabs ---------------- */
 
 const appointmentTabs = [
@@ -66,7 +68,7 @@ export default function AppointmentPage({
   const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
 
   /* -------- appointment data -------- */
-  const { appointments: apiAppointments, loading: loadingApps, refetch } = useAppointments();
+  const { appointments: apiAppointments, loading: loadingApps, error, refetch } = useAppointments();
 
   const filteredByPet = useMemo(() => {
     if (selectedPetId === "all") return apiAppointments;
@@ -276,25 +278,32 @@ export default function AppointmentPage({
 
         <div className="head-text">Upcoming appointments</div>
 
-        {appointmentsBySelectedDate.length === 0 ? (
-          <div className="mt-8 text-center text-gray-400 text-sm">
-            No appointments on this date
+        {/* Error State */}
+        {error ? (
+          <div className="mt-4">
+            <SectionError message="Failed to load appointments" onRetry={refetch} />
           </div>
         ) : (
-          <>
-            <div className="date-text">
-              {dayjs(selectedDate).format("ddd, DD/MM/YYYY")}
+          appointmentsBySelectedDate.length === 0 ? (
+            <div className="mt-8 text-center text-gray-400 text-sm">
+              No appointments on this date
             </div>
-            <div className="line" />
+          ) : (
+            <>
+              <div className="date-text">
+                {dayjs(selectedDate).format("ddd, DD/MM/YYYY")}
+              </div>
+              <div className="line" />
 
-            {appointmentsBySelectedDate.map((a) => (
-              <AppointmentCard
-                key={a._id}
-                appointment={a}
-                onClick={() => setDetail(a)}
-              />
-            ))}
-          </>
+              {appointmentsBySelectedDate.map((a) => (
+                <AppointmentCard
+                  key={a._id}
+                  appointment={a}
+                  onClick={() => setDetail(a)}
+                />
+              ))}
+            </>
+          )
         )}
       </div>
     </Page>

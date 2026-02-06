@@ -6,6 +6,7 @@ export const theme = {
     black: '#000000',
     background: '#FFFFFF',
     textPrimary: '#000000',
-    textSecondary: '#666666'
+    textSecondary: '#666666',
+    error: '#D32F2F'
   }
 };

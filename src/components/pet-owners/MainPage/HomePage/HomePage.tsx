@@ -14,7 +14,8 @@ import { DashboardData, DashboardMedicineDetail } from "@/types/domain/dashboard
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
+import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,28 +28,31 @@ export default function HomePage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
-      try {
-        const token = authStorage.getToken() || "";
-        const response = await getDashboardHome(token);
-        if (response.success) {
-          setData(response.data);
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load dashboard");
-      } finally {
-        setLoading(false);
+  const fetchDashboard = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const token = authStorage.getToken() || "";
+      const response = await getDashboardHome(token);
+      if (response.success) {
+        setData(response.data);
       }
-    };
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchDashboard();
   }, [router]);
 
-  if (loading) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
-  if (error) return <div style={{ padding: 20, textAlign: "center", color: "red" }}>{error}</div>;
-  if (!data) return null;
+  // Removed blocking error return
+  // if (error) return ...
+
+  if (loading && !data && !error) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
 
   /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
   const handleReminderClick = async (noti: string) => {
@@ -59,6 +63,7 @@ export default function HomePage() {
       setSelectedNotification(notiDetail);
     } catch (err) {
       console.error("Failed to load medication detail:", err);
+      alert("Failed to load medication details.");
     } finally {
       setPopupLoading(false);
     }
@@ -72,6 +77,7 @@ export default function HomePage() {
       setSelectedAppointment(aptDetail);
     } catch (err) {
       console.error("Failed to load appointment detail:", err);
+      alert("Failed to load appointment details.");
     } finally {
       setPopupLoading(false);
     }
@@ -116,11 +122,11 @@ export default function HomePage() {
     <HomePageStyled>
       <div className="header-box">
         <Profile
-          imageUrl={data.profile_image}
+          imageUrl={data?.profile_image}
           size={50}
           href={"/pet-owners/owner-info-page"}
         />
-        <span>Hi! {data.fname}</span>
+        <span>Hi! {data?.fname || "Pet Owner"}</span>
         <HelpOutlineIcon
           sx={{
             ml: "auto",
@@ -151,18 +157,24 @@ export default function HomePage() {
       </div>
 
       <div className="mypet-section">
-        <div className="pet-list">
-          {data.pets.map((pet) => (
-            <Profile
-              key={pet.pet_id}
-              imageUrl={pet.profile_image}
-              size={60}
-              label={pet.name}
-              showLabel={true}
-            />
-          ))}
-        </div>
-        <NewPetButton />
+        {error && !data?.pets ? (
+          <SectionError message="Could not load pets" onRetry={fetchDashboard} />
+        ) : (
+          <>
+            <div className="pet-list">
+              {data?.pets?.map((pet) => (
+                <Profile
+                  key={pet.pet_id}
+                  imageUrl={pet.profile_image}
+                  size={60}
+                  label={pet.name}
+                  showLabel={true}
+                />
+              ))}
+            </div>
+            <NewPetButton />
+          </>
+        )}
       </div>
 
       <div className="head-section">
@@ -184,29 +196,33 @@ export default function HomePage() {
       </div>
 
       <div className="reminder-box">
-        {data.medicines_notifications.length > 0 ? (
-          data.medicines_notifications.map((med_noti) => {
-            return (
-              <div key={med_noti._id}>
-                <ReminderCard
-                  datas={med_noti}
-                  petImageSize={40}
-                  onClick={() => handleReminderClick(med_noti._id)}
-                />
-              </div>
-            );
-          })
+        {error && !data?.medicines_notifications ? (
+          <SectionError message="Could not load reminders" onRetry={fetchDashboard} />
         ) : (
-          <div
-            style={{
-              padding: "32px 16px",
-              textAlign: "center",
-              color: theme.colors.textSecondary,
-              fontSize: "14px",
-            }}
-          >
-            No upcoming medication reminders.
-          </div>
+          data?.medicines_notifications && data.medicines_notifications.length > 0 ? (
+            data.medicines_notifications.map((med_noti) => {
+              return (
+                <div key={med_noti._id}>
+                  <ReminderCard
+                    datas={med_noti}
+                    petImageSize={40}
+                    onClick={() => handleReminderClick(med_noti._id)}
+                  />
+                </div>
+              );
+            })
+          ) : (
+            <div
+              style={{
+                padding: "32px 16px",
+                textAlign: "center",
+                color: theme.colors.textSecondary,
+                fontSize: "14px",
+              }}
+            >
+              No upcoming medication reminders.
+            </div>
+          )
         )}
       </div>
 
@@ -254,28 +270,32 @@ export default function HomePage() {
       </div>
 
       <div className="appoint-box">
-        {data.appointments.length > 0 ? (
-          data.appointments.slice(0, 3).map((apt) => {
-            return (
-              <AppointmentCard
-                key={apt._id}
-                datas={apt}
-                petImageSize={40}
-                onClick={() => handleAppointmentClick(apt._id)}
-              />
-            );
-          })
+        {error && !data?.appointments ? (
+          <SectionError message="Could not load appointments" onRetry={fetchDashboard} />
         ) : (
-          <div
-            style={{
-              padding: "32px 16px",
-              textAlign: "center",
-              color: theme.colors.textSecondary,
-              fontSize: "14px",
-            }}
-          >
-            No upcoming appointments.
-          </div>
+          data?.appointments && data.appointments.length > 0 ? (
+            data.appointments.slice(0, 3).map((apt) => {
+              return (
+                <AppointmentCard
+                  key={apt._id}
+                  datas={apt}
+                  petImageSize={40}
+                  onClick={() => handleAppointmentClick(apt._id)}
+                />
+              );
+            })
+          ) : (
+            <div
+              style={{
+                padding: "32px 16px",
+                textAlign: "center",
+                color: theme.colors.textSecondary,
+                fontSize: "14px",
+              }}
+            >
+              No upcoming appointments.
+            </div>
+          )
         )}
       </div>
 

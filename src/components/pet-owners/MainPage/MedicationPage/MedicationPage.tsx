@@ -18,6 +18,7 @@ import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 // Hooks
 import { usePets } from '@/hooks';
@@ -41,6 +42,7 @@ export default function MedicationPage() {
   // State
   const [medicines, setMedicines] = useState<EachDayMedicine[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch pets
   const { pets, loading: petsLoading } = usePets();
@@ -79,7 +81,7 @@ export default function MedicationPage() {
 
   const fetchReminders = useCallback(async () => {
     setLoading(true);
-
+    setError(null);
     try {
       const token = authStorage.getToken() || "";
       const dateForTab = getDateForTab(activeTab);
@@ -89,6 +91,7 @@ export default function MedicationPage() {
       setMedicines(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Error fetching reminders:', err);
+      setError("Failed to load medication reminders");
       setMedicines([]);
     } finally {
       setLoading(false);
@@ -261,6 +264,8 @@ export default function MedicationPage() {
       <CardList>
         {pageLoading && medicines.length === 0 ? (
           <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
+        ) : error ? (
+          <SectionError message="Failed to load medication reminders" onRetry={fetchReminders} />
         ) : medicines.length > 0 ? (
           medicines.map((med) => (
             <MedicineCard

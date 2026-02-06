@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState } from "react";
 
 import { Page } from "@/styles/components/calendar.styled";
 
@@ -27,26 +27,17 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { Pet, PetLite } from "@/types/domain/pet";
 import { usePets } from "@/hooks/usePets";
+import { useSymptomRecords, type RecordEntry } from "@/hooks/useSymptomRecords";
 
 // API
 import {
-  getSymptomRecordsCalendar,
   createSymptomRecord,
   editSymptomRecord,
   deleteSymptomRecord,
   uploadImage,
   authStorage
 } from "@/services/api/client";
-import { SymptomRecord } from "@/types/domain/symptom";
-
-type RecordEntry = {
-  id: string;
-  dateKey: string;
-  petId: string;
-  time: string;
-  note: string;
-  images?: string[];
-};
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 /* ---------------- helpers ---------------- */
 function pad2(n: number) { return String(n).padStart(2, "0"); }
@@ -69,18 +60,14 @@ function formatHeaderDate(isoDate: string) {
   return `${weekday}, ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-function extractTimeFromISO(iso: string) {
-  const d = new Date(iso);
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
 /* ================= page ================= */
 export const RecordPage = ({
   selectedPetId = "all",
 }: {
   selectedPetId?: PetSelectorValue;
 }) => {
-  const [records, setRecords] = useState<RecordEntry[]>([]);
+  const { records, error, refetch } = useSymptomRecords(selectedPetId);
+
   // Removed local selectedPetId state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [month, setMonth] = useState<Date>(new Date());
@@ -106,80 +93,6 @@ export const RecordPage = ({
   }, [petOptions]);
 
   const selectedIso = useMemo(() => localDateToISO(selectedDate), [selectedDate]);
-
-  // Fetch Logic
-  const fetchRecords = useCallback(async () => {
-    try {
-      const token = authStorage.getToken();
-      if (!token) return;
-
-      const pId = selectedPetId === "all" ? undefined : String(selectedPetId);
-      // Currently API returns filtered by date? No, returns calendar map.
-      // But let's assume getSymptomRecordsCalendar returns ALL records for client to filter for now 
-      // OR we might want to fetch by range. The mock returns all.
-      const response = await getSymptomRecordsCalendar(token, pId);
-
-      // Flatten the response
-      const allRecords = Object.values(response).flat();
-
-      // Map to RecordEntry
-      const entries: RecordEntry[] = allRecords.map(r => ({
-        id: r._id,
-        dateKey: r.date,
-        petId: r.pet_id,
-        time: extractTimeFromISO(r.created_at), // Using created_at time as default if no specific time field in SymptomRecord?
-        // Wait, SymptomRecord doesn't have `time` field in type def?
-        // Let's check type definition in step 40.
-        // It has `date` (string). It does NOT have `time` separate field.
-        // But UI expects `time`.
-        // I should probably store `time` in `date` (as ISO full) or add `time` to schema?
-        // UI uses `date` = YYYY-MM-DD and `time` = HH:MM separately.
-        // Reviewing Type: date: string.
-        // I will assume `date` field in API holds YYYY-MM-DD.
-        // Where to store time? user selects time.
-        // Created_at will be set to Now.
-        // I should probably update `SymptomRecord` to include `time` or store it in `note`?
-        // Or assume `date` stores full ISO?
-        // Step 40: `date: string; // ISO 8601 date string (YYYY-MM-DD or full timestamp)`
-        // If I store full timestamp in `date`, I can extract both.
-        // Let's try to store "YYYY-MM-DDTHH:mm:00.000Z" in `date`.
-        note: r.note || "",
-        images: r.images
-      }));
-
-      // Update: If entries come from API, the time needs to be correct.
-      // If I save full ISO in `date`, retrieving it:
-      // r.date might be "2026-01-01T10:00:00.000Z"
-      // dateKey = "2026-01-01"
-      // time = "10:00"
-
-      // Fix mapping:
-      const mapped = allRecords.map(r => {
-        const d = new Date(r.date);
-        const dateKey = r.date.includes('T') ? r.date.split('T')[0] : r.date;
-        const time = r.date.includes('T') ? extractTimeFromISO(r.date) : "00:00";
-
-        return {
-          id: r._id,
-          dateKey: dateKey,
-          petId: r.pet_id,
-          time: time,
-          note: r.note || "",
-          images: r.images
-        };
-      });
-
-      setRecords(mapped);
-
-    } catch (err) {
-      console.error("Failed to fetch records", err);
-    }
-  }, [selectedPetId]);
-
-  useEffect(() => {
-    fetchRecords();
-  }, [fetchRecords]);
-
 
   const filteredByPet = useMemo(() => {
     // If we fetched with petId filtering, records are already filtered.
@@ -230,7 +143,7 @@ export const RecordPage = ({
         severity: "Mild" // Default
       });
 
-      await fetchRecords();
+      await refetch();
       setOpenCreate(false);
     } catch (err) {
       console.error("Create failed", err);
@@ -261,7 +174,7 @@ export const RecordPage = ({
         // symptom: ... // reuse existing or update? API updates partial.
       });
 
-      await fetchRecords();
+      await refetch();
       setEditRecord(null);
     } catch (err) {
       console.error("Edit failed", err);
@@ -276,7 +189,7 @@ export const RecordPage = ({
       if (!token) return;
 
       await deleteSymptomRecord(token, id);
-      await fetchRecords();
+      await refetch();
       setDetailRecord(null);
 
     } catch (err) {
@@ -307,39 +220,45 @@ export const RecordPage = ({
 
         <div className="head-text">Record</div>
 
-        {recordsOnSelectedDate.length === 0 ? (
-          <div className="mt-8 text-center text-gray-400 text-sm">
-            No records on this date
+        {error ? (
+          <div className="mt-4">
+            <SectionError message="Failed to load symptom records" onRetry={refetch} />
           </div>
         ) : (
-          <>
-            <div className="date-text">{formatHeaderDate(selectedIso)}</div>
-            <div className="line" />
+          recordsOnSelectedDate.length === 0 ? (
+            <div className="mt-8 text-center text-gray-400 text-sm">
+              No records on this date
+            </div>
+          ) : (
+            <>
+              <div className="date-text">{formatHeaderDate(selectedIso)}</div>
+              <div className="line" />
 
-            {recordsOnSelectedDate.map((record) => {
-              const pet = petById.get(String(record.petId));
-              return (
-                <RecordCard
-                  key={record.id}
-                  petName={pet?.name ?? "-"}
-                  time={formatTime12h(record.time)}
-                  note={record.note}
-                  avatarUrl={pet?.profile_image}
-                  imageUrls={record.images ?? []}
-                  onClick={() => {
-                    setDetailRecord({
-                      ...record,
-                      petName: pet?.name ?? "-",
-                      petPid: pet?._id ?? "-",
-                      avatarUrl: pet?.profile_image,
-                      date: record.dateKey,
-                      imageUrls: record.images ?? [],
-                    });
-                  }}
-                />
-              );
-            })}
-          </>
+              {recordsOnSelectedDate.map((record) => {
+                const pet = petById.get(String(record.petId));
+                return (
+                  <RecordCard
+                    key={record.id}
+                    petName={pet?.name ?? "-"}
+                    time={formatTime12h(record.time)}
+                    note={record.note}
+                    avatarUrl={pet?.profile_image}
+                    imageUrls={record.images ?? []}
+                    onClick={() => {
+                      setDetailRecord({
+                        ...record,
+                        petName: pet?.name ?? "-",
+                        petPid: pet?._id ?? "-",
+                        avatarUrl: pet?.profile_image,
+                        date: record.dateKey,
+                        imageUrls: record.images ?? [],
+                      });
+                    }}
+                  />
+                );
+              })}
+            </>
+          )
         )}
       </div>
 

@@ -12,45 +12,60 @@ import { UserProfile } from "@/types/domain/user";
 import { Pet } from "@/types/domain/pet";
 
 import { Page } from "@/styles/components/my-pets-page.styled";
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 export default function MyPets() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile>();
   const [pets, setPets] = useState<Pet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [userError, setUserError] = useState<string | null>(null);
+  const [petsError, setPetsError] = useState<string | null>(null);
+
+  const fetchPetsData = async (token: string) => {
+    try {
+      setPetsError(null);
+      const petsData = await getPets(token);
+      setPets(petsData);
+    } catch (e: any) {
+      console.error("Failed to load pets", e);
+      setPetsError("Failed to load pets");
+    }
+  };
+
+  const fetchUserData = async (token: string) => {
+    try {
+      setUserError(null);
+      const userData = await getUserProfile(token);
+      setUser(userData);
+    } catch (e: any) {
+      console.error("Failed to load user", e);
+      setUserError("Failed to load profile");
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const token = authStorage.getToken();
-        if (!token) {
-          router.push('/pet-owners/login-page');
-          return;
-        }
-
-        const [userData, petsData] = await Promise.all([
-          getUserProfile(token),
-          getPets(token)
-        ]);
-
-        setUser(userData);
-        setPets(petsData);
-      } catch (e: any) {
-        console.error("Failed to load data", e);
-        setError(e.message || "Failed to load data");
-      } finally {
-        setLoading(false);
+    const init = async () => {
+      setLoading(true);
+      const token = authStorage.getToken();
+      if (!token) {
+        router.push('/pet-owners/login-page');
+        return;
       }
+
+      await Promise.all([
+        fetchUserData(token),
+        fetchPetsData(token)
+      ]);
+      setLoading(false);
     };
-    fetchData();
+    init();
   }, []);
 
   const allPetsCount = pets.length;
   const inMedicalCount = pets.filter((pet) => pet.in_medical).length;
 
-  if (loading) {
+  if (loading && !user && pets.length === 0) {
     return (
       <Page>
         <div className="flex items-center justify-center h-64">
@@ -60,22 +75,12 @@ export default function MyPets() {
     );
   }
 
-  if (error) {
-    return (
-      <Page>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-red-500">Error: {error}</div>
-        </div>
-      </Page>
-    );
-  }
-
   return (
     <Page>
       <div className="flex flex-col gap-4">
         <OwnerHeaderCard
-          name={user ? user.fname : "Loading..."}
-          ownerId={user ? user.id : "..."}
+          name={user?.fname || (userError ? "Pet Owner" : "Loading...")}
+          ownerId={user?.id || (userError ? "-" : "...")}
           avatarUrl={user?.picture_url ?? "/images/profile-test.png"}
           OwnerPageUrl="/pet-owners/owner-info-page"
         />
@@ -85,6 +90,7 @@ export default function MyPets() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* If pets failed loading, count might be 0, but that's acceptable for stats card or we could hide/dim them */}
           <div className="flex-1 grid grid-cols-2 gap-3">
             <StatCard title="All Pets" value={allPetsCount} />
             <StatCard title="In Medical" value={inMedicalCount} />
@@ -93,12 +99,19 @@ export default function MyPets() {
         </div>
 
         <div className="space-y-3">
-          {pets.length === 0 ? (
-            <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
-              No pets yet. Click "New Pet" to add one.
-            </div>
+          {petsError ? (
+            <SectionError message="Could not load pets list" onRetry={() => {
+              const token = authStorage.getToken();
+              if (token) fetchPetsData(token);
+            }} />
           ) : (
-            pets.map((pet) => <PetCard key={pet._id} pet={pet} />)
+            pets.length === 0 ? (
+              <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
+                No pets yet. Click "New Pet" to add one.
+              </div>
+            ) : (
+              pets.map((pet) => <PetCard key={pet._id} pet={pet} />)
+            )
           )}
         </div>
       </div>

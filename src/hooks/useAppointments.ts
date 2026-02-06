@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { authStorage } from '@/services/api/client';
 
 interface UseAppointmentsReturn {
     appointments: any[];
@@ -21,7 +22,8 @@ export function useAppointments(status?: string): UseAppointmentsReturn {
             setLoading(true);
             setError(null);
 
-            const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') || '' : '';
+            const token = authStorage.getToken();
+            if (!token) return;
 
             // Dynamic import to avoid circular dependency
             const { getAppointments } = await import('@/services/api/client');
@@ -37,7 +39,7 @@ export function useAppointments(status?: string): UseAppointmentsReturn {
             setAppointments(data);
         } catch (err) {
             console.error('Error loading appointments:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load appointments');
+            setError('Failed to load appointments');
         } finally {
             setLoading(false);
         }
