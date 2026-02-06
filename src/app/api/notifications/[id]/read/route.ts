@@ -3,9 +3,9 @@ import { proxyRequest } from "@/lib/api-proxy";
 
 export async function POST(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const id = params.id;
+    const { id } = await params;
     // Target: POST /v1/notifications/{id}/read
     return proxyRequest(request, `/notifications/${id}/read`, {
         method: "POST"
