@@ -1014,3 +1014,182 @@ export async function updateUserProfile(token: string, profileData: Partial<User
         mockLabel: 'updateUserProfile'
     });
 }
+
+// ============================================================================
+// SYMPTOM RECORDS API
+// ============================================================================
+
+import { SymptomRecord, CreateSymptomRecordRequest, UpdateSymptomRecordRequest, SymptomCalendarResponse } from '@/types/domain/symptom';
+import { mockSymptomRecords } from '@/mocks/symptom.mock';
+
+/**
+ * Get symptom records calendar
+ */
+export async function getSymptomRecordsCalendar(token: string, petId?: string, month?: string): Promise<SymptomCalendarResponse> {
+    return fetchWithMock({
+        mockData: () => {
+            // Group mock records by date
+            const calendar: SymptomCalendarResponse = {};
+            let filtered = mockSymptomRecords;
+            if (petId) {
+                filtered = filtered.filter(r => r.pet_id === petId);
+            }
+            // Simple month filtering simulation if needed, but for now just return all matches
+            filtered.forEach(record => {
+                const date = record.date; // YYYY-MM-DD
+                if (!calendar[date]) {
+                    calendar[date] = [];
+                }
+                calendar[date].push(record);
+            });
+            return calendar;
+        },
+        apiCall: async () => {
+            let url = `/api/symptom-records/calendar`;
+            const params = new URLSearchParams();
+            if (petId) params.append('pet_id', petId);
+            if (month) params.append('month', month);
+            if (params.toString()) url += `?${params.toString()}`;
+
+            const response = await loggedFetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get symptom calendar');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: 'getSymptomRecordsCalendar'
+    });
+}
+
+/**
+ * Create symptom record
+ */
+export async function createSymptomRecord(token: string, data: CreateSymptomRecordRequest): Promise<SymptomRecord> {
+    return fetchWithMock({
+        mockData: () => {
+            const newRecord: SymptomRecord = {
+                _id: "mock_sym_" + Math.random().toString(36).substring(7),
+                ...data,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+            return newRecord;
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(`/api/symptom-records`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to create symptom record');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: 'createSymptomRecord'
+    });
+}
+
+/**
+ * Get symptom record detail
+ */
+export async function getSymptomRecordDetail(token: string, recordId: string): Promise<SymptomRecord> {
+    return fetchWithMock({
+        mockData: () => {
+            const found = mockSymptomRecords.find(r => r._id === recordId);
+            if (!found) throw new Error("Symptom record not found in mock");
+            return found;
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to get symptom record detail');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: `getSymptomRecordDetail(${recordId})`
+    });
+}
+
+/**
+ * Edit symptom record
+ */
+export async function editSymptomRecord(token: string, recordId: string, data: UpdateSymptomRecordRequest): Promise<SymptomRecord> {
+    return fetchWithMock({
+        mockData: () => {
+            const found = mockSymptomRecords.find(r => r._id === recordId);
+            if (!found) throw new Error("Symptom record not found in mock");
+            const updated = { ...found, ...data, updated_at: new Date().toISOString() };
+            return updated;
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to edit symptom record');
+            }
+
+            const json = await response.json();
+            return json.data || json;
+        },
+        mockLabel: `editSymptomRecord(${recordId})`
+    });
+}
+
+/**
+ * Delete symptom record
+ */
+export async function deleteSymptomRecord(token: string, recordId: string): Promise<any> {
+    return fetchWithMock({
+        mockData: () => {
+            return { success: true, message: "Symptom record deleted (mock)" };
+        },
+        apiCall: async () => {
+            const response = await loggedFetch(`/api/symptom-records/${recordId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.detail || 'Failed to delete symptom record');
+            }
+
+            return response.json();
+        },
+        mockLabel: `deleteSymptomRecord(${recordId})`
+    });
+}

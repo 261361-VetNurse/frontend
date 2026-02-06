@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { PetLite } from "@/types/domain/pet";
@@ -19,13 +19,23 @@ import RecordDetailPopup, {
 import EditRecordPopup, {
   type EditSymptomPayload,
 } from "@/components/pet-owners/shared/records/EditRecordPopup";
-import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
+import AddRecordPopup, { AddSymptomPayload } from "@/components/pet-owners/shared/records/AddRecordPopup";
 
 // Import UI Library & Icons
 import { Add } from "@mui/icons-material";
-import Button from "@/components/pet-owners/shared/Button"; // ตรวจสอบ Path ไฟล์ Button ที่คุณให้มาอีกครั้ง
+import Button from "@/components/pet-owners/shared/Button";
 import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";
+
+// API
+import {
+  getSymptomRecordsCalendar,
+  createSymptomRecord,
+  editSymptomRecord,
+  deleteSymptomRecord,
+  uploadImage,
+  authStorage
+} from "@/services/api/client";
 
 function pad2(n: number) {
   return String(n).padStart(2, "0");
@@ -36,8 +46,9 @@ function todayISO() {
   return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
 }
 
-function filesToObjectUrls(files: File[] | undefined) {
-  return (files ?? []).map((f) => URL.createObjectURL(f));
+function extractTimeFromISO(iso: string) {
+  const d = new Date(iso);
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
 export default function RecordPage() {
@@ -75,25 +86,58 @@ export default function RecordPage() {
     return petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0] ?? null;
   }, [petOptions, selectedPetId]);
 
-  const [items, setItems] = useState<RecordItem[]>(() => {
-    // Initial empty state or fetch from API if available
-    // For now returning empty array as we are removing mock dependency
-    const base: RecordItem[] = [];
-
-    /* 
-    // Commented out mock initialization logic as we don't have direct access to mockPets anymore
-    // and we shouldn't rely on it for initial state if we want real data eventually.
-    const a = mockPets?.[0];
-    if (a) { ... }
-    */
-
-    return base;
-  });
-
+  const [items, setItems] = useState<RecordItem[]>([]);
   const [selectedDateISO, setSelectedDateISO] = useState<string>(todayISO());
   const [openCreate, setOpenCreate] = useState(false);
   const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
   const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
+
+  // Fetch Logic
+  const fetchRecords = useCallback(async () => {
+    if (!selectedPetId) return;
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      // We fetch specifically for the selected pet
+      const response = await getSymptomRecordsCalendar(token, selectedPetId);
+
+      // Flatten the response
+      const allRecords = Object.values(response).flat();
+
+      // Map to RecordItem
+      const mappedItems: RecordItem[] = allRecords.map(r => {
+        // Mapping Pet Info - assuming r.pet_id is current selectedPetId or we look up from pets list if needed
+        // For this page, we mostly filter by selectedPetId anyway.
+        const p = petOptions.find(opt => opt._id === r.pet_id);
+
+        const dateKey = r.date.includes('T') ? r.date.split('T')[0] : r.date;
+        const time = r.date.includes('T') ? extractTimeFromISO(r.date) : "00:00";
+
+        return {
+          id: r._id,
+          petId: r.pet_id,
+          petName: p?.name ?? "-",
+          petPid: p?._id ?? "-",
+          avatarUrl: p?.profile_image,
+          date: dateKey,
+          time: time,
+          note: r.note || "",
+          imageUrls: r.images ?? []
+        };
+      });
+
+      setItems(mappedItems);
+
+    } catch (err) {
+      console.error("Failed to fetch records", err);
+    }
+  }, [selectedPetId, petOptions]);
+
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
+
 
   function openDetailById(id: string) {
     const found = items.find((x) => x.id === id);
@@ -101,11 +145,81 @@ export default function RecordPage() {
     setDetailRecord({ ...found, petPid: found.petPid ?? "-" });
   }
 
-  function handleSaveEdit(payload: EditSymptomPayload) {
-    setItems((prev) =>
-      prev.map((x) => (x.id === payload.id ? { ...x, ...payload } : x))
-    );
-    setEditRecord(null);
+  async function handleSaveAdd(data: AddSymptomPayload) {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      // Upload images
+      const imageUrls: string[] = [];
+      if (data.images && data.images.length > 0) {
+        const uploadPromises = data.images.map(file => uploadImage(file, token));
+        const results = await Promise.all(uploadPromises);
+        imageUrls.push(...results);
+      }
+
+      const fullDateISO = `${data.date}T${data.time}:00.000Z`;
+
+      await createSymptomRecord(token, {
+        pet_id: data.petId,
+        symptom: "General Symptom",
+        date: fullDateISO,
+        note: data.note,
+        images: imageUrls,
+        severity: "Mild"
+      });
+
+      await fetchRecords();
+      setOpenCreate(false);
+    } catch (err) {
+      console.error("Create failed", err);
+      alert("Failed to create record");
+    }
+  }
+
+  async function handleSaveEdit(payload: EditSymptomPayload) {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      // Upload NEW images
+      const newImageUrls: string[] = [];
+      if (payload.newImages && payload.newImages.length > 0) {
+        const uploadPromises = payload.newImages.map(file => uploadImage(file, token));
+        const results = await Promise.all(uploadPromises);
+        newImageUrls.push(...results);
+      }
+
+      const finalImages = [...payload.existingImages, ...newImageUrls];
+      const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
+
+      await editSymptomRecord(token, payload.id, {
+        date: fullDateISO,
+        note: payload.note,
+        images: finalImages,
+      });
+
+      await fetchRecords();
+      setEditRecord(null);
+    } catch (err) {
+      console.error("Edit failed", err);
+      alert("Failed to update record");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Are you sure?")) return;
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      await deleteSymptomRecord(token, id);
+      await fetchRecords();
+      setDetailRecord(null);
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete record");
+    }
   }
 
   const selectorSlot = useMemo(() => (
@@ -166,21 +280,7 @@ export default function RecordPage() {
             pid: selectedPet._id ?? "-",
             avatarUrl: selectedPet.profile_image,
           }}
-          onSubmit={(data: any) => {
-            const newItem: RecordItem = {
-              id: `rec-${String(Date.now())}`,
-              petId: selectedPet._id,
-              petName: selectedPet.name ?? "-",
-              petPid: selectedPet._id ?? "-",
-              avatarUrl: selectedPet.profile_image,
-              date: String(data.date ?? todayISO()),
-              time: String(data.time ?? "00:00"),
-              note: String(data.note ?? ""),
-              imageUrls: filesToObjectUrls(data.images),
-            };
-            setItems((prev) => [newItem, ...prev]);
-            setOpenCreate(false);
-          }}
+          onSubmit={handleSaveAdd}
         />
       )}
 
@@ -190,8 +290,8 @@ export default function RecordPage() {
         record={detailRecord}
         onClose={() => setDetailRecord(null)}
         onEdit={(rec) => { setDetailRecord(null); setEditRecord(rec); }}
-        onDelete={(id) => { setItems(prev => prev.filter(x => x.id !== id)); setDetailRecord(null); }}
-        formatTime={(t: string) => t}
+        onDelete={handleDelete}
+        formatTime={(t: string) => t} // Format logic should be handled here or consistent
       />
 
       <EditRecordPopup

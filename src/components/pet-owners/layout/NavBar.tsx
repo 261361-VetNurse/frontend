@@ -14,6 +14,7 @@ const NavBarStyle = styled.div`
   width: 100%;
   background: #fff;
   justify-content: center;
+  z-index: 1000;
   box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
 `;
 
@@ -55,14 +56,14 @@ const navItems = [
 export default function NavBar() {
   const pathname = usePathname();
   return (
-    <NavBarStyle> 
+    <NavBarStyle>
       <NavBarWrap>
         {navItems.map((item) => (
           <NavItem key={item.label} href={item.href}>
-            <item.icon 
-              sx={{ 
-                fontSize: 24, 
-                color: pathname === item.href ? '#2196F3' : '#C3C3C3' 
+            <item.icon
+              sx={{
+                fontSize: 24,
+                color: pathname === item.href ? '#2196F3' : '#C3C3C3'
               }}
             />
             <span className="nav-text">{item.label}</span>
@@ -70,6 +71,6 @@ export default function NavBar() {
         ))}
       </NavBarWrap>
     </NavBarStyle>
-    
+
   );
 }
