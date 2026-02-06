@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { usePet } from "@/hooks";
+// import { usePet } from "@/hooks"; // Removed hook
 import { Pet } from "@/types/domain/pet";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
@@ -13,12 +13,66 @@ import { Page } from "@/styles/components/my-pets-page.styled";
 import PetFilterSelector, {
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
+import { deletePet, getPets, authStorage } from "@/services/api/client";
 
 export default function PetInfo() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const { pet, pets, loading, error } = usePet(petId);
+  // Use local state instead of usage hook
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch pets directly
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        setLoading(true);
+        const token = authStorage.getToken();
+        if (!token) {
+          // Handle no token if necessary, or let getPets fail/mock
+          // For now assuming token exists or mock handles it
+        }
+
+        // Use getPets from client directly
+        // Note: passing token even if getPets handles it locally? 
+        // client.ts getPets requires token.
+        const data = await getPets(token || "");
+        setPets(data);
+      } catch (err: any) {
+        setError(err.message || "Failed to load pets");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPets();
+  }, []);
+
+  // Derived state
+  const pet = useMemo(() => {
+    return pets.find((p) => String(p._id) === String(petId));
+  }, [pets, petId]);
+
+  /* -------- handlers -------- */
+  const handleDelete = async () => {
+    if (!pet) return;
+    if (!confirm(`Are you sure you want to delete ${pet.name}?`)) return;
+
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      await deletePet(token, pet._id);
+
+      // Navigate back to my pets
+      router.replace("/pet-owners/my-pets-page");
+    } catch (err) {
+      console.error("Failed to delete pet:", err);
+      alert("Failed to delete pet. Please try again.");
+    }
+  };
 
   if (loading) {
     return (
@@ -56,10 +110,7 @@ export default function PetInfo() {
   const currentPet = pet;
   const ageText = formatAge(currentPet.birth_date);
 
-  const petsForSelector: Pet[] = useMemo(
-    () => pets,
-    [pets]
-  );
+  const petsForSelector: Pet[] = pets;
 
   const menus = [
     {
@@ -110,7 +161,7 @@ export default function PetInfo() {
           ageText={ageText}
           sex={currentPet.gender}
           onEdit={() =>
-            router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`) // ✅ ใช้ _id
+            router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`)
           }
         />
       </div>
@@ -132,7 +183,7 @@ export default function PetInfo() {
         <button
           type="button"
           className="w-full rounded-2xl bg-red-600 text-white py-3 font-semibold hover:bg-red-700 active:scale-[0.99] transition"
-          onClick={() => console.log("delete", currentPet._id)}
+          onClick={handleDelete}
         >
           Delete
         </button>

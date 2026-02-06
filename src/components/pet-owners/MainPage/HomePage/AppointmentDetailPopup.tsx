@@ -42,16 +42,12 @@ const InfoText = styled.div`
 
 interface AppointmentDetailPopupProps {
     appointment: Appointment;
-    petImageUrl?: string;
-    petName?: string;
     onClose: () => void;
     onEdit?: () => void;
 }
 
 export default function AppointmentDetailPopup({
     appointment,
-    petImageUrl,
-    petName,
     onClose,
     onEdit,
 }: AppointmentDetailPopupProps) {
@@ -69,9 +65,9 @@ export default function AppointmentDetailPopup({
             <div className='flex flex-col gap-4'>
                 {/* Pet Section reusing styled component from medication */}
                 <PetSection>
-                    <Profile imageUrl={petImageUrl || "/pets-example/pet-ex1.svg"} size={50} />
+                    <Profile imageUrl={appointment.pet_image || "/pets-example/pet-ex1.svg"} size={50} />
                     <div className='pet-info'>
-                        <div className="pet-name">{petName || "-"}</div>
+                        <div className="pet-name">{appointment.pet_name || "-"}</div>
                         <div className="pet-id">id: {appointment.pet_id}</div>
                     </div>
                 </PetSection>

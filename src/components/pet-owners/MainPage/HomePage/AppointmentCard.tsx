@@ -66,6 +66,11 @@ export default function AppointmentCard({
     petImageSize = 40,
     onClick
 }: AppointmentCardProps & { onClick?: () => void }) {
+    const dateObj = new Date(datas.appointment_date);
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
     return (
         <CardContainer onClick={onClick}>
             <Profile imageUrl={datas.pet_image} size={petImageSize} />
@@ -77,11 +82,15 @@ export default function AppointmentCard({
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/calendar.svg" alt="calendar" />
-                    <div className="data-text">{datas.appointment_date}</div>
+                    <div className="data-text">{dateObj.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    })}</div>
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/clock.svg" alt="time" />
-                    <div className="data-text">{datas.notification_at}</div>
+                    <div className="data-text">{timeStr}</div>
                 </div>
             </div>
 

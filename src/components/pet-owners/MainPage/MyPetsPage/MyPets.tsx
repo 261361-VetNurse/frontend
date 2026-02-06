@@ -6,37 +6,56 @@ import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
 import { useRouter } from "next/navigation";
 
-import { usePets } from "@/hooks";
-import { getUserProfile, authStorage } from "@/services/api/client";
+import { getUserProfile, getPets, authStorage } from "@/services/api/client";
 import { useState, useEffect } from "react";
+import { UserProfile } from "@/types/domain/user";
+import { Pet } from "@/types/domain/pet";
 
 import { Page } from "@/styles/components/my-pets-page.styled";
 
 export default function MyPets() {
-  const { pets, loading, error } = usePets();
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const router = useRouter();
+  const [user, setUser] = useState<UserProfile>();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchData = async () => {
       try {
-        const token = authStorage.getToken() || "";
-        const data = await getUserProfile(token);
-        setUserProfile(data);
-      } catch (e) {
-        console.error("Failed to load user profile", e);
+        setLoading(true);
+        const token = authStorage.getToken();
+        if (!token) {
+          router.push('/pet-owners/login-page');
+          return;
+        }
+
+        const [userData, petsData] = await Promise.all([
+          getUserProfile(token),
+          getPets(token)
+        ]);
+
+        setUser(userData);
+        setPets(petsData);
+      } catch (e: any) {
+        console.error("Failed to load data", e);
+        setError(e.message || "Failed to load data");
+      } finally {
+        setLoading(false);
       }
     };
-    fetchUser();
+    fetchData();
   }, []);
 
   const allPetsCount = pets.length;
+  // TODO: Add logic to count pets in medical if needed, for now hardcoded to match previous behavior or derived if possible
   const inMedicalCount = 0;
 
   if (loading) {
     return (
       <Page>
         <div className="flex items-center justify-center h-64">
-          <div className="text-zinc-500">Loading pets...</div>
+          <div className="text-zinc-500">Loading data...</div>
         </div>
       </Page>
     );
@@ -56,9 +75,9 @@ export default function MyPets() {
     <Page>
       <div className="flex flex-col gap-4">
         <OwnerHeaderCard
-          name={userProfile ? `${userProfile.fname} ${userProfile.lname}` : "Loading..."}
-          ownerId={userProfile ? userProfile.id : "..."}
-          avatarUrl={userProfile?.picture_url ?? "/images/profile-test.png"}
+          name={user ? user.fname : "Loading..."}
+          ownerId={user ? user.id : "..."}
+          avatarUrl={user?.picture_url ?? "/images/profile-test.png"}
           OwnerPageUrl="/pet-owners/owner-info-page"
         />
 

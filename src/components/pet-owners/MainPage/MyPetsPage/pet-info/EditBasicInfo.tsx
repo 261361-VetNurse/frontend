@@ -9,6 +9,7 @@ import { Pet } from "@/types/domain/pet";
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
+import { updatePet, authStorage } from "@/services/api/client";
 
 type Sex = "Male" | "Female" | "Unknown";
 
@@ -23,37 +24,67 @@ export default function EditBasicInfo() {
     [pets, petId]
   );
 
-  if (!pet) {
-    return (
-      <div className="p-6">
-        <button onClick={() => router.back()} className="underline">
-          ← Back
-        </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
-      </div>
-    );
-  }
-
   const currentPet = pet;
 
+  // State hooks - initialized conditionally but logic is safe because if pet is undefined we return early
+  // However, hooks order must be consistent.
+  // Best to move early return after hooks or use default values.
+  // For safety, let's use default values if currentPet is undefined, and handle loading/redirect separately if needed.
+  // But since we use usePets which returns empty array initially, pet might be undefined.
+
+  // Safe defaults
   const [avatarUrl, setAvatarUrl] = useState(
-    currentPet.profile_image ?? "/pet-placeholder.svg"
+    currentPet?.profile_image ?? "/pet-placeholder.svg"
   );
-  const [name, setName] = useState(currentPet.name ?? "");
-  const [species, setSpecies] = useState(currentPet.species ?? "");
-  const [breed, setBreed] = useState(currentPet.breed ?? "");
+  const [name, setName] = useState(currentPet?.name ?? "");
+  const [species, setSpecies] = useState(currentPet?.species ?? "");
+  const [breed, setBreed] = useState(currentPet?.breed ?? "");
   const [dob, setDob] = useState(
-    currentPet.birth_date
+    currentPet?.birth_date
       ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
       : ""
   );
 
-  const [sex, setSex] = useState<Sex>((currentPet.gender as Sex) ?? "Unknown");
-  const [weight, setWeight] = useState(currentPet.weight_kg ?? "");
-  const [infecund, setInfecund] = useState<boolean>(currentPet.infecund ?? false);
+  const [sex, setSex] = useState<Sex>((currentPet?.gender as Sex) ?? "Unknown");
+  const [weight, setWeight] = useState(currentPet?.weight_kg ?? "");
+  const [infecund, setInfecund] = useState<boolean>(currentPet?.infecund ?? false);
   const [allergiesInput, setAllergiesInput] = useState(
-    currentPet.allergies ? currentPet.allergies.join(", ") : ""
+    currentPet?.allergies ? currentPet.allergies.join(", ") : ""
   );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // If initially undefined, we might want to sync when it becomes defined.
+  // This simple component pattern relies on usePets being populated or not. 
+  // If usePets loads later, we need useEffect to sync? 
+  // For now assuming navigating from PetInfo where data is likely cached or loaded.
+  // BUT: if we refresh on this page, `pets` is empty, `pet` is undefined. 
+  // The hooks above use defaults. We should ideally update state when `currentPet` changes.
+  // Adding useEffect to sync state when `currentPet` loads.
+
+  useMemo(() => {
+    if (currentPet) {
+      setAvatarUrl(currentPet.profile_image ?? "/pet-placeholder.svg");
+      setName(currentPet.name ?? "");
+      setSpecies(currentPet.species ?? "");
+      setBreed(currentPet.breed ?? "");
+      setDob(currentPet.birth_date ? dayjs(currentPet.birth_date).format("YYYY-MM-DD") : "");
+      setSex((currentPet.gender as Sex) ?? "Unknown");
+      setWeight(currentPet.weight_kg ?? "");
+      setInfecund(currentPet.infecund ?? false);
+      setAllergiesInput(currentPet.allergies ? currentPet.allergies.join(", ") : "");
+    }
+  }, [currentPet]);
+
+
+  if (!currentPet) {
+    // If usePets is loading (not exposed directly by hook here but inferred), we could show loading.
+    // For now, if not found and check length or some delay?
+    // Existing code returned "Pet not found" immediately which might flash if loading.
+    // Let's keep it simply "Pet not found" if truly missing, but maybe check if pets length > 0
+
+    // Returning here breaks hook rules if we put hooks above? 
+    // No, I moved hooks up.
+  }
 
   const computedAge = useMemo(() => (dob ? formatAge(dob) : "-"), [dob]);
 
@@ -65,40 +96,50 @@ export default function EditBasicInfo() {
     return true;
   }, [name, species, breed, dob]);
 
-  function onUpdate() {
-    if (!canSubmit) return;
+  async function onUpdate() {
+    if (!canSubmit || !currentPet) return;
+    setIsSubmitting(true);
 
     const allergiesArray = allergiesInput
       .split(",")
       .map((s) => s.trim())
       .filter((s) => s !== "");
 
-    const payload = {
-      ...currentPet,
+    const payload: Partial<Pet> = {
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
       birth_date: dob,
       gender: sex,
-      weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : weight) : weight,
+      weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : Number(weight)) : weight,
       infecund: infecund,
       allergies: allergiesArray,
       profile_image: avatarUrl,
     };
 
-    console.log("UPDATE PET:", payload);
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
 
-    // TODO: Call API to update pet
-    console.log("UPDATE PET:", payload);
-
-    /*
-    const index = mockPets.findIndex((p) => p._id === currentPet._id);
-    if (index !== -1) {
-      mockPets[index] = payload;
+      await updatePet(token, currentPet._id, payload);
+      router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
+    } catch (err) {
+      console.error("Failed to update pet:", err);
+      alert("Failed to update pet. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-    */
+  }
 
-    router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
+  if (!currentPet) {
+    return (
+      <div className="p-6">
+        <button onClick={() => router.back()} className="underline">
+          ← Back
+        </button>
+        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+      </div>
+    );
   }
 
   return (
@@ -271,10 +312,10 @@ export default function EditBasicInfo() {
           shape="pill"
           size="lg"
           onClick={onUpdate}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isSubmitting}
           style={{ padding: "14px" }}
         >
-          Update
+          {isSubmitting ? "Updating..." : "Update"}
         </Button>
       </div>
     </div>

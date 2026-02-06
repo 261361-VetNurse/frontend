@@ -32,12 +32,16 @@ export default function ReminderCard({
   petImageSize = 40,
   onClick,
 }: ReminderBoxProps) {
+  const dateObj = new Date(datas.notification_at);
+  const hours = dateObj.getHours().toString().padStart(2, '0');
+  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  const timeStr = `${hours}:${minutes}`;
   return (
     <ReminderCardStyle status={status} onClick={onClick} role={onClick ? "button" : undefined}>
       <div className="card-header">
         <div className="info time">
           <AccessTimeIcon />
-          <div>{datas.notification_at}</div>
+          <div>{timeStr}</div>
         </div>
         <div className="info frequency-label">
           {datas.frequency}

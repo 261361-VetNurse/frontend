@@ -28,7 +28,7 @@ import { getUserProfile, authStorage } from '@/services/api/client';
 
 const OwnerInformationPage = () => {
   const router = useRouter();
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<import('@/types/domain/user').UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -124,7 +124,7 @@ const OwnerInformationPage = () => {
           </InfoItem>
           <InfoItem>
             <InfoLabel>Line ID</InfoLabel>
-            <InfoValue>{userData.line_id || 'N/A'}</InfoValue>
+            <InfoValue>{userData.contact?.line_id || 'N/A'}</InfoValue>
           </InfoItem>
         </InfoList>
       </Section>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/navigation';
@@ -9,26 +9,30 @@ import {
   TopHeader,
   BackButton,
   PageTitle,
-  Header,
-  AvatarWrapper,
-  AvatarImg,
-  OwnerName,
-  OwnerId
 } from '@/styles/components/owner-information.styled';
 import { theme } from '@/styles/tokens/theme';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
+import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/client';
+import { UserProfile } from '@/types/domain/user';
 
 const EditOwnerInformationPage = () => {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string>("/images/profile-test.png");
+
+  const [originalUser, setOriginalUser] = useState<UserProfile | null>(null);
+
   const [formData, setFormData] = useState({
-    firstName: 'Yoon',
-    lastName: 'JH',
+    firstName: '',
+    lastName: '',
     gender: 'male',
-    phone: '9786534246',
-    email: 'spdiu9ughe@msodgiur'
+    phone: '',
+    email: ''
   });
 
   const genderOptions = [
@@ -37,6 +41,35 @@ const EditOwnerInformationPage = () => {
     { label: 'Other', value: 'other' }
   ];
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = authStorage.getToken() || "";
+        const user = await getUserProfile(token);
+        setOriginalUser(user);
+
+        setFormData({
+          firstName: user.fname || '',
+          lastName: user.lname || '',
+          gender: user.contact?.gender || 'male',
+          phone: user.contact?.phone || '',
+          email: user.contact?.email || ''
+        });
+        if (user.picture_url) {
+          setProfilePicture(user.picture_url);
+        }
+
+      } catch (err: any) {
+        console.error('Failed to fetch user profile:', err);
+        setError('Failed to load user information.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -44,12 +77,41 @@ const EditOwnerInformationPage = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log('Form submitted:', formData);
-    // Navigate back or show success message
+    setSubmitting(true);
+    setError(null);
+
+    try {
+      const token = authStorage.getToken() || "";
+
+      // Prepare partial update object with safe merge for contact
+      const currentContact = originalUser?.contact || {};
+      const updateData: Partial<UserProfile> = {
+        fname: formData.firstName,
+        lname: formData.lastName,
+        contact: {
+          ...currentContact,
+          gender: formData.gender,
+          phone: formData.phone,
+          email: formData.email,
+        }
+      };
+
+      await updateUserProfile(token, updateData);
+      router.back();
+
+    } catch (err: any) {
+      console.error('Failed to update profile:', err);
+      setError(err.message || "Failed to update profile");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return <Container><div className="p-4 text-center">Loading...</div></Container>;
+  }
 
   return (
     <Container>
@@ -59,11 +121,13 @@ const EditOwnerInformationPage = () => {
         </BackButton>
         <PageTitle>Edit Owner Information</PageTitle>
       </TopHeader>
-      
+
+      {error && <div className="text-red-500 text-center p-2">{error}</div>}
+
       <div className="relative flex flex-col items-center justify-center py-4">
         <div className="relative w-24 h-24 rounded-full border-2 border-white shadow-md">
           <div className="relative w-24 h-24 rounded-full overflow-hidden">
-            <img src="/images/profile-test.png" alt="Owner Avatar" className="w-[96px] h-[96px] object-cover" />
+            <img src={profilePicture} alt="Owner Avatar" className="w-[96px] h-[96px] object-cover" />
           </div>
           <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white cursor-pointer" style={{ backgroundColor: theme.colors.primary }}>
             <EditIcon style={{ fontSize: '16px', color: 'white' }} />
@@ -116,8 +180,8 @@ const EditOwnerInformationPage = () => {
         </FormField>
 
         <div style={{ marginTop: '32px' }}>
-          <PrimaryButton size='md' type="submit">
-            Update
+          <PrimaryButton size='md' type="submit" disabled={submitting}>
+            {submitting ? 'Updating...' : 'Update'}
           </PrimaryButton>
         </div>
       </form>

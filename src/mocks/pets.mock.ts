@@ -1,6 +1,6 @@
 // src/mocks/pets.ts
 import { Pet } from "@/types/domain/pet";
-import { MOCK_USER_ID } from "./owner";
+import { MOCK_USER_ID } from "./owner.mock";
 
 export const mockPets: Pet[] = [
   {

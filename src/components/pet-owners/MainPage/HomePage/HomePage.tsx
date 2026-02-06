@@ -14,7 +14,7 @@ import { DashboardData, DashboardMedicineDetail } from "@/types/domain/dashboard
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken, getMedicationNotificationDetail } from "@/services/api/client";
+import { getDashboardHome, authStorage, getMedicineDetail, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
 
 export default function HomePage() {
   const router = useRouter();
@@ -24,8 +24,8 @@ export default function HomePage() {
 
   /* New State for Popup */
   const [selectedNotification, setSelectedNotification] = useState<DashboardMedicineDetail | null>(null);
-  const [popupLoading, setPopupLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
+  const [popupLoading, setPopupLoading] = useState(false);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -59,6 +59,19 @@ export default function HomePage() {
       setSelectedNotification(notiDetail);
     } catch (err) {
       console.error("Failed to load medication detail:", err);
+    } finally {
+      setPopupLoading(false);
+    }
+  };
+
+  const handleAppointmentClick = async (apt: string) => {
+    try {
+      setPopupLoading(true);
+      const token = authStorage.getToken() || "";
+      const aptDetail = await getAppointmentDetail(token, apt);
+      setSelectedAppointment(aptDetail);
+    } catch (err) {
+      console.error("Failed to load appointment detail:", err);
     } finally {
       setPopupLoading(false);
     }
@@ -173,12 +186,6 @@ export default function HomePage() {
       <div className="reminder-box">
         {data.medicines_notifications.length > 0 ? (
           data.medicines_notifications.map((med_noti) => {
-            // Parse time from notification_at ISO and format it
-            const dateObj = new Date(med_noti.notification_at);
-            const hours = dateObj.getHours().toString().padStart(2, '0');
-            const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-            const timeStr = `${hours}:${minutes}`;
-
             return (
               <div key={med_noti._id}>
                 <ReminderCard
@@ -246,32 +253,15 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* <div className="appoint-box">
-        {appointments.length > 0 ? (
-          appointments.slice(0, 3).map((apt) => {
-            // Parse appointment date
-            const appointmentDate = new Date(apt.appointment_date);
-
-            // Format date as "DD MMM YYYY" (e.g., "17 Jan 2026")
-            const formattedDate = appointmentDate.toLocaleDateString('en-GB', {
-              day: '2-digit',
-              month: 'short',
-              year: 'numeric'
-            });
-
-            // Format time as "HH:mm" (e.g., "14:30")
-            const formattedTime = appointmentDate.toLocaleTimeString('en-GB', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: false
-            });
-
+      <div className="appoint-box">
+        {data.appointments.length > 0 ? (
+          data.appointments.slice(0, 3).map((apt) => {
             return (
               <AppointmentCard
                 key={apt._id}
                 datas={apt}
                 petImageSize={40}
-                onClick={() => setSelectedAppointment(apt)}
+                onClick={() => handleAppointmentClick(apt._id)}
               />
             );
           })
@@ -287,19 +277,18 @@ export default function HomePage() {
             No upcoming appointments.
           </div>
         )}
-      </div> */}
+      </div>
 
       {/* Appointment Detail Popup */}
-      {/* {selectedAppointment && (
+      {selectedAppointment && (
         <AppointmentDetailPopup
           appointment={selectedAppointment}
-          petImageUrl={appointments.find(a => a._id === selectedAppointment.id)?.pet_image}
           onClose={() => setSelectedAppointment(null)}
           onEdit={() => {
-            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.id}&open=edit`);
+            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment._id}&open=edit`);
           }}
         />
-      )} */}
+      )}
     </HomePageStyled>
   );
 }

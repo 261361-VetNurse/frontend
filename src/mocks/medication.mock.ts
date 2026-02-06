@@ -1,6 +1,6 @@
 
 import { EachDayMedicine, Medicine } from "@/types/domain/medication";
-import { MOCK_USER_ID } from "./owner";
+import { MOCK_USER_ID } from "./owner.mock";
 import { mockPets } from "./pets.mock";
 
 // Helper to get pet IDs safely

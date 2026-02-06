@@ -1,6 +1,6 @@
 import { DashboardResponse, DashboardMedicineDetailData } from "@/types/domain/dashboard";
 import { mockPets } from "./pets.mock";
-import { mockUserProfile } from "./owner";
+import { mockUserProfile } from "./owner.mock";
 
 const mochi = mockPets.find(p => p.name === "Mochi") || mockPets[0];
 const taro = mockPets.find(p => p.name === "Taro") || mockPets[1];
@@ -66,36 +66,24 @@ export const mockDashboardData: DashboardResponse = {
         appointments: [
             {
                 _id: "apt-001",
-                pet_id: mochi._id,
                 pet_name: mochi.name,
                 pet_image: mochi.profile_image || "",
                 appointment_date: "2026-01-20T11:00:00.000Z",
                 location: "ห้องอัลตราซาวด์, Novel CMU",
-                status: "upcoming",
-                notification_at: "2026-01-20T11:00:00.000Z",
-                note: "ห้องอัลตราซาวด์, Novel CMU",
             },
             {
                 _id: "apt-002",
-                pet_id: taro._id,
                 pet_name: taro.name,
                 pet_image: taro.profile_image || "",
                 appointment_date: "2026-01-18T10:30:00.000Z",
                 location: "ห้องตรวจ 2, Novel CMU",
-                status: "upcoming",
-                notification_at: "2026-01-18T10:30:00.000Z",
-                note: "ห้องตรวจ 2, Novel CMU",
             },
             {
                 _id: "apt-006",
-                pet_id: kiwi._id,
                 pet_name: kiwi.name,
                 pet_image: kiwi.profile_image || "",
                 appointment_date: "2026-02-10T09:00:00.000Z",
                 location: "Exotic Pet Clinic",
-                status: "upcoming",
-                notification_at: "2026-02-09T08:00:00.000Z",
-                note: "Beak trimming",
             },
         ],
     },
@@ -106,7 +94,6 @@ export const mockMedicationNotificationDetail: DashboardMedicineDetailData = {
     data: [
         {
             _id: "notif-001",
-            title: "Amoxicillin - 08:00",
             medicine_id: "med_001",
             medicine_name: "Amoxicillin",
             dosage: "5ml",
@@ -122,7 +109,6 @@ export const mockMedicationNotificationDetail: DashboardMedicineDetailData = {
         },
         {
             _id: "notif-002",
-            title: "Flea Prevention - 10:00",
             medicine_id: "med_003",
             medicine_name: "Flea Prevention",
             dosage: "1 vial",
@@ -138,7 +124,6 @@ export const mockMedicationNotificationDetail: DashboardMedicineDetailData = {
         },
         {
             _id: "notif-003",
-            title: "Vitamin Chews - 09:00",
             medicine_id: "med_002",
             medicine_name: "Vitamin Chews",
             dosage: "1 chew",
@@ -154,7 +139,6 @@ export const mockMedicationNotificationDetail: DashboardMedicineDetailData = {
         },
         {
             _id: "notif-004",
-            title: "Bird Vitamin - 07:00",
             medicine_id: "med_005",
             medicine_name: "Bird Vitamin",
             dosage: "5 drops",

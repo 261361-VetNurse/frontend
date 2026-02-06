@@ -6,6 +6,8 @@ import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/Pet
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
+import { createPet, authStorage } from "@/services/api/client";
+import { Pet } from "@/types";
 
 type Sex = "Male" | "Female" | "Unknown" | "";
 
@@ -27,6 +29,7 @@ export default function RegisterNewPetPage() {
 
   const [weight, setWeight] = useState("");
   const [allergiesInput, setAllergiesInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ===== Computed =====
   const computedAge = useMemo(() => {
@@ -46,28 +49,40 @@ export default function RegisterNewPetPage() {
   }, [name, species, breed, dob, sex, infecund]);
 
   // ===== Submit =====
-  function onSubmit() {
+  async function onSubmit() {
     if (!canSubmit) return;
+    setIsSubmitting(true);
 
     const allergiesArray = allergiesInput
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const payload = {
+    const payload: Partial<Pet> = {
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
       birth_date: dob,
       gender: sex,
-      infecund,
+      infecund: infecund ?? false,
       weight_kg: weight.trim() === "" ? null : Number(weight),
       allergies: allergiesArray,
       profile_image: avatarUrl,
+      color: null,
     };
 
-    console.log("CREATE PET:", payload);
-    router.push("/pet-owners/my-pets-page");
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      await createPet(token, payload);
+      router.push("/pet-owners/my-pets-page");
+    } catch (err) {
+      console.error("Failed to create pet:", err);
+      alert("Failed to create pet. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -238,9 +253,9 @@ export default function RegisterNewPetPage() {
           shape="pill"
           size="lg"
           onClick={onSubmit}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isSubmitting}
         >
-          Add New Pet
+          {isSubmitting ? "Adding..." : "Add New Pet"}
         </Button>
       </div>
     </>

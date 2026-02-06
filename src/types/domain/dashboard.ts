@@ -6,8 +6,8 @@ export interface DashboardPet {
 
 export interface DashboardMedicineNotification {
     _id: string;
-    medicine_id: string;
     title: string;
+    medicine_id: string;
     medicine_name: string;
     dosage: string;
     pet_image: string;
@@ -18,14 +18,10 @@ export interface DashboardMedicineNotification {
 
 export interface DashboardAppointmentNotification {
     _id: string;
-    pet_id: string;
     pet_name: string;
     pet_image: string;
     appointment_date: string;
     location: string;
-    status: string;
-    notification_at: string;
-    note: string;
 }
 
 export interface DashboardData {
@@ -44,7 +40,6 @@ export interface DashboardResponse {
 
 export interface DashboardMedicineDetail {
     _id: string;
-    title: string;
     medicine_id: string;
     medicine_name: string;
     dosage: string;

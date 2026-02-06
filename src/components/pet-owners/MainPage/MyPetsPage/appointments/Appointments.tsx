@@ -14,16 +14,18 @@ import AppointmentTabs, {
   type AppointmentTabKey,
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
+import AppointmentDetail from "@/components/pet-owners/shared/appointment/AppointmentDetail";
 
 import type { Appointment } from "@/types/domain/appointment";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
+import { getAppointmentDetail, authStorage } from "@/services/api/client";
 
-import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
+import AddAppointmentPopup from "@/components/pet-owners/MainPage/CalendarPage/appointment/AddAppointmentPopup";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { QuickDialButton } from "@/components/shared";
 
-export default function Appointments() {
+export default function MyPetsAppointments() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
@@ -57,6 +59,7 @@ export default function Appointments() {
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+  const [detail, setDetail] = useState<Appointment | null>(null);
 
   const { appointments } = useAppointments(); // Fetch all appointments
 
@@ -82,6 +85,18 @@ export default function Appointments() {
   const handleSubmitPopup = (data: any) => {
     console.log("submit appointment", data);
     setShowCreatePopup(false);
+  };
+
+  const handleOpenDetail = async (id: string) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+      const data = await getAppointmentDetail(token, id);
+      setDetail(data);
+    } catch (err) {
+      console.error("Failed to load appointment detail:", err);
+      // alert("Failed to load detail");
+    }
   };
 
   return (
@@ -124,7 +139,7 @@ export default function Appointments() {
                     location: a.location,
                     status: a.status,
                   }}
-                  onOpenDetail={(id) => console.log("open detail", id)}
+                  onOpenDetail={handleOpenDetail}
                 />
               ))}
             </AppointmentDateSection>
@@ -149,6 +164,23 @@ export default function Appointments() {
           name: selectedPet?.name ?? "-",
           pid: selectedPet?._id ?? "-",
           avatarUrl: selectedPet?.profile_image,
+        }}
+      />
+
+      {/* Appointment Detail Popup */}
+      <AppointmentDetail
+        open={!!detail}
+        appointment={detail}
+        onClose={() => setDetail(null)}
+        onEdit={(appt) => {
+          console.log("Edit clicked", appt);
+          setDetail(null);
+          // implement edit if needed
+        }}
+        onDelete={(id) => {
+          console.log("Delete clicked", id);
+          setDetail(null);
+          // implement delete if needed
         }}
       />
     </div>

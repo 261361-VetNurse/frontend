@@ -3,57 +3,69 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import { LocationOn } from "@mui/icons-material";
-import type { PetLite } from "@/types/domain/pet";
-
+import { LocationOn, KeyboardArrowDown, Check } from "@mui/icons-material";
+import { usePets } from "@/hooks/usePets";
 
 export type AddAppointmentPayload = {
   petId: string;
-  date: string;   // YYYY-MM-DD
-  time: string;   // HH:mm
+  date: string;
+  time: string;
   location: string;
 };
 
-type AddAppointmentPopupProps = {
+type AddCalendarAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
-  pets: PetLite[];
   initialPetId?: string;
-
+  initialDate?: string;
   onSubmit?: (data: AddAppointmentPayload) => void;
-  pet?: PetLite;              // optional (ถ้ามาจาก calendar ที่เลือก pet แล้ว)
 };
 
 export default function AddAppointmentPopup({
   open,
   onClose,
+  initialPetId,
+  initialDate,
   onSubmit,
-  pet,
-}: AddAppointmentPopupProps) {
+}: AddCalendarAppointmentPopupProps) {
+  const { pets, loading: loadingPets } = usePets();
+
+  const [selectedPetId, setSelectedPetId] = useState("");
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  /** reset เมื่อเปิด popup */
+
+  // สถานะการเปิด/ปิด Dropdown สัตว์เลี้ยง
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+
+  // หาข้อมูลสัตว์เลี้ยงที่เลือกจาก ID
+  const selectedPet = useMemo(() =>
+    pets.find(p => p._id === selectedPetId),
+    [pets, selectedPetId]);
+
+  /** Reset ข้อมูลเมื่อเปิด Popup */
   useEffect(() => {
     if (open) {
-      setDate("");
+      setSelectedPetId(initialPetId || "");
+      setDate(initialDate || "");
       setTime("");
       setLocation("");
+      setIsSelectorOpen(false);
     }
-  }, [open, pet?._id]);
+  }, [open, initialPetId, initialDate]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(pet?._id && date && time && location.trim());
-  }, [pet?._id, date, time, location]);
+    return Boolean(selectedPetId && date && time && location.trim());
+  }, [selectedPetId, date, time, location]);
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
     setIsSubmitting(true);
     try {
       await onSubmit?.({
-        petId: pet!._id,
+        petId: selectedPetId,
         date,
         time,
         location: location.trim(),
@@ -76,43 +88,91 @@ export default function AddAppointmentPopup({
       secondaryLabel="Cancel"
       onSecondary={onClose}
       submitting={isSubmitting}
-      dirty={Boolean(date || time || location)}
+      dirty={Boolean(selectedPetId || date || time || location)}
     >
-      {/* Pet info (เหมือน Record) */}
-      {pet ? (
-        <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
-          <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-            {pet.profile_image ? (
-              <Image
-                src={pet.profile_image}
-                alt={pet.name}
-                width={40}
-                height={40}
-                className="object-cover"
-              />
-            ) : null}
-          </div>
-          <div className="min-w-0">
-            <div className="text-sm font-semibold text-zinc-900 truncate">
-              {pet.name}
+      {/* 1. Custom Pet Selector (แสดงรูปและ PID เหมือนรูปขวา) */}
+      <div className="space-y-1 pb-4 border-b border-zinc-100">
+        <label className="block text-sm font-medium text-zinc-800">
+          Select Pet
+        </label>
+        <div className="relative">
+          {/* Trigger Button */}
+          <button
+            type="button"
+            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
+            className="w-full flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-all"
+          >
+            <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
+              {selectedPet?.profile_image ? (
+                <Image
+                  src={selectedPet.profile_image}
+                  alt={selectedPet.name}
+                  width={40}
+                  height={40}
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-zinc-200 flex items-center justify-center text-[10px] text-zinc-400">
+                  No Pic
+                </div>
+              )}
             </div>
-            <div className="text-xs text-zinc-500 truncate">
-              PID: {pet._id}
+            <div className="flex-1 text-left min-w-0">
+              {selectedPet ? (
+                <>
+                  <div className="font-semibold text-zinc-900 truncate">{selectedPet.name}</div>
+                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet._id}</div>
+                </>
+              ) : (
+                <div className="text-zinc-400">Choose your pet</div>
+              )}
             </div>
-          </div>
-        </div>
-      ) : null}
+            <KeyboardArrowDown
+              className={`text-zinc-400 transition-transform duration-200 ${isSelectorOpen ? 'rotate-180' : ''}`}
+              fontSize="small"
+            />
+          </button>
 
-      {/* Date & Time */}
-      <div className="space-y-1">
+          {/* Dropdown Menu */}
+          {isSelectorOpen && (
+            <div className="absolute z-[100] mt-2 w-full max-h-[240px] overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-xl py-1">
+              {pets.map((p) => (
+                <button
+                  key={p._id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedPetId(p._id);
+                    setIsSelectorOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-sky-50 transition-colors"
+                >
+                  <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
+                    {p.profile_image && (
+                      <Image src={p.profile_image} alt="" width={40} height={40} className="object-cover" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <div className="font-semibold text-zinc-900 truncate">{p.name}</div>
+                    <div className="text-xs text-zinc-500 truncate">PID: {p._id}</div>
+                  </div>
+                  {selectedPetId === p._id && (
+                    <Check className="text-sky-500" fontSize="small" />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Appointment Time */}
+      <div className="space-y-1 pt-2">
         <div className="text-sm font-medium text-zinc-800">
           Appointment Time
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">
-              Date
-            </label>
+            <label className="block text-xs text-zinc-500 mb-1">Date</label>
             <input
               type="date"
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
@@ -121,9 +181,7 @@ export default function AddAppointmentPopup({
             />
           </div>
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">
-              Time
-            </label>
+            <label className="block text-xs text-zinc-500 mb-1">Time</label>
             <input
               type="time"
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
@@ -134,8 +192,8 @@ export default function AddAppointmentPopup({
         </div>
       </div>
 
-      {/* Location */}
-      <div>
+      {/* 3. Location */}
+      <div className="pt-2">
         <label className="block text-sm font-medium text-zinc-800 mb-1">
           Location
         </label>
@@ -143,7 +201,7 @@ export default function AddAppointmentPopup({
           <LocationOn className="absolute left-3 top-2.5 text-zinc-400" fontSize="small" />
           <input
             type="text"
-            placeholder="Enter location"
+            placeholder="e.g. Examination Room"
             className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
