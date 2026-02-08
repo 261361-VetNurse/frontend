@@ -34,8 +34,7 @@ import {
   createSymptomRecord,
   editSymptomRecord,
   deleteSymptomRecord,
-  uploadImage,
-  authStorage
+  authStorage,
 } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 
@@ -124,14 +123,6 @@ export const RecordPage = ({
       const token = authStorage.getToken();
       if (!token) return;
 
-      // Upload images
-      const imageUrls: string[] = [];
-      if (data.images && data.images.length > 0) {
-        const uploadPromises = data.images.map(file => uploadImage(file, token));
-        const results = await Promise.all(uploadPromises);
-        imageUrls.push(...results);
-      }
-
       const fullDateISO = `${data.date}T${data.time}:00.000Z`;
 
       await createSymptomRecord(token, {
@@ -139,7 +130,7 @@ export const RecordPage = ({
         symptom: "General Symptom", // Default title as discussed
         date: fullDateISO,
         note: data.note,
-        images: imageUrls,
+        images: data.images, // Already uploaded URLs
         severity: "Mild" // Default
       });
 
@@ -156,15 +147,7 @@ export const RecordPage = ({
       const token = authStorage.getToken();
       if (!token) return;
 
-      // Upload NEW images
-      const newImageUrls: string[] = [];
-      if (payload.newImages && payload.newImages.length > 0) {
-        const uploadPromises = payload.newImages.map(file => uploadImage(file, token));
-        const results = await Promise.all(uploadPromises);
-        newImageUrls.push(...results);
-      }
-
-      const finalImages = [...payload.existingImages, ...newImageUrls];
+      const finalImages = [...payload.existingImages, ...payload.newImages];
       const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
       await editSymptomRecord(token, payload.id, {

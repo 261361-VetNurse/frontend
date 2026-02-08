@@ -10,6 +10,7 @@ import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
 import { updatePet, authStorage } from "@/services/api/client";
+import { ImageUpload } from "@/components/shared/ImageUpload";
 
 type Sex = "Male" | "Female" | "Unknown";
 
@@ -152,24 +153,12 @@ export default function EditBasicInfo() {
       <div className="pt-4 pb-28">
         {/* Avatar */}
         <div className="flex justify-center py-2">
-          <div className="relative">
-            <div className="h-24 w-24 rounded-full overflow-hidden bg-zinc-200">
-              <Image
-                src={avatarUrl}
-                alt="Pet avatar"
-                width={96}
-                height={96}
-                className="h-full w-full object-cover"
-                unoptimized
-              />
-            </div>
-            <button
-              type="button"
-              className="absolute -right-1 -bottom-1 h-8 w-8 rounded-full bg-sky-500 shadow-md grid place-items-center"
-            >
-              <Image src="/edit.svg" alt="" width={14} height={14} className="invert brightness-0" />
-            </button>
-          </div>
+          <ImageUpload
+            folder="pet-profile"
+            currentImage={avatarUrl}
+            onUploadComplete={(url) => setAvatarUrl(url)}
+            className="h-24 w-24 rounded-full overflow-hidden bg-zinc-200 self-center"
+          />
         </div>
 
         <div className="space-y-4 px-6 mt-4">

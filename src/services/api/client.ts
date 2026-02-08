@@ -901,32 +901,40 @@ export async function registerPet(token: string, petData: any): Promise<any> {
 /**
  * Upload image to R2 storage via backend API
  */
-export async function uploadImage(file: File, token: string): Promise<string> {
+/**
+ * Get presigned URL for direct R2 upload
+ */
+/**
+ * Get presigned URL for direct R2 upload
+ */
+export async function getPresignedUrl(token: string, fileType: string, folder: string): Promise<{ uploadUrl: string, objectKey: string, publicUrl: string }> {
     return fetchWithMock({
         mockData: () => {
-            return "https://placehold.co/400x400?text=Mock+Image";
+            return {
+                uploadUrl: "https://mock-r2-upload-url.com",
+                objectKey: `${folder}/mock-key.jpg`,
+                publicUrl: "https://placehold.co/400x400?text=Mock+Image"
+            };
         },
         apiCall: async () => {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await loggedFetch(`${API_BASE_URL}/v1/upload/image`, {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/upload/presigned-url`, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'access_token': token,
                 },
-                body: formData,
+                body: JSON.stringify({ fileType, folder }),
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.detail || 'Failed to upload image');
+                throw new Error(error.detail || 'Failed to get presigned URL');
             }
 
-            const data = await response.json();
-            return data.url;
+            const json = await response.json();
+            return json; // Backend returns keys directly
         },
-        mockLabel: 'uploadImage'
+        mockLabel: 'getPresignedUrl'
     });
 }
 
@@ -939,10 +947,10 @@ export async function deleteImage(filename: string, token: string): Promise<void
             return;
         },
         apiCall: async () => {
-            const response = await loggedFetch(`/api/upload/image?filename=${encodeURIComponent(filename)}`, {
+            const response = await loggedFetch(`${API_BASE_URL}/v1/upload/image?filename=${encodeURIComponent(filename)}`, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
+                    'access_token': token,
                 },
             });
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/PetAvatarPicker";
+import { ImageUpload } from "@/components/shared/ImageUpload";
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
@@ -92,7 +92,12 @@ export default function RegisterNewPetPage() {
 
       <div className="px-6 pb-28">
         <div className="flex justify-center py-6">
-          <PetAvatarPicker value={avatarUrl} onChange={setAvatarUrl} />
+          <ImageUpload
+            folder="pet-profile"
+            currentImage={avatarUrl}
+            onUploadComplete={(url) => setAvatarUrl(url)}
+            className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-sm self-center"
+          />
         </div>
 
         <div className="space-y-4">

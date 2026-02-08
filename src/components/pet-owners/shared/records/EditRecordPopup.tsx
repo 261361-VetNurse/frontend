@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { getPresignedUrl, authStorage } from "@/services/api/client";
 import type { RecordDetailItem } from "./RecordDetailPopup";
 
 export type EditSymptomPayload = {
@@ -11,7 +12,7 @@ export type EditSymptomPayload = {
   time: string; // HH:MM
   note: string;
   existingImages: string[];
-  newImages: File[];
+  newImages: string[];
 };
 
 type Props = {
@@ -117,20 +118,45 @@ export default function EditRecordPopup({
     });
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!canSubmit) return;
 
-    onSave?.({
-      id: r.id,
-      petId: r.petId,
-      date,
-      time,
-      note: note.trim(),
-      existingImages,
-      newImages: newFiles,
-    });
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
 
-    onClose();
+      // Upload new images
+      const newImageUrls: string[] = [];
+      if (newFiles.length > 0) {
+        const uploadPromises = newFiles.map(async (file) => {
+          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
+          await fetch(uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+          return publicUrl;
+        });
+        const results = await Promise.all(uploadPromises);
+        newImageUrls.push(...results);
+      }
+
+      onSave?.({
+        id: r.id,
+        petId: r.petId,
+        date,
+        time,
+        note: note.trim(),
+        existingImages,
+        newImages: newImageUrls,
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("Failed to upload images or save record:", err);
+    }
   }
 
   const currentCount = existingImages.length + newFiles.length;

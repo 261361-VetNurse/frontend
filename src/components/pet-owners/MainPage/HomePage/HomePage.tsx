@@ -169,6 +169,7 @@ export default function HomePage() {
                   size={60}
                   label={pet.name}
                   showLabel={true}
+                  onClick={() => router.push(`/pet-owners/my-pets-page/${pet.pet_id}`)}
                 />
               ))}
             </div>

@@ -17,6 +17,7 @@ import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
 import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/client';
 import { UserProfile } from '@/types/domain/user';
+import { ImageUpload } from '@/components/shared/ImageUpload';
 
 const EditOwnerInformationPage = () => {
   const router = useRouter();
@@ -125,14 +126,12 @@ const EditOwnerInformationPage = () => {
       {error && <div className="text-red-500 text-center p-2">{error}</div>}
 
       <div className="relative flex flex-col items-center justify-center py-4">
-        <div className="relative w-24 h-24 rounded-full border-2 border-white shadow-md">
-          <div className="relative w-24 h-24 rounded-full overflow-hidden">
-            <img src={profilePicture} alt="Owner Avatar" className="w-[96px] h-[96px] object-cover" />
-          </div>
-          <div className="absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 border-white cursor-pointer" style={{ backgroundColor: theme.colors.primary }}>
-            <EditIcon style={{ fontSize: '16px', color: 'white' }} />
-          </div>
-        </div>
+        <ImageUpload
+          folder="pet-owner-profile"
+          currentImage={profilePicture}
+          onUploadComplete={(url) => setProfilePicture(url)}
+          className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md self-center"
+        />
       </div>
 
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>

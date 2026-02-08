@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Add, KeyboardArrowDown, Check } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
+import { getPresignedUrl, authStorage } from "@/services/api/client";
 import type { PetLite } from "@/types/domain/pet";
 
 export type AddSymptomPayload = {
@@ -11,7 +12,7 @@ export type AddSymptomPayload = {
   date: string;
   time: string;
   note: string;
-  images: File[];
+  images: string[];
 };
 
 type AddSymptomPopupProps = {
@@ -108,14 +109,37 @@ export default function AddRecordPopup({
     if (!canSubmit) return;
     setIsSubmitting(true);
     try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      // Upload images
+      const imageUrls: string[] = [];
+      if (files.length > 0) {
+        const uploadPromises = files.map(async (file) => {
+          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
+          await fetch(uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+          return publicUrl;
+        });
+        const results = await Promise.all(uploadPromises);
+        imageUrls.push(...results);
+      }
+
       await onSubmit?.({
         petId: selectedPetId,
         date,
         time,
         note: note.trim(),
-        images: files,
+        images: imageUrls,
       });
       onClose();
+    } catch (err) {
+      console.error("Failed to upload images or submit record:", err);
     } finally {
       setIsSubmitting(false);
     }
