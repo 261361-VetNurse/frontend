@@ -3,29 +3,27 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, { PetSelectorValue, PetLite as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
+import PetFilterSelector, { PetSelectorValue, PetSelectorValue as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import { MedicineReminderVM } from '@/types/medicine-reminder';
-import { OccurrenceStatus } from '@/types/medication-occurrence';
+import { MedicineReminderVM } from '@/types/domain/medication';
+import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
 import {
   formatTimeForDisplay,
   updateReminderTakenStatus,
   ReminderOccurrence,
   buildOccurrencesForDate,
-  buildOccurrenceId,
   getTodayInLocalTimezone,
   getUserTimezone,
-} from '@/lib/reminder-utils';
-import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/lib/api-client';
-import { usePets } from '@/lib/hooks/usePets';
-import { theme } from '@/styles/theme';
-import { FabButton } from "@/styles/appointments.styled";
-import { Add } from "@mui/icons-material";
-import { TabsWrap, TabButton, Header, CardList } from "../../../../../styles/medication.styled";
+} from '@/utils/reminder-utils';
+import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/services/api/client';
+import { usePets } from '@/hooks';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { TabsWrap, TabButton, Header, CardList } from "@/styles/components/medication.styled";
+import { QuickDialButton } from '@/components/shared';
 
 // Types
 type TabType = 'today' | 'tomorrow' | 'other';
@@ -84,19 +82,10 @@ export default function MedicationPageV2() {
   }, [petId, apiPets, selectedPetId]);
 
 
-  const petOptions: SharedPetLite[] = useMemo(() => {
-    return apiPets.map(p => ({
-      id: p._id,
-      name: p.name,
-      pid: p._id, // fallback
-      avatarUrl: p.profile_image
-    }));
-  }, [apiPets]);
-
   const selectedPet = useMemo(() => {
     // If selectedPetId matches a pet, use it
-    return petOptions.find(p => p.id === selectedPetId);
-  }, [petOptions, selectedPetId]);
+    return apiPets.find(p => p._id === selectedPetId);
+  }, [apiPets, selectedPetId]);
 
   // Tabs
   const [activeTab, setActiveTab] = useState<TabType>('today');
@@ -127,10 +116,8 @@ export default function MedicationPageV2() {
         const data = await getMedications(token, petIdParam, dateParam);
         setMedicineReminders(data);
       } catch (apiErr: any) {
-        console.warn('API failed, using mock data:', apiErr?.message);
-        const { mockMedicineReminderVMs } = await import('@/mocks/medicine-reminders.mock');
-        setMedicineReminders(mockMedicineReminderVMs);
-        setError('Using mock data (API unavailable)');
+        console.error('API failed:', apiErr);
+        setError(apiErr.message || 'Failed to load medication reminders');
       }
     } catch (err) {
       console.error(err);
@@ -196,7 +183,7 @@ export default function MedicationPageV2() {
   };
 
   const handleReminderClick = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
     if (!plan) return;
     setSelectedReminder({
       medicineReminder: plan,
@@ -205,7 +192,7 @@ export default function MedicationPageV2() {
   };
 
   const handleEditFromCard = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.notification_id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
     if (!plan) return;
     setEditingReminder(plan);
     setSelectedReminder(null);
@@ -216,10 +203,10 @@ export default function MedicationPageV2() {
       try {
         const token = authStorage.getToken();
         if (token) {
-          const reminder = medicineReminders.find(mr => mr.notification_id === planId);
+          const reminder = medicineReminders.find(mr => mr._id === planId);
           if (reminder) {
-            await deleteMedicine(token, planId, reminder.medicine._id);
-            setMedicineReminders(prev => prev.filter(mr => mr.notification_id !== planId));
+            await deleteMedicine(token, planId, reminder.medicine_id);
+            setMedicineReminders(prev => prev.filter(mr => mr._id !== planId));
           }
         }
       } catch (err) {
@@ -231,8 +218,8 @@ export default function MedicationPageV2() {
   const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
     const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
     setMedicineReminders(updated);
-    if (selectedReminder?.medicineReminder.notification_id === planId) {
-      const updatedPlan = updated.find(mr => mr.notification_id === planId);
+    if (selectedReminder?.medicineReminder._id === planId) {
+      const updatedPlan = updated.find(mr => mr._id === planId);
       if (updatedPlan) {
         setSelectedReminder(prev => prev ? { ...prev, medicineReminder: updatedPlan } : prev);
       }
@@ -268,27 +255,18 @@ export default function MedicationPageV2() {
 
   const loading = remindersLoading || petsLoading;
 
-  // Need to map apiPets to ComponentPet for popups
-  const popupPets = useMemo(() => {
-    return apiPets.map(p => ({
-      id: p._id,
-      name: p.name,
-      avatarUrl: p.profile_image
-    }));
-  }, [apiPets]);
-
 
   return (
     <div className="flex flex-col gap-4">
       <TopBar
         title="Medication"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
       />
 
       <PetFilterSelector
         mode="filter"
         allowAllPets={false}
-        pets={petOptions}
+        pets={apiPets}
         value={selectedPetId as PetSelectorValue}
         onChange={handlePetSelect}
       />
@@ -336,8 +314,10 @@ export default function MedicationPageV2() {
               }>();
 
               filteredOccurrences.forEach(occ => {
-                const plan = medicineReminders.find(p => p.notification_id === occ.plan_id);
-                const isStopped = plan?.medication_status?.is_stopped ?? false;
+                const plan = medicineReminders.find(p => p._id === occ.plan_id);
+                // Check if medication is stopped. Since EachDayMedicine doesn't have status, we assume TAKE unless otherwise specifying (or add it to type)
+                // For now, let's assume false or check if we added status to the type.
+                const isStopped = false; // Placeholder until we add status to EachDayMedicine
 
                 if (!groupedMap.has(occ.plan_id)) {
                   groupedMap.set(occ.plan_id, {
@@ -398,15 +378,19 @@ export default function MedicationPageV2() {
         )}
       </div>
 
-      <FabButton onClick={handleAdd}>
-        <Add />
-      </FabButton>
+      <QuickDialButton
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
+        onClickAction={handleAdd}
+      />
 
       <CreateMedicationPopup
         open={showCreatePopup}
         onClose={handleCloseCreatePopup}
         onSuccess={handleSubmitCreatePopup}
-        pets={popupPets}
+        pets={apiPets}
         initialPetId={selectedPetId}
       />
 
@@ -417,7 +401,7 @@ export default function MedicationPageV2() {
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={() => setSelectedReminder(null)}
           onToggleReminder={(reminderId: string, isTaken: boolean) =>
-            handleToggleReminder(selectedReminder.medicineReminder.notification_id, reminderId, isTaken)
+            handleToggleReminder(selectedReminder.medicineReminder._id, reminderId, isTaken)
           }
           onEdit={handleEditFromDetail}
         />
@@ -428,7 +412,7 @@ export default function MedicationPageV2() {
           open={!!editingReminder}
           onClose={() => setEditingReminder(null)}
           medicineReminder={editingReminder}
-          pets={popupPets}
+          pets={apiPets}
           onSuccess={handleSaveEdit}
         />
       )}

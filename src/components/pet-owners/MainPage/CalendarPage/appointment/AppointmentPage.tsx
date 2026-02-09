@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import dayjs from "dayjs";
-import styled from "styled-components";
+import { useSearchParams, useRouter } from "next/navigation";
 
-import { Pet } from "@/types/pet";
+import { Page } from "@/styles/components/calendar.styled";
 
 import {
   type PetSelectorValue,
@@ -15,27 +15,26 @@ import CalendarModule, {
   type DayMarker,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-// แก้ไข Path การ Import ให้เรียกใช้ไฟล์ในโฟลเดอร์เดียวกัน
-import AddAppointmentPopup, { AddAppointmentPayload } from "./AddAppointmentPopup";
-import AppointmentCard from "@/components/pet-owners/shared/appointment/AppointmentCard";
-import AppointmentDetail, {
-  type AppointmentDetailItem,
-} from "@/components/pet-owners/shared/appointment/AppointmentDetail";
-import EditAppointment from "@/components/pet-owners/shared/appointment/EditAppointment";
+import AddAppointmentPopup, { AddAppointmentPayload } from "../../../shared/appointment/AddAppointmentPopup";
+import AppointmentCard from "./AppointmentCard";
+import AppointmentDetail from "../../../shared/appointment/AppointmentDetail";
+import EditAppointment, { EditAppointmentPayload } from "../../../shared/appointment/EditAppointment";
 
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { mockAppointmentsByPetId } from "@/mocks/appointments";
+import { useAppointments } from "@/hooks/useAppointments";
+import { Appointment } from "@/types/domain/appointment";
 
-// Simplified type for pet selector options
-type PetOption = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl: string;
-};
+import {
+  createAppointment,
+  editAppointment,
+  cancelAppointment,
+  deleteAppointment,
+  authStorage,
+} from "@/services/api/client";
+
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 /* ---------------- tabs ---------------- */
 
@@ -43,36 +42,6 @@ const appointmentTabs = [
   { name: "Appointment", path: "/appointment", params: "appointment" },
   { name: "Record", path: "/record", params: "record" },
 ];
-
-/* ---------------- styled ---------------- */
-
-const Page = styled.div`
-  width: 100%;
-  min-height: 100vh;
-
-  .scroll-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 80px;
-  }
-
-  .head-text {
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  .date-text {
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .line {
-    width: 100%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.15);
-  }
-`;
 
 /* ================= page ================= */
 
@@ -84,6 +53,11 @@ export default function AppointmentPage({
   /* -------- pets -------- */
   // Removed local petOptions and selectedPetId state
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const appointmentIdParam = searchParams.get("appointment_id");
+  const openParam = searchParams.get("open");
+
   /* -------- calendar -------- */
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -94,38 +68,25 @@ export default function AppointmentPage({
   const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
 
   /* -------- appointment data -------- */
-
-  const appointments: AppointmentDetailItem[] = useMemo(() => {
-    return Object.values(mockAppointmentsByPetId)
-      .flat()
-      .map((item) => {
-        const pet = mockPets.find(
-          (p) => String(p._id) === String(item.petId)
-        );
-
-        return {
-          id: item.id,
-          petId: String(item.petId),
-          petName: item.petName,
-          petPid: pet ? String(pet._id) : "-",
-          avatarUrl: pet?.profile_image,
-          date: item.date,
-          time: item.time,
-          location: item.location,
-          status: item.status,
-        };
-      });
-  }, []);
+  const { appointments: apiAppointments, loading: loadingApps, error, refetch } = useAppointments();
 
   const filteredByPet = useMemo(() => {
-    if (selectedPetId === "all") return appointments;
-    return appointments.filter((a) => a.petId === selectedPetId);
-  }, [appointments, selectedPetId]);
+    if (selectedPetId === "all") return apiAppointments;
+    return apiAppointments.filter((a) => a.pet_id === selectedPetId);
+  }, [apiAppointments, selectedPetId]);
 
   const appointmentsBySelectedDate = useMemo(() => {
     return filteredByPet
-      .filter((a) => a.date === selectedDateKey)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .filter((a) => {
+        const d = dayjs(a.appointment_date).format("YYYY-MM-DD");
+        return d === selectedDateKey;
+      })
+      .sort((a, b) => {
+        // compare time
+        const tA = dayjs(a.appointment_date).unix();
+        const tB = dayjs(b.appointment_date).unix();
+        return tA - tB;
+      });
   }, [filteredByPet, selectedDateKey]);
 
   /* -------- calendar markers -------- */
@@ -134,9 +95,10 @@ export default function AppointmentPage({
     const map = new Map<string, DayMarker[]>();
 
     filteredByPet.forEach((a) => {
-      const arr = map.get(a.date) ?? [];
+      const dateKey = dayjs(a.appointment_date).format("YYYY-MM-DD");
+      const arr = map.get(dateKey) ?? [];
       arr.push({ type: "dot", colorKey: "appointment" });
-      map.set(a.date, arr);
+      map.set(dateKey, arr);
     });
 
     return Array.from(map.entries()).map(([iso, markers]) => ({
@@ -149,38 +111,122 @@ export default function AppointmentPage({
 
   const [openCreate, setOpenCreate] = useState(false);
   const [detail, setDetail] =
-    useState<AppointmentDetailItem | null>(null);
+    useState<Appointment | null>(null);
   const [editing, setEditing] =
-    useState<AppointmentDetailItem | null>(null);
+    useState<Appointment | null>(null);
 
-  // Re-creating petOptions for popup usage since we removed the main one
-  const petOptions: PetOption[] = useMemo(
-    () =>
-      mockPets.map((p: Pet) => ({
-        id: String(p._id),
-        name: p.name,
-        pid: String(p._id),
-        avatarUrl: p.profile_image,
-      })),
-    []
-  );
+  // Deep linking for Edit
+  useEffect(() => {
+    if (appointmentIdParam && openParam === "edit" && !loadingApps && apiAppointments.length > 0) {
+      const target = apiAppointments.find((a) => a._id === appointmentIdParam);
+      if (target) {
+        setEditing(target);
+      }
+    }
+  }, [appointmentIdParam, openParam, loadingApps, apiAppointments]);
 
-  /* ================= render ================= */
+  const closeEdit = () => {
+    setEditing(null);
+    // Clear query params
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete("appointment_id");
+    newParams.delete("open");
+    router.replace(`?${newParams.toString()}`);
+  };
+
+  /* -------- handlers -------- */
+
+  const handleCreate = async (data: AddAppointmentPayload) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      // Construct payload
+      // Backend expects: { pet_id, appointment_date (ISO), location, status? }
+      const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
+
+      const payload = {
+        pet_id: data.petId,
+        appointment_date: dateTime,
+        location: data.location,
+        status: "Upcoming", // default
+      };
+
+      await createAppointment(token, payload);
+      await refetch();
+      setOpenCreate(false);
+    } catch (err) {
+      console.error("Failed to create appointment:", err);
+      // You might want to show a toast/alert here
+    }
+  };
+
+  const handleEdit = async (data: EditAppointmentPayload) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      // Canceled check
+      if (data.status === "Canceled") {
+        await cancelAppointment(token, data.id);
+      } else {
+        // Normal edit
+        const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
+        const payload = {
+          pet_id: data.petId,
+          appointment_date: dateTime,
+          location: data.location,
+          status: data.status,
+        };
+        await editAppointment(token, data.id, payload);
+      }
+
+      await refetch();
+      closeEdit();
+    } catch (err) {
+      console.error("Failed to edit appointment:", err);
+      // alert
+    }
+  };
+
+  const handleCancelAppointment = async (id: string) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      await cancelAppointment(token, id);
+      await refetch();
+      closeEdit();
+    } catch (err) {
+      console.error("Failed to cancel appointment:", err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this appointment?")) return;
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      await deleteAppointment(token, id);
+      await refetch();
+      setDetail(null);
+    } catch (err) {
+      console.error("Failed to delete appointment:", err);
+      // alert
+    }
+  };
 
   return (
     <Page>
       <AddAppointmentPopup
         open={openCreate}
         onClose={() => setOpenCreate(false)}
-        pets={petOptions}
         initialDate={selectedDateKey}
         initialPetId={
           selectedPetId !== "all" ? selectedPetId : undefined
         }
-        onSubmit={(data: AddAppointmentPayload) => {
-          console.log("บันทึกนัดหมาย:", data);
-          setOpenCreate(false);
-        }}
+        onSubmit={handleCreate}
       />
 
       {/* Detail */}
@@ -192,15 +238,16 @@ export default function AppointmentPage({
           setDetail(null);
           setEditing(a);
         }}
-        onDelete={() => setDetail(null)}
+        onDelete={handleDelete}
       />
 
       {/* Edit */}
       <EditAppointment
         open={!!editing}
         appointment={editing}
-        onClose={() => setEditing(null)}
-        onSave={() => setEditing(null)}
+        onClose={closeEdit}
+        onSave={handleEdit}
+        onCancelAppointment={handleCancelAppointment}
       />
 
       {/* FAB */}
@@ -231,28 +278,32 @@ export default function AppointmentPage({
 
         <div className="head-text">Upcoming appointments</div>
 
-        {appointmentsBySelectedDate.length === 0 ? (
-          <div className="mt-8 text-center text-gray-400 text-sm">
-            No appointments on this date
+        {/* Error State */}
+        {error ? (
+          <div className="mt-4">
+            <SectionError message="Failed to load appointments" onRetry={refetch} />
           </div>
         ) : (
-          <>
-            <div className="date-text">
-              {dayjs(selectedDate).format("ddd, DD/MM/YYYY")}
+          appointmentsBySelectedDate.length === 0 ? (
+            <div className="mt-8 text-center text-gray-400 text-sm">
+              No appointments on this date
             </div>
-            <div className="line" />
+          ) : (
+            <>
+              <div className="date-text">
+                {dayjs(selectedDate).format("ddd, DD/MM/YYYY")}
+              </div>
+              <div className="line" />
 
-            {appointmentsBySelectedDate.map((a) => (
-              <AppointmentCard
-                key={a.id}
-                petName={a.petName}
-                time={a.time}
-                location={a.location}
-                avatarUrl={a.avatarUrl}
-                onClick={() => setDetail(a)}
-              />
-            ))}
-          </>
+              {appointmentsBySelectedDate.map((a) => (
+                <AppointmentCard
+                  key={a._id}
+                  appointment={a}
+                  onClick={() => setDetail(a)}
+                />
+              ))}
+            </>
+          )
         )}
       </div>
     </Page>

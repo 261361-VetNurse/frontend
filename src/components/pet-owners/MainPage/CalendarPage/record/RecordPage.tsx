@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import styled from "styled-components";
+
+import { Page } from "@/styles/components/calendar.styled";
 
 import {
-  type PetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -15,7 +15,7 @@ import CalendarModule, {
   localDateToISO,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-import { CALENDAR_MARKER_PALETTE } from "@/styles/calendar.styled";
+import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
 import AddRecordPopup, { type AddSymptomPayload } from "./AddRecordPopup";
@@ -25,63 +25,24 @@ import RecordDetailPopup, { type RecordDetailItem } from "@/components/pet-owner
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/pet";
+import { Pet, PetLite } from "@/types/domain/pet";
+import { usePets } from "@/hooks/usePets";
+import { useSymptomRecords, type RecordEntry } from "@/hooks/useSymptomRecords";
 
-/* ---------------- styled ---------------- */
-/* ---------------- styled ---------------- */
-const Page = styled.div`
-  width: 100%;
-  min-height: 100vh;
-
-  .scroll-area {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-bottom: 80px;
-  }
-
-  .head-text {
-    font-size: 18px;
-    font-weight: 500;
-  }
-
-  .date-text {
-    font-size: 14px;
-    font-weight: 500;
-  }
-
-  .line {
-    width: 100%;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.15);
-  }
-`;
-
-type RecordEntry = {
-  id: string;
-  dateKey: string;
-  petId: string;
-  time: string;
-  note: string;
-  images?: string[];
-};
-
-const recordSamples: RecordEntry[] = [
-  {
-    id: "record-1",
-    dateKey: "2026-01-03",
-    time: "11:00",
-    petId: String(mockPets?.[0]?._id ?? "4302459"),
-    note: "มีอาการซึมไม่อยากอาหาร\nมีอาเจียนเล็กน้อย",
-    images: ["/pets-example/pet-ex1.svg"],
-  },
-];
+// API
+import {
+  createSymptomRecord,
+  editSymptomRecord,
+  deleteSymptomRecord,
+  authStorage,
+} from "@/services/api/client";
+import SectionError from "@/components/pet-owners/shared/SectionError";
 
 /* ---------------- helpers ---------------- */
 function pad2(n: number) { return String(n).padStart(2, "0"); }
 
 function formatTime12h(time24: string) {
+  if (!time24) return "";
   const [hStr, mStr] = time24.split(":");
   const h = Number(hStr);
   const m = Number(mStr);
@@ -98,17 +59,14 @@ function formatHeaderDate(isoDate: string) {
   return `${weekday}, ${pad2(d.getDate())}/${pad2(d.getMonth() + 1)}/${d.getFullYear()}`;
 }
 
-function filesToObjectUrls(files: File[] | undefined) {
-  return (files ?? []).map((f) => URL.createObjectURL(f));
-}
-
 /* ================= page ================= */
 export const RecordPage = ({
   selectedPetId = "all",
 }: {
   selectedPetId?: PetSelectorValue;
 }) => {
-  const [records, setRecords] = useState<RecordEntry[]>(recordSamples);
+  const { records, error, refetch } = useSymptomRecords(selectedPetId);
+
   // Removed local selectedPetId state
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [month, setMonth] = useState<Date>(new Date());
@@ -117,24 +75,28 @@ export const RecordPage = ({
   const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
   const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
 
+  const { pets } = usePets();
+
   const petOptions: PetLite[] = useMemo(() => {
-    return (mockPets ?? []).map((p: Pet) => ({
-      id: String(p._id),
+    return (pets ?? []).map((p: Pet) => ({
+      _id: String(p._id),
       name: p.name ?? "-",
-      pid: String(p._id),
-      avatarUrl: p.profile_image,
+      profile_image: p.profile_image,
     }));
-  }, []);
+  }, [pets]);
 
   const petById = useMemo(() => {
     const m = new Map<string, PetLite>();
-    petOptions.forEach((p) => m.set(p.id, p));
+    petOptions.forEach((p) => m.set(p._id, p));
     return m;
   }, [petOptions]);
 
   const selectedIso = useMemo(() => localDateToISO(selectedDate), [selectedDate]);
 
   const filteredByPet = useMemo(() => {
+    // If we fetched with petId filtering, records are already filtered.
+    // But if selectedPetId changes, we re-fetch.
+    // However, for immediate UI feedback if we wanted client side filtering:
     return records.filter(
       (r) => selectedPetId === "all" || String(r.petId) === String(selectedPetId)
     );
@@ -156,37 +118,68 @@ export const RecordPage = ({
   }, [filteredByPet, selectedIso]);
 
   /* -------- handlers -------- */
-  const handleSaveAdd = (data: AddSymptomPayload) => {
-    const next: RecordEntry = {
-      id: `record-${Date.now()}`,
-      petId: data.petId,
-      dateKey: data.date,
-      time: data.time,
-      note: data.note,
-      images: filesToObjectUrls(data.images),
-    };
+  const handleSaveAdd = async (data: AddSymptomPayload) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
 
-    setRecords((prev) => [next, ...prev]);
-    setOpenCreate(false);
+      const fullDateISO = `${data.date}T${data.time}:00.000Z`;
+
+      await createSymptomRecord(token, {
+        pet_id: data.petId,
+        symptom: "General Symptom", // Default title as discussed
+        date: fullDateISO,
+        note: data.note,
+        images: data.images, // Already uploaded URLs
+        severity: "Mild" // Default
+      });
+
+      await refetch();
+      setOpenCreate(false);
+    } catch (err) {
+      console.error("Create failed", err);
+      alert("Failed to create record");
+    }
   };
 
-  const handleSaveEdit = (payload: EditSymptomPayload) => {
-    setRecords((prev) =>
-      prev.map((x) =>
-        x.id !== payload.id
-          ? x
-          : {
-            ...x,
-            petId: payload.petId, // อัปเดต petId กรณีเปลี่ยนตัวสัตว์เลี้ยง
-            dateKey: payload.date,
-            time: payload.time,
-            note: payload.note,
-            images: payload.imageUrls,
-          }
-      )
-    );
-    setEditRecord(null);
+  const handleSaveEdit = async (payload: EditSymptomPayload) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      const finalImages = [...payload.existingImages, ...payload.newImages];
+      const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
+
+      await editSymptomRecord(token, payload.id, {
+        date: fullDateISO,
+        note: payload.note,
+        images: finalImages,
+        // symptom: ... // reuse existing or update? API updates partial.
+      });
+
+      await refetch();
+      setEditRecord(null);
+    } catch (err) {
+      console.error("Edit failed", err);
+      alert("Failed to update record");
+    }
   };
+
+  const handleDelete = async (id: string) => {
+    try {
+      if (!confirm("Are you sure?")) return;
+      const token = authStorage.getToken();
+      if (!token) return;
+
+      await deleteSymptomRecord(token, id);
+      await refetch();
+      setDetailRecord(null);
+
+    } catch (err) {
+      console.error("Delete failed", err);
+      alert("Failed to delete record");
+    }
+  }
 
   return (
     <Page>
@@ -210,39 +203,45 @@ export const RecordPage = ({
 
         <div className="head-text">Record</div>
 
-        {recordsOnSelectedDate.length === 0 ? (
-          <div className="mt-8 text-center text-gray-400 text-sm">
-            No records on this date
+        {error ? (
+          <div className="mt-4">
+            <SectionError message="Failed to load symptom records" onRetry={refetch} />
           </div>
         ) : (
-          <>
-            <div className="date-text">{formatHeaderDate(selectedIso)}</div>
-            <div className="line" />
+          recordsOnSelectedDate.length === 0 ? (
+            <div className="mt-8 text-center text-gray-400 text-sm">
+              No records on this date
+            </div>
+          ) : (
+            <>
+              <div className="date-text">{formatHeaderDate(selectedIso)}</div>
+              <div className="line" />
 
-            {recordsOnSelectedDate.map((record) => {
-              const pet = petById.get(String(record.petId));
-              return (
-                <RecordCard
-                  key={record.id}
-                  petName={pet?.name ?? "-"}
-                  time={formatTime12h(record.time)}
-                  note={record.note}
-                  avatarUrl={pet?.avatarUrl}
-                  imageUrls={record.images ?? []}
-                  onClick={() => {
-                    setDetailRecord({
-                      ...record,
-                      petName: pet?.name ?? "-",
-                      petPid: pet?.pid ?? "-",
-                      avatarUrl: pet?.avatarUrl,
-                      date: record.dateKey,
-                      imageUrls: record.images ?? [],
-                    });
-                  }}
-                />
-              );
-            })}
-          </>
+              {recordsOnSelectedDate.map((record) => {
+                const pet = petById.get(String(record.petId));
+                return (
+                  <RecordCard
+                    key={record.id}
+                    petName={pet?.name ?? "-"}
+                    time={formatTime12h(record.time)}
+                    note={record.note}
+                    avatarUrl={pet?.profile_image}
+                    imageUrls={record.images ?? []}
+                    onClick={() => {
+                      setDetailRecord({
+                        ...record,
+                        petName: pet?.name ?? "-",
+                        petPid: pet?._id ?? "-",
+                        avatarUrl: pet?.profile_image,
+                        date: record.dateKey,
+                        imageUrls: record.images ?? [],
+                      });
+                    }}
+                  />
+                );
+              })}
+            </>
+          )
         )}
       </div>
 
@@ -275,12 +274,9 @@ export const RecordPage = ({
         open={!!detailRecord}
         record={detailRecord}
         onClose={() => setDetailRecord(null)}
-        onEdit={(rec) => rec && setEditRecord(rec)}
-        onDelete={(id) => {
-          setRecords((prev) => prev.filter((x) => x.id !== id));
-          setDetailRecord(null);
-        }}
-        formatTime={(t: string) => t}
+        onEdit={(rec) => { setDetailRecord(null); setEditRecord(rec); }}
+        onDelete={handleDelete}
+        formatTime={(t: string) => formatTime12h(t)} // Format 24h to 12h for detail view
       />
     </Page>
   );

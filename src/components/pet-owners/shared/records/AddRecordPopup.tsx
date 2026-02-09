@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Add } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
+import { getPresignedUrl, authStorage } from "@/services/api/client";
 
 type PetLite = {
   id: string;
@@ -17,7 +18,7 @@ export type AddSymptomPayload = {
   date: string;
   time: string;
   note: string;
-  images: File[];
+  images: string[];
 };
 
 type AddSymptomPopupProps = {
@@ -103,14 +104,38 @@ export default function AddSymptomPopup({
     if (!canSubmit) return;
     setIsSubmitting(true);
     try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      // Upload images
+      const imageUrls: string[] = [];
+      if (files.length > 0) {
+        const uploadPromises = files.map(async (file) => {
+          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
+          await fetch(uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+          return publicUrl;
+        });
+        const results = await Promise.all(uploadPromises);
+        imageUrls.push(...results);
+      }
+
       await onSubmit?.({
         petId: pet.id,
         date,
         time,
         note: note.trim(),
-        images: files,
+        images: imageUrls, // Pass URLs instead of Files
       });
       onClose();
+    } catch (err) {
+      console.error("Failed to upload images or submit record:", err);
+      // Optional: Add user notification here
     } finally {
       setIsSubmitting(false);
     }
@@ -203,9 +228,8 @@ export default function AddSymptomPopup({
             type="button"
             onClick={() => inputRef.current?.click()}
             disabled={files.length >= MAX_FILES}
-            className={`text-xs font-semibold flex items-center gap-1 py-1 px-2 rounded-lg transition-colors ${
-              files.length < MAX_FILES ? "text-sky-600 hover:bg-sky-50" : "text-zinc-300"
-            }`}
+            className={`text-xs font-semibold flex items-center gap-1 py-1 px-2 rounded-lg transition-colors ${files.length < MAX_FILES ? "text-sky-600 hover:bg-sky-50" : "text-zinc-300"
+              }`}
           >
             <Add fontSize="small" /> Add Photo
           </button>
@@ -242,7 +266,7 @@ export default function AddSymptomPopup({
             </div>
           ))}
           {files.length === 0 && (
-            <div 
+            <div
               onClick={() => inputRef.current?.click()}
               className="col-span-2 py-6 border-2 border-dashed border-zinc-100 rounded-xl flex flex-col items-center justify-center text-zinc-400 hover:bg-zinc-50 cursor-pointer transition-colors"
             >

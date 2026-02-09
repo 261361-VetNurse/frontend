@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import { Appointment } from "@/types/Appointment";
 import Profile from "@/components/pet-owners/shared/Profile";
+import { DashboardAppointmentNotification } from "@/types";
 
 const CardContainer = styled.div`
     width: 100%;
@@ -56,30 +56,41 @@ const CardContainer = styled.div`
 `;
 
 type AppointmentCardProps = {
-    appointment: Appointment;
-    petImageUrl?: string;
+    datas: DashboardAppointmentNotification;
+    petImageSize?: number;
+    onClick?: () => void;
 };
 
 export default function AppointmentCard({
-    appointment,
-    petImageUrl = "/pets-example/pet-ex1.svg"
-}: AppointmentCardProps) {
+    datas,
+    petImageSize = 40,
+    onClick
+}: AppointmentCardProps & { onClick?: () => void }) {
+    const dateObj = new Date(datas.appointment_date);
+    const hours = dateObj.getHours().toString().padStart(2, '0');
+    const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+
     return (
-        <CardContainer>
-            <Profile imageUrl={petImageUrl} size={40} />
+        <CardContainer onClick={onClick}>
+            <Profile imageUrl={datas.pet_image} size={petImageSize} />
             <div className="name-location">
-                <div className="name">{appointment.petName}</div>
+                <div className="name">{datas.pet_name}</div>
                 <div className="data-row">
                     <img className="data-icon" src="/location.svg" alt="location" />
-                    <span className="data-text">{appointment.location}</span>
+                    <span className="data-text">{datas.location}</span>
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/calendar.svg" alt="calendar" />
-                    <div className="data-text">{appointment.date}</div>
+                    <div className="data-text">{dateObj.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric'
+                    })}</div>
                 </div>
                 <div className="data-row">
                     <img className="data-icon" src="/clock.svg" alt="time" />
-                    <div className="data-text">{appointment.time}</div>
+                    <div className="data-text">{timeStr}</div>
                 </div>
             </div>
 

@@ -1,15 +1,15 @@
-import { formatTimeForDisplay } from '@/lib/reminder-utils';
-import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { formatTimeForDisplay } from '@/utils/reminder-utils';
+import { Medicine } from '@/types/domain/medication';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/medication.styled';
+import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
-  medicineReminder: MedicineReminderVM;
+  medicineReminder: any; // Accepting any to be flexible with Medicine vs Notification
   highlightedReminderId?: string;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
@@ -20,8 +20,9 @@ interface MedicationDetailPopupProps {
 type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
 const getStatus = (reminder: any): OccurrenceStatus => {
-  if (reminder.status) return reminder.status;
-  return reminder.is_taken ? 'taken' : 'pending';
+  if (typeof reminder === 'object' && reminder.status) return reminder.status;
+  if (typeof reminder === 'object' && reminder.is_taken) return 'taken';
+  return 'pending';
 };
 
 const getStatusMeta = (status: OccurrenceStatus) => {
@@ -52,6 +53,20 @@ export default function MedicationDetailPopup({
     )}`;
   };
 
+  // Helper to normalize reminders list
+  const remindersList = Array.isArray(medicineReminder.reminder_time)
+    ? medicineReminder.reminder_time.map((t: string | any, idx: number) => {
+      if (typeof t === 'string') {
+        return {
+          id: `${medicineReminder._id}_${t}`,
+          time: t,
+          status: 'pending' // Default for simple string list
+        };
+      }
+      return t;
+    })
+    : [];
+
   return (
     <FormDialog
       open={true}
@@ -64,17 +79,18 @@ export default function MedicationDetailPopup({
     >
       <div className='flex flex-col gap-4'>
         <PetSection>
-          <Profile imageUrl={medicineReminder.pet.profile_image} size={50} />
+          {/* Handle cases where pet data might be flat or nested */}
+          <Profile imageUrl={medicineReminder.pet_image || medicineReminder.pet?.profile_image} size={50} />
           <div className='pet-info'>
-            <div className="pet-name">{medicineReminder.pet.name}</div>
-            <div className="pet-id">id: {medicineReminder.pet._id}</div>
+            <div className="pet-name">{medicineReminder.pet_name || medicineReminder.pet?.name}</div>
+            <div className="pet-id">id: {medicineReminder.pet_id || medicineReminder.pet?._id}</div>
           </div>
         </PetSection>
 
         <MedicineSection>
           <MedicationIcon style={{ color: '#cccccc' }} />
-          <div className="medicine-name">{medicineReminder.medicine.name}</div>
-          <div className="medicine-dosage">{medicineReminder.medicine.dosage}</div>
+          <div className="medicine-name">{medicineReminder.medicine_name || medicineReminder.name}</div>
+          <div className="medicine-dosage">{medicineReminder.medicine_dosage || medicineReminder.dosage}</div>
         </MedicineSection>
 
         <ScheduleSection>
@@ -83,16 +99,16 @@ export default function MedicationDetailPopup({
             <div className='schedule-info'>
               <div className='info-row'>
                 <div className='info-label'>Frequency:</div>
-                <div className='info-value'>{medicineReminder.schedule.frequency.label}</div>
+                <div className='info-value'>{medicineReminder.frequency}</div>
               </div>
               <div className='info-row'>
                 <div className='info-label'>Times per day:</div>
-                <div className='info-value'>{medicineReminder.schedule.measurement_times_per_day}</div>
+                <div className='info-value'>{remindersList.length}</div>
               </div>
             </div>
             <div className='info-row'>
               <div className='info-label'>Starting date:</div>
-              <div className='info-value'>{medicineReminder.schedule.starting_date}</div>
+              <div className='info-value'>{medicineReminder.created_at || medicineReminder.start_date}</div>
             </div>
           </div>
 
@@ -100,35 +116,34 @@ export default function MedicationDetailPopup({
 
         <RemindersSection >
           <div className="section-title">Today's Reminders</div>
-          {medicineReminder.schedule.reminders
-            .map((reminder: any) => {
-              const status = getStatus(reminder);
-              const { label, Icon } = getStatusMeta(status);
-              const isTaken = status === 'taken';
+          {remindersList.map((reminder: any) => {
+            const status = getStatus(reminder);
+            const { label, Icon } = getStatusMeta(status);
+            const isTaken = status === 'taken';
 
-              return (
-                <ReminderItem
-                  key={reminder.id}
-                >
-                  <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
+            return (
+              <ReminderItem
+                key={reminder.id}
+              >
+                <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
 
-                  <div className='reminder-status'>
-                    <StatusButton
-                      $status={status}
-                      onClick={() => onToggleReminder(reminder.id, !isTaken)}
-                      title={label}
-                    >
-                      <Icon style={{ width: 16, height: 16 }} />
-                      <span>{label}</span>
-                    </StatusButton>
+                <div className='reminder-status'>
+                  <StatusButton
+                    $status={status}
+                    onClick={() => onToggleReminder(reminder.id, !isTaken)}
+                    title={label}
+                  >
+                    <Icon style={{ width: 16, height: 16 }} />
+                    <span>{label}</span>
+                  </StatusButton>
 
-                    {isTaken && reminder.taken_at && (
-                      <div className='taken-time'>{formatTakenTime(reminder.taken_at)}</div>
-                    )}
-                  </div>
-                </ReminderItem>
-              );
-            })}
+                  {isTaken && reminder.taken_at && (
+                    <div className='taken-time'>{formatTakenTime(reminder.taken_at)}</div>
+                  )}
+                </div>
+              </ReminderItem>
+            );
+          })}
         </RemindersSection>
 
       </div>

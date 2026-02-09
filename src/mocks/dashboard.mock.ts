@@ -50,6 +50,71 @@ function buildMockDashboardData(): DashboardData {
         lname: 'Owner',
         pets,
         medicines_notifications: buildMockNotifications(),
+import { DashboardResponse, DashboardMedicineDetailData } from "@/types/domain/dashboard";
+import { mockPets } from "./pets.mock";
+import { mockUserProfile } from "./owner.mock";
+
+const mochi = mockPets.find(p => p.name === "Mochi") || mockPets[0];
+const taro = mockPets.find(p => p.name === "Taro") || mockPets[1];
+const kiwi = mockPets.find(p => p.name === "Kiwi") || mockPets[3];
+
+export const mockDashboardData: DashboardResponse = {
+    success: true,
+    data: {
+        fname: mockUserProfile.fname,
+        lname: mockUserProfile.lname,
+        profile_image: mockUserProfile.picture_url,
+        pets: mockPets.map(pet => ({
+            pet_id: pet._id,
+            profile_image: pet.profile_image || "",
+            name: pet.name,
+        })),
+        medicines_notifications: [
+            {
+                _id: "notif-001",
+                medicine_id: "med_001",
+                title: "Amoxicillin - 08:00",
+                medicine_name: "Amoxicillin",
+                dosage: "5ml",
+                pet_image: mochi.profile_image || "",
+                notification_at: "2026-02-02T08:00:00",
+                frequency: "Everyday",
+                status: "pending",
+            },
+            {
+                _id: "notif-002",
+                medicine_id: "med_003",
+                title: "Flea Prevention - 10:00",
+                medicine_name: "Flea Prevention",
+                dosage: "1 vial",
+                pet_image: taro.profile_image || "",
+                notification_at: "2026-02-02T10:00:00",
+                frequency: "Sat",
+                status: "pending",
+            },
+            {
+                _id: "notif-003",
+                medicine_id: "med_002",
+                title: "Vitamin Chews - 09:00",
+                medicine_name: "Vitamin Chews",
+                dosage: "1 chew",
+                pet_image: mochi.profile_image || "",
+                notification_at: "2026-02-02T09:00:00",
+                frequency: "Tue",
+                status: "pending",
+            },
+            {
+                _id: "notif-004",
+                medicine_id: "med_005",
+                title: "Bird Vitamin - 07:00",
+                medicine_name: "Bird Vitamin",
+                dosage: "5 drops",
+                pet_image: kiwi.profile_image || "",
+                notification_at: "2026-02-02T07:00:00",
+                frequency: "Everyday",
+                status: "pending",
+            },
+        ],
         appointments: [
             {
                 _id: 'mock-appointment-1',
@@ -60,6 +125,18 @@ function buildMockDashboardData(): DashboardData {
                 status: 'upcoming',
                 notification_status: 'pending',
                 note: 'Mock checkup appointment',
+                _id: "apt-001",
+                pet_name: mochi.name,
+                pet_image: mochi.profile_image || "",
+                appointment_date: "2026-01-20T11:00:00.000Z",
+                location: "ห้องอัลตราซาวด์, Novel CMU",
+            },
+            {
+                _id: "apt-002",
+                pet_name: taro.name,
+                pet_image: taro.profile_image || "",
+                appointment_date: "2026-01-18T10:30:00.000Z",
+                location: "ห้องตรวจ 2, Novel CMU",
             },
             {
                 _id: 'mock-appointment-2',
@@ -70,11 +147,83 @@ function buildMockDashboardData(): DashboardData {
                 status: 'upcoming',
                 notification_status: 'pending',
                 note: 'Mock vaccination appointment',
+                _id: "apt-006",
+                pet_name: kiwi.name,
+                pet_image: kiwi.profile_image || "",
+                appointment_date: "2026-02-10T09:00:00.000Z",
+                location: "Exotic Pet Clinic",
             },
         ],
+    },
+};
     };
 }
 
+export const mockMedicationNotificationDetail: DashboardMedicineDetailData = {
+    success: true,
+    data: [
+        {
+            _id: "notif-001",
+            medicine_id: "med_001",
+            medicine_name: "Amoxicillin",
+            dosage: "5ml",
+            pet_id: mochi._id,
+            pet_name: mochi.name,
+            pet_image: mochi.profile_image || "",
+            notification_at: "2026-02-02T08:00:00",
+            frequency: "Everyday",
+            time_per_day: 2,
+            status: "pending",
+            istaken: false,
+            taken_at: "",
+        },
+        {
+            _id: "notif-002",
+            medicine_id: "med_003",
+            medicine_name: "Flea Prevention",
+            dosage: "1 vial",
+            pet_id: taro._id,
+            pet_name: taro.name,
+            pet_image: taro.profile_image || "",
+            notification_at: "2026-02-02T10:00:00",
+            frequency: "Sat",
+            time_per_day: 1,
+            status: "pending",
+            istaken: false,
+            taken_at: "",
+        },
+        {
+            _id: "notif-003",
+            medicine_id: "med_002",
+            medicine_name: "Vitamin Chews",
+            dosage: "1 chew",
+            pet_id: mochi._id,
+            pet_name: mochi.name,
+            pet_image: mochi.profile_image || "",
+            notification_at: "2026-02-02T09:00:00",
+            frequency: "Tue",
+            time_per_day: 1,
+            status: "pending",
+            istaken: false,
+            taken_at: "",
+        },
+        {
+            _id: "notif-004",
+            medicine_id: "med_005",
+            medicine_name: "Bird Vitamin",
+            dosage: "5 drops",
+            pet_id: kiwi._id,
+            pet_name: kiwi.name,
+            pet_image: kiwi.profile_image || "",
+            notification_at: "2026-02-02T07:00:00",
+            frequency: "Everyday",
+            time_per_day: 1,
+            status: "pending",
+            istaken: false,
+            taken_at: "",
+        },
+    ]
+}
 export function getMockDashboardHome(): DashboardResponse {
     return {
         success: true,

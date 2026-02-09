@@ -1,0 +1,301 @@
+import styled from 'styled-components';
+import { theme } from '../tokens/theme';
+
+// Styled components
+export const Page = styled.div`
+  position: relative; 
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  gap: 10px;
+`;
+
+export const TabsWrap = styled.div`
+  width: 100%;
+  background-color: ${theme.colors.white};
+  border-radius: 50px;
+  display: flex;
+  gap: 8px;
+  height: 30px;
+`;
+
+export const TabButton = styled.button<{ $active: boolean }>`
+  flex: 1;
+  border: none;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background-color: ${props => props.$active ? theme.colors.primary : 'transparent'};
+  color: ${props => props.$active ? theme.colors.white : theme.colors.textSecondary};
+
+  &:hover {
+    background-color: ${props => props.$active ? theme.colors.primary : `${theme.colors.primary}20`};
+  }
+`;
+
+export const Header = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    .Title {
+        font-size: 18px;
+        font-weight: 600;
+        color: ${theme.colors.textPrimary};
+    }
+
+    .DateText {
+        font-size: 14px;
+        font-weight: 400;
+        color: ${theme.colors.textPrimary};
+        border-bottom: 1px solid #e5e7eb;
+        padding-bottom: 4px;
+    }
+`;
+
+export const CardList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  .DateGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .GroupHeader {
+    font-size: 14px;
+    font-weight: 400;
+    color: ${theme.colors.textPrimary};
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 4px;
+  }
+
+  .Card {
+    background-color: ${theme.colors.white};
+    border-radius: 8px;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    gap: 8px;
+    padding: 16px;
+    overflow: hidden;
+    
+    .CardTopRow {
+        text-align: right;
+        border-bottom: 1px solid #d1d5db;
+        margin-bottom: 8px;
+
+        .ScheduleText {
+            font-size: 12px;
+            color: ${theme.colors.textSecondary};
+            font-weight: 400;
+        }
+    }
+
+    .CardBody {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+
+        .AvatarWrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: ${theme.colors.background};
+            flex-shrink: 0;
+            overflow: hidden;
+            position: relative;
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+        }
+
+        .TextCol {
+            flex: 1;
+            min-width: 0;
+            gap: 4px;
+
+            .PetName {
+                font-size: 12px;
+                color: ${theme.colors.textPrimary};
+            }
+
+            .MedName {
+                font-size: 16px;
+                font-weight: 600;
+                color: ${theme.colors.textPrimary};
+            }
+
+            .Note {
+                font-size: 13px;
+                color: ${theme.colors.textSecondary};
+                line-height: 1.3;
+            }
+        }
+    }
+  }
+`;
+
+export const PetSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  .pet-info{
+    display: flex;
+    flex-direction: column;
+    .pet-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+    }
+    .pet-id{
+      font-size: 12px;
+      font-weight: 400;
+      color: ${theme.colors.textSecondary};
+    }
+  }
+  
+`;
+
+export const MedicineSection = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 8px;
+  .medicine-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: ${theme.colors.textPrimary};
+  }
+  .medicine-dosage {
+    font-size: 14px;
+    font-weight: 400; 
+    color: ${theme.colors.textSecondary};
+  }
+`;
+
+export const ScheduleSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  .schedule-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${theme.colors.textPrimary};
+  } 
+  .schedule-info {
+    display: flex;
+    flex-direction: row;
+    gap: 4px;
+    justify-content: space-between; 
+  }
+
+  .info-row {
+    display: flex;
+    flex-direction: column; 
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: 14px;
+    .info-label {
+      font-size: 16px;  
+      font-weight: 500; 
+      color: ${theme.colors.textPrimary};
+      min-width: 150px;
+    }
+    .info-value {
+      color: ${theme.colors.textSecondary};
+      font-size: 14px;  
+      font-weight: 400;
+    }
+  }
+  
+`;
+
+export const RemindersSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .section-title {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${theme.colors.textPrimary};
+  }
+`;
+
+export const ReminderItem = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #F5F5F5;
+  .reminder-time {
+    font-size: 16px;
+    font-weight: 500;
+    color: ${theme.colors.textPrimary};
+  }
+  .reminder-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .taken-time {
+    font-size: 12px;
+    font-weight: 400;
+    color: ${theme.colors.textSecondary};
+  } 
+`;
+
+export const StatusButton = styled.button<{ $status: string }>`
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: none;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+
+  background-color: ${({ $status }) =>
+    $status === "taken" ? "#C8E6C9" :
+      $status === "missed" ? "#FFCDD2" :
+        "#BBDEFB"};
+
+  color: ${({ $status }) =>
+    $status === "taken" ? "#256029" :
+      $status === "missed" ? "#C62828" :
+        "#1565C0"};
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+export const ActionButton = styled.button<{ $variant?: 'primary' | 'secondary' }>`
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  
+  ${props => props.$variant === 'primary' ? `
+    background-color: ${theme.colors.primary};
+    color: ${theme.colors.white};
+  ` : `
+    background-color: #F5F5F5;
+    color: ${theme.colors.textPrimary};
+  `}
+  
+  &:hover {
+    opacity: 0.8;
+  }
+`;

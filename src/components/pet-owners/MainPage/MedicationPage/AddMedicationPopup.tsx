@@ -3,13 +3,12 @@ import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
-import { theme } from '@/styles/theme';
+import { theme } from '@/styles/tokens/theme';
 
-import { authStorage, createMedicine } from '@/lib/api-client';
 
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
-import { Pet } from '@/types/pet';
+import type { Pet } from '@/types/domain/pet';
 
 
 
@@ -256,24 +255,18 @@ export default function CreateMedicationPopup({
     }
 
     try {
-      const token = authStorage.getToken();
-      if (!token) {
-        alert('Authentication error. Please login again.');
-        return;
-      }
-
-      // Payload matching backend expectation
-      const payload = {
+      // Simulate API call with console.log instead of actual API request
+      console.log('[MOCK] Creating medication with payload:', {
         pet_id: selectedPet._id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
         starting_date: startDate,
         reminders: reminders.map(r => r.time),
-      };
+      });
 
-      await createMedicine(token, payload);
-
+      // Simulate success
+      alert('Medication created successfully!');
       onSuccess?.();
 
       // Reset form

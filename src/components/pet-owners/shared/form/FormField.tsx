@@ -1,5 +1,5 @@
 import React from 'react';
-import { FormFieldContainer, Label, InputContainer, ErrorMessage } from '@/styles/formStyled/FormField.styles';
+import { FormFieldContainer, Label, InputContainer, ErrorMessage } from '@/styles/components/form/FormField.styles';
 
 interface FormFieldProps {
   label: React.ReactNode;

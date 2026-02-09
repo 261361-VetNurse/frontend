@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
+import { Pet, PetLite } from "@/types/domain/pet";
 import PetFilterSelector, {
-  type PetLite as SharedPetLite,
   type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
@@ -13,16 +13,8 @@ import MedicalItem from "./MedicalItem";
 import AddMedicalPopup, { type AddMedicalPayload } from "./AddMedicalPopup";
 import { MedicalFab } from "./AddMedicalPopup";
 
-import { mockPets } from "@/mocks/pets.mock"; // ใช้ไฟล์นี้ (ถ้า import ผิดให้แก้เป็น @/mocks/pets)
+import { usePets } from "@/hooks/usePets";
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import { Pet } from "@/types/pet"; // เพิ่ม Type
-
-type PetOption = {
-  id: string;
-  name: string;
-  pid: string;
-  imageUrl?: string;
-};
 
 export type MedicalRecord = {
   id: string;
@@ -62,31 +54,25 @@ export default function Medical() {
   const { petId } = useParams<{ petId: string }>();
 
   // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
-  const petOptions: PetOption[] = useMemo(() => {
-    return (mockPets ?? []).map((p: Pet) => ({
-      id: String(p._id),            // แก้ id -> _id
-      name: p.name ?? "-",
-      pid: String(p._id),           // แก้ pid -> _id (ใช้เลข 6 หลัก)
-      imageUrl: p.profile_image,    // แก้ imageUrl -> profile_image
-    }));
-  }, []);
+  // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
+  const { pets } = usePets();
 
-  const selectorPets: SharedPetLite[] = useMemo(() => {
-    return petOptions.map((p) => ({
-      id: p.id,
-      name: p.name,
-      pid: p.pid, 
-      avatarUrl: p.imageUrl,
+  const petOptions: PetLite[] = useMemo(() => {
+    return (pets ?? []).map((p: Pet) => ({
+      _id: String(p._id),
+      name: p.name ?? "-",
+      profile_image: p.profile_image,    // ✅ ใช้ profile_image ตาม PetLite type
     }));
-  }, [petOptions]);
+  }, [pets]);
+
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    const fallback = petOptions[0]?.id ?? "";
+    const fallback = petOptions[0]?._id ?? "";
     return String(petId ?? fallback);
   });
 
   useEffect(() => {
-    const fallback = petOptions[0]?.id ?? "";
+    const fallback = petOptions[0]?._id ?? "";
 
     if (!petId) {
       if (!selectedPetId && fallback) setSelectedPetId(fallback);
@@ -94,13 +80,13 @@ export default function Medical() {
     }
 
     const idFromUrl = String(petId);
-    const exists = petOptions.some((p) => p.id === idFromUrl);
+    const exists = petOptions.some((p) => p._id === idFromUrl);
     if (exists) setSelectedPetId(idFromUrl);
     else if (fallback) setSelectedPetId(fallback);
   }, [petId, petOptions, selectedPetId]);
 
   const selectedPet =
-    petOptions.find((p) => p.id === selectedPetId) ?? petOptions[0];
+    petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0];
 
   const [records, setRecords] = useState<MedicalRecord[]>(mockMedicalSeed);
   const [openCreate, setOpenCreate] = useState(false);
@@ -153,7 +139,7 @@ export default function Medical() {
       <TopBar
         title="Medical History"
         onBack={() =>
-          router.push(`/pet-owners/my-pets-page/${selectedPet?.id ?? ""}`)
+          router.push(`/pet-owners/my-pets-page/${selectedPet?._id ?? ""}`)
         }
       />
 
@@ -162,7 +148,7 @@ export default function Medical() {
         <PetFilterSelector
           mode="filter"
           allowAllPets={false}
-          pets={selectorPets}
+          pets={petOptions}
           value={selectedPetId as PetSelectorValue}
           onChange={(v) => {
             const id = String(v);
@@ -214,10 +200,10 @@ export default function Medical() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
-            id: selectedPet.id,
+            id: selectedPet._id,
             name: selectedPet.name,
-            pid: selectedPet.pid, 
-            avatarUrl: selectedPet.imageUrl,
+            pid: selectedPet._id,
+            avatarUrl: selectedPet.profile_image,
           }}
           onSubmit={(data) => {
             handleAddMedical(data);

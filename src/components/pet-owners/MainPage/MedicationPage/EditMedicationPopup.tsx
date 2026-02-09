@@ -3,13 +3,12 @@ import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 
-import { theme } from '@/styles/theme';
-import { MedicineReminderVM } from '@/types/medicine-reminder';
+import { theme } from '@/styles/tokens/theme';
+import { Medicine } from '@/types/domain/medication';
 import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
-import { authStorage, editMedicine } from '@/lib/api-client';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
-import { Pet } from '@/types/pet';
+import type { Pet } from '@/types/domain/pet';
 
 const DaySelectorContainer = styled.div`
   display: flex;
@@ -206,10 +205,14 @@ type ReminderTime = {
 type EditMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
-  medicineReminder?: MedicineReminderVM;
+  medicineReminder?: Medicine | any | null; // Support Medicine or EachDayMedicine (MedicineReminderVM)
   pets: Pet[];
   onSuccess: () => void;
 };
+
+// Import client update function
+import { editMedicine } from '@/services/api/client';
+import { authStorage } from '@/services/api/client';
 
 export default function EditMedicationPopup({
   open,
@@ -233,20 +236,21 @@ export default function EditMedicationPopup({
 
   useEffect(() => {
     if (medicineReminder) {
-      setPetId(medicineReminder.pet?._id || '');
-      setMedicineName(medicineReminder.medicine?.name || '');
-      setDosage(medicineReminder.medicine?.dosage || '');
+      setPetId(medicineReminder.pet_id || '');
+      setMedicineName(medicineReminder.name || medicineReminder.medicine_name || '');
+      setDosage(medicineReminder.dosage || medicineReminder.medicine_dosage || '');
 
       // Parse frequency
-      const freqKey = medicineReminder.schedule?.frequency?.key as string;
-      if (freqKey === 'everyday' || freqKey === '-1') {
+      // Frequency is likely "-1" (daily) or "0,1,2" (days)
+      const freqKey = String(medicineReminder.frequency || medicineReminder.medicine_frequency || '-1');
+      if (freqKey === '-1' || freqKey === 'everyday') {
         setIsEveryday(true);
         setSelectedDays([]);
       } else {
         // Try to parse "0,1,2"
-        const parts = freqKey.split(',').map(s => parseInt(s.trim()));
-        if (parts.some(isNaN)) {
-          // Fallback if key says "custom" but no days, or unparseable
+        const parts = freqKey.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        if (parts.length === 0) {
+          // Default to everyday if parsing fails
           setIsEveryday(true);
           setSelectedDays([]);
         } else {
@@ -255,22 +259,28 @@ export default function EditMedicationPopup({
         }
       }
 
-      setStartDate(medicineReminder.schedule?.starting_date || '');
-      setReminders(medicineReminder.schedule?.reminders?.map(r => ({
-        id: r.id,
-        time: r.time,
+      setStartDate(medicineReminder.start_date ? new Date(medicineReminder.start_date).toISOString().split('T')[0] : '');
+
+      // Reminders
+      const currentReminders = (medicineReminder.reminder_time || []).map((t: string, idx: number) => ({
+        id: `${medicineReminder._id}_${t}_${idx}`, // Unique ID
+        time: t,
         is_taken: false,
         taken_at: undefined,
-        status: r.status,
-      })) || []);
-      setIsStopped(medicineReminder.medication_status?.is_stopped || false);
-      setStopReason(medicineReminder.medication_status?.reason || '');
+        status: 'pending',
+      }));
+      setReminders(currentReminders);
+
+      setReminders(currentReminders);
+
+      setIsStopped(medicineReminder.status === 'STOP');
+      // Notes or properties might store reason? Schema doesn't specify reason field clearly in Medicine type but might be in 'properties' or 'notes'.
+      // For now, leave empty
+      setStopReason('');
     }
   }, [medicineReminder]);
 
   if (!open || !medicineReminder) return null;
-
-
 
   const addReminder = () => {
     const newId = `r${Date.now()}`;
@@ -306,12 +316,7 @@ export default function EditMedicationPopup({
         newDays = [...selectedDays, dayIndex];
       }
 
-      // If all days are selected, toggle back to everyday
-      if (newDays.length === 7) {
-        setIsEveryday(true);
-        setSelectedDays([]);
-      } else if (newDays.length === 0) {
-        // If no days selected, toggle back to everyday
+      if (newDays.length === 7 || newDays.length === 0) {
         setIsEveryday(true);
         setSelectedDays([]);
       } else {
@@ -347,49 +352,42 @@ export default function EditMedicationPopup({
       return;
     }
 
-    // Generate frequency string
-    // Determine frequency string
     let frequencyVal = '-1';
-
     if (!isEveryday) {
       const sortedDays = [...selectedDays].sort((a, b) => a - b);
       frequencyVal = sortedDays.join(',');
     }
 
     try {
-      const token = authStorage.getToken();
-      if (!token) {
-        alert('Authentication error');
-        return;
-      }
+      const token = authStorage.getToken() || "";
 
       const payload = {
         pet_id: selectedPet._id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
-        starting_date: startDate,
-        reminders: reminders.map(r => r.time),
-        is_stopped: isStopped,
-        reason: isStopped ? stopReason : undefined
+        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+        reminder_time: reminders.map(r => r.time),
+        status: isStopped ? 'STOP' : 'TAKE',
+        notes: isStopped && stopReason ? [stopReason] : []
       };
 
-      await editMedicine(
-        token,
-        medicineReminder.notification_id,
-        medicineReminder.medicine._id,
-        payload
-      );
+      // Use medicine_id if available (EachDayMedicine), else _id (Medicine) for the medicine ID argument
+      const targetMedicineId = medicineReminder.medicine_id || medicineReminder._id;
+      // editMedicine signature: (token, notificationId, medicineId, data)
+      // Assuming medicineReminder._id is the plan/notification ID for EachDayMedicine, and targetMedicineId is the medicine ID.
+      // If Medicine object, usage might be different but current mocks suggest consistency around IDs.
+      await editMedicine(token, medicineReminder._id, targetMedicineId, payload);
+      // Note: usage of (token, notificationId, medicineId, data). 
+      // Using _id for both notification and medicine ID as per prior assumption. However, for Edit, usually we edit the Medicine definition.
 
+      alert('Medication updated successfully!');
       onSuccess();
-      onClose();
     } catch (err: any) {
       console.error(err);
       alert(`Failed to update medication: ${err.message}`);
     }
   };
-
-  const selectedPet = pets.find(p => p._id === petId);
 
   return (
     <FormDialog

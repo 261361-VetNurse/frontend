@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import PetAvatarPicker from "@/components/pet-owners/MainPage/MyPetsPage/new/PetAvatarPicker";
-import { formatAge } from "@/app/lib/pets/age";
+import { ImageUpload } from "@/components/shared/ImageUpload";
+import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
+import { createPet, authStorage } from "@/services/api/client";
+import { Pet } from "@/types";
 
 type Sex = "Male" | "Female" | "Unknown" | "";
 
@@ -23,10 +25,12 @@ export default function RegisterNewPetPage() {
   const [dob, setDob] = useState("");
 
   const [sex, setSex] = useState<Sex>(""); // ยังไม่เลือก
-  const [infecund, setInfecund] = useState<boolean | null>(null); // ยังไม่เลือก
+  const [infecund, setInfecund] = useState<boolean | null>(false); // ยังไม่เลือก
+  const [inMedical, setInMedical] = useState<boolean | null>(false);
 
   const [weight, setWeight] = useState("");
   const [allergiesInput, setAllergiesInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ===== Computed =====
   const computedAge = useMemo(() => {
@@ -46,28 +50,40 @@ export default function RegisterNewPetPage() {
   }, [name, species, breed, dob, sex, infecund]);
 
   // ===== Submit =====
-  function onSubmit() {
+  async function onSubmit() {
     if (!canSubmit) return;
+    setIsSubmitting(true);
 
     const allergiesArray = allergiesInput
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const payload = {
+    const payload: Partial<Pet> = {
       name: name.trim(),
       species: species.trim(),
       breed: breed.trim(),
       birth_date: dob,
       gender: sex,
-      infecund,
+      infecund: infecund ?? false,
       weight_kg: weight.trim() === "" ? null : Number(weight),
       allergies: allergiesArray,
       profile_image: avatarUrl,
+      color: null,
     };
 
-    console.log("CREATE PET:", payload);
-    router.push("/pet-owners/my-pets-page");
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+
+      await createPet(token, payload);
+      router.push("/pet-owners/my-pets-page");
+    } catch (err) {
+      console.error("Failed to create pet:", err);
+      alert("Failed to create pet. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -76,7 +92,12 @@ export default function RegisterNewPetPage() {
 
       <div className="px-6 pb-28">
         <div className="flex justify-center py-6">
-          <PetAvatarPicker value={avatarUrl} onChange={setAvatarUrl} />
+          <ImageUpload
+            folder="pet-profile"
+            currentImage={avatarUrl}
+            onUploadComplete={(url) => setAvatarUrl(url)}
+            className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-sm self-center"
+          />
         </div>
 
         <div className="space-y-4">
@@ -189,31 +210,15 @@ export default function RegisterNewPetPage() {
             </div>
           </div>
 
-          {/* Infecund */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-2">
-              Infecund
-            </label>
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  checked={infecund === true}
-                  onChange={() => setInfecund(true)}
-                  className="accent-sky-500 w-4 h-4"
-                />
-                Yes
-              </label>
-              <label className="flex items-center gap-2 text-sm cursor-pointer">
-                <input
-                  type="radio"
-                  checked={infecund === false}
-                  onChange={() => setInfecund(false)}
-                  className="accent-sky-500 w-4 h-4"
-                />
-                No
-              </label>
-            </div>
+          {/* In Medical */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={inMedical ?? false}
+              onChange={(e) => setInMedical(e.target.checked)}
+              className="accent-sky-500 w-4 h-4"
+            />
+            <label className="text-sm text-zinc-800">In Medical</label>
           </div>
 
           {/* Allergies */}
@@ -238,9 +243,9 @@ export default function RegisterNewPetPage() {
           shape="pill"
           size="lg"
           onClick={onSubmit}
-          disabled={!canSubmit}
+          disabled={!canSubmit || isSubmitting}
         >
-          Add New Pet
+          {isSubmitting ? "Adding..." : "Add New Pet"}
         </Button>
       </div>
     </>

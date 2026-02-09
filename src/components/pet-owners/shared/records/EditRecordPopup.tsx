@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import { getPresignedUrl, authStorage } from "@/services/api/client";
 import type { RecordDetailItem } from "./RecordDetailPopup";
 
 export type EditSymptomPayload = {
@@ -10,7 +11,8 @@ export type EditSymptomPayload = {
   date: string; // YYYY-MM-DD
   time: string; // HH:MM
   note: string;
-  imageUrls: string[];
+  existingImages: string[];
+  newImages: string[];
 };
 
 type Props = {
@@ -31,7 +33,11 @@ export default function EditRecordPopup({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
-  const [images, setImages] = useState<string[]>([]);
+
+  // Separate existing images from new files
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [newFiles, setNewFiles] = useState<File[]>([]);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -41,9 +47,30 @@ export default function EditRecordPopup({
     setDate(record.date ?? "");
     setTime(record.time ?? "");
     setNote(record.note ?? "");
-    setImages(record.imageUrls ?? []);
+
+    setExistingImages(record.imageUrls ?? []);
+    setNewFiles([]);
+
+    // Clear old previews
+    setNewPreviews(prev => {
+      prev.forEach(u => URL.revokeObjectURL(u));
+      return [];
+    });
+
     if (fileRef.current) fileRef.current.value = "";
+
+    return () => {
+      // cleanup on unmount or close? 
+      // We'll clean up previews in the next effect or when unmounting
+    };
   }, [open, record?.id]);
+
+  // Clean up previews when component unmounts
+  useEffect(() => {
+    return () => {
+      newPreviews.forEach(u => URL.revokeObjectURL(u));
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const canSubmit = useMemo(() => {
     return Boolean(record?.id && date && time && note.trim());
@@ -61,7 +88,9 @@ export default function EditRecordPopup({
   function handlePickFiles(list: FileList | null) {
     if (!list) return;
 
-    const remain = Math.max(0, maxImages - images.length);
+    const currentTotal = existingImages.length + newFiles.length;
+    const remain = Math.max(0, maxImages - currentTotal);
+
     if (remain <= 0) {
       if (fileRef.current) fileRef.current.value = "";
       return;
@@ -70,30 +99,68 @@ export default function EditRecordPopup({
     const picked = Array.from(list).slice(0, remain);
     const urls = picked.map((f) => URL.createObjectURL(f));
 
-    setImages((prev) => [...prev, ...urls]);
+    setNewFiles((prev) => [...prev, ...picked]);
+    setNewPreviews((prev) => [...prev, ...urls]);
+
     if (fileRef.current) fileRef.current.value = "";
   }
 
-  function removeImage(idx: number) {
-    setImages((prev) => prev.filter((_, i) => i !== idx));
+  function removeExistingImage(idx: number) {
+    setExistingImages(prev => prev.filter((_, i) => i !== idx));
   }
 
-  function handleSave() {
+  function removeNewFile(idx: number) {
+    setNewFiles(prev => prev.filter((_, i) => i !== idx));
+    setNewPreviews(prev => {
+      const removed = prev[idx];
+      if (removed) URL.revokeObjectURL(removed);
+      return prev.filter((_, i) => i !== idx);
+    });
+  }
+
+  async function handleSave() {
     if (!canSubmit) return;
 
-    onSave?.({
-      id: r.id,
-      petId: r.petId,
-      date,
-      time,
-      note: note.trim(),
-      imageUrls: images,
-    });
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
 
-    onClose();
+      // Upload new images
+      const newImageUrls: string[] = [];
+      if (newFiles.length > 0) {
+        const uploadPromises = newFiles.map(async (file) => {
+          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
+          await fetch(uploadUrl, {
+            method: "PUT",
+            body: file,
+            headers: {
+              "Content-Type": file.type,
+            },
+          });
+          return publicUrl;
+        });
+        const results = await Promise.all(uploadPromises);
+        newImageUrls.push(...results);
+      }
+
+      onSave?.({
+        id: r.id,
+        petId: r.petId,
+        date,
+        time,
+        note: note.trim(),
+        existingImages,
+        newImages: newImageUrls,
+      });
+
+      onClose();
+    } catch (err) {
+      console.error("Failed to upload images or save record:", err);
+    }
   }
 
-  const canAddMore = images.length < maxImages;
+  const currentCount = existingImages.length + newFiles.length;
+  const canAddMore = currentCount < maxImages;
 
   return (
     <div
@@ -119,7 +186,7 @@ export default function EditRecordPopup({
           </button>
         </div>
 
-        {/* Petss row */}
+        {/* Pet row */}
         <div className="px-5 pb-4 flex items-center gap-3">
           <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
             {r.avatarUrl ? (
@@ -214,9 +281,10 @@ export default function EditRecordPopup({
             />
 
             <div className="mt-2 grid grid-cols-2 gap-3">
-              {images.map((url, idx) => (
+              {/* Existing Images */}
+              {existingImages.map((url, idx) => (
                 <div
-                  key={`${url}-${idx}`}
+                  key={`existing-${url}-${idx}`}
                   className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
                 >
                   <Image
@@ -228,7 +296,35 @@ export default function EditRecordPopup({
 
                   <button
                     type="button"
-                    onClick={() => removeImage(idx)}
+                    onClick={() => removeExistingImage(idx)}
+                    className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
+                    aria-label="Remove image"
+                    title="Remove"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+
+              {/* New Images */}
+              {newPreviews.map((url, idx) => (
+                <div
+                  key={`new-${url}-${idx}`}
+                  className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
+                >
+                  <Image
+                    src={url}
+                    alt={`new-img-${idx + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute top-0 left-0 bg-sky-500 text-white text-[10px] px-2 py-0.5 rounded-br-lg">
+                    New
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeNewFile(idx)}
                     className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
                     aria-label="Remove image"
                     title="Remove"
@@ -251,7 +347,7 @@ export default function EditRecordPopup({
             </div>
 
             <div className="mt-2 text-xs text-zinc-500">
-              {images.length}/{maxImages} images
+              {currentCount}/{maxImages} images
             </div>
           </div>
 

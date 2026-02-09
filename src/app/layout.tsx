@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { K2D } from "next/font/google";
 import "./globals.css";
-import StyledComponentsRegistry from "./lib/registry";
+import StyledComponentsRegistry from "../lib/registry";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 const k2d = K2D({
   weight: ["300", "400", "500", "600", "700"],
@@ -31,7 +32,9 @@ export default function RootLayout({
       </head>
       <body className={`${k2d.variable} antialiased`}>
         <StyledComponentsRegistry>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </StyledComponentsRegistry>
       </body>
     </html>

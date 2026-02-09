@@ -4,8 +4,7 @@ import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { uploadImage, authStorage } from "@/lib/api-client";
-import { theme } from "@/styles/theme";
+import { theme } from "@/styles/tokens/theme";
 
 interface ImageUploadProps {
     /**
@@ -75,27 +74,23 @@ export default function ImageUpload({
         setUploading(true);
 
         try {
-            // Create preview
+            // Create preview and use it as the "uploaded" URL (mock)
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreview(reader.result as string);
+                const dataUrl = reader.result as string;
+                setPreview(dataUrl);
+
+                // Simulate successful upload with data URL
+                console.log('[MOCK] Image uploaded:', file.name, file.size, 'bytes');
+                onImageUploaded(dataUrl);
+                setUploading(false);
             };
             reader.readAsDataURL(file);
-
-            // Upload to backend
-            const token = authStorage.getToken();
-            if (!token) {
-                throw new Error("Not authenticated. Please login.");
-            }
-
-            const url = await uploadImage(file, token);
-            onImageUploaded(url);
         } catch (error) {
             console.error("Upload error:", error);
             const errorMessage = error instanceof Error ? error.message : "Failed to upload image";
             onError?.(errorMessage);
             setPreview(currentImageUrl || null);
-        } finally {
             setUploading(false);
         }
     };
@@ -158,7 +153,7 @@ export default function ImageUpload({
                 sx={{
                     width: "100%",
                     height,
-                    border: `2px dashed ${dragActive ? theme.colors.primary : theme.colors.border}`,
+                    border: `2px dashed ${dragActive ? theme.colors.primary : theme.colors.textPrimary}`,
                     borderRadius: 2,
                     display: "flex",
                     flexDirection: "column",

@@ -1,6 +1,6 @@
 "use client";
 
-import { BackButton } from '@/styles/sharedComponet.styled';
+import { BackButton } from '@/styles/components/shared-component.styled';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useRouter } from 'next/navigation';
 

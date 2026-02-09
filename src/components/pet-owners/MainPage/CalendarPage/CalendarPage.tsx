@@ -1,33 +1,33 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import "react-day-picker/dist/style.css";
 import AppointmentPage from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPage";
 import { RecordPage } from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPage";
 import { Tabs } from "@/components/pet-owners/shared/Tabs";
 import PetFilterSelector, {
-    type PetLite,
     type PetSelectorValue,
 } from "@/components/pet-owners/shared/PetFilterSelector";
-import { mockPets } from "@/mocks/pets.mock";
-import { Pet } from "@/types/pet";
+import type { Pet, PetLite } from "@/types/domain/pet";
+import { usePets } from "@/hooks/usePets";
 
-export default function Page() {
+function CalendarPageContent() {
     const searchParams = useSearchParams();
     const activeTab = searchParams.get("tab");
     const showRecord = activeTab === "record";
 
     /* -------- pets -------- */
+    const { pets } = usePets();
+
     const petOptions: PetLite[] = useMemo(
         () =>
-            mockPets.map((p: Pet) => ({
-                id: String(p._id),
+            pets.map((p: Pet) => ({
+                _id: String(p._id),
                 name: p.name,
-                pid: String(p._id),
-                avatarUrl: p.profile_image,
+                profile_image: p.profile_image,
             })),
-        []
+        [pets]
     );
 
     const [selectedPetId, setSelectedPetId] =
@@ -58,5 +58,13 @@ export default function Page() {
                 <AppointmentPage selectedPetId={selectedPetId} />
             )}
         </div>
+    );
+}
+
+export default function Page() {
+    return (
+        <Suspense fallback={<div className="p-4 text-center text-gray-500">Loading...</div>}>
+            <CalendarPageContent />
+        </Suspense>
     );
 }

@@ -1,0 +1,26 @@
+export type Pet = {
+  _id: string;    // เลข 6 หลัก
+  user_id: string;
+  name: string;
+  species: string;
+  breed: string;
+  color: string | null;
+  gender: string;
+  birth_date: string;
+  weight_kg: number | null;
+  allergies: string[];
+  infecund: boolean;
+  profile_image: string;
+  in_medical: boolean;
+  created_at: string;
+  updated_at?: string;
+};
+
+export type PetId = Pet['_id'];
+
+export type PetLite = {
+  _id: string;
+  name: string;
+  profile_image?: string;
+};
+

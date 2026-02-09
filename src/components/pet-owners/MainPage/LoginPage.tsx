@@ -9,21 +9,24 @@ import {
     Header,
     Title,
     Subtitle,
-} from '@/styles/register.styled';
+} from '@/styles/components/register.styled';
 
-import { authStorage } from '@/lib/api-client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
+    const { login, user, isLoading: authLoading } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [loading, setLoading] = useState(false);
+    const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    // Combined loading state
+    const loading = pageLoading || authLoading;
+
     useEffect(() => {
         // Check if user is already logged in
-        const existingToken = authStorage.getToken();
-        if (existingToken) {
+        if (user) {
             router.push('/pet-owners/home-page');
             return;
         }
@@ -59,38 +62,29 @@ export default function LoginPage() {
             setIsProcessing(true);
             handleTokenCallback(token, isNew, userId, displayName);
         }
-    }, [router, isProcessing]);
+        if (token && !isProcessing && !authLoading) {
+            setIsProcessing(true);
+            handleTokenCallback(token, isNew, userId, displayName);
+        }
+    }, [router, isProcessing, user, authLoading]);
 
-    const handleTokenCallback = (
+    const handleTokenCallback = async (
         token: string,
         isNew: boolean,
         userId: string | null,
         displayName: string | null
     ) => {
-        setLoading(true);
+        setPageLoading(true);
         try {
-            // // Store authentication data
-            // authStorage.setToken(token);
-
-            // // Store user info if available
-            // if (userId && displayName) {
-            //     authStorage.setUser({
-            //         id: userId,
-            //         display_name: displayName,
-            //         picture_url: '',
-            //         line_id: ''
-            //     });
-            // }
+            await login(token);
 
             // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
 
             // Redirect based on user registration status
             if (isNew) {
-                // New user - redirect to registration page
                 router.push('/pet-owners/register-page');
             } else {
-                // Existing user - redirect to home page
                 router.push('/pet-owners/home-page');
             }
         } catch (err) {
@@ -98,27 +92,23 @@ export default function LoginPage() {
             setError('Failed to process login. Please try again.');
             setIsProcessing(false);
         } finally {
-            setLoading(false);
+            setPageLoading(false);
         }
     };
 
-    const handleLoginClick = () => {
+    const handleLoginClick = async () => {
         setError(null);
-        setLoading(true);
+        setPageLoading(true);
 
         // Mock Login
-        setTimeout(() => {
-            // Use specific long-lived token as requested
-            authStorage.setToken("mock_token_user_1_long_live");
-            authStorage.setUser({
-                id: "mock-user-id",
-                display_name: "Mock User",
-                picture_url: "",
-                line_id: "mock-line-id"
-            });
-            setLoading(false);
+        try {
+            await login("mock_token_user_1_long_live");
             router.push('/pet-owners/home-page');
-        }, 1000);
+        } catch (e) {
+            setError("Mock login failed");
+        } finally {
+            setPageLoading(false);
+        }
     };
 
     return (

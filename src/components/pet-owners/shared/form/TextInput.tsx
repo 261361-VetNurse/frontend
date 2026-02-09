@@ -1,5 +1,5 @@
 import React, { forwardRef } from 'react';
-import { InputWrapper, StyledInput } from '@/styles/formStyled/TextInput.styles';
+import { InputWrapper, StyledInput } from '@/styles/components/form/TextInput.styles';
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;

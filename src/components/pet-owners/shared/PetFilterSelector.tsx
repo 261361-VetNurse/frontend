@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Pet } from "@/types/pet";
+import { PetLite } from "@/types/domain/pet";
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";
@@ -20,7 +20,7 @@ type Props = {
   size?: Size;
   state?: VisualState;
 
-  pets: Pet[];
+  pets: PetLite[];
   value: PetSelectorValue;
   onChange: (value: PetSelectorValue) => void;
 
@@ -185,6 +185,7 @@ export default function PetFilterSelector({
           <div role="listbox" className="max-h-72 overflow-auto">
             {allowAllPets ? (
               <PetRow
+                key="all"
                 active={value === "all"}
                 onClick={() => pick("all")}
                 size={size}

@@ -7,28 +7,31 @@ import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetFilterSelector, {
 } from "@/components/pet-owners/shared/PetFilterSelector";
 
-import { Pet } from "@/types/pet";
+import { Pet } from "@/types/domain/pet";
 
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
 import AppointmentTabs, {
   type AppointmentTabKey,
 } from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
+import AppointmentDetail from "@/components/pet-owners/shared/appointment/AppointmentDetail";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { mockAppointmentsByPetId } from "@/mocks/appointments";
-import type { Appointment } from "@/types/Appointment";
+import type { Appointment } from "@/types/domain/appointment";
+import { usePets } from "@/hooks/usePets";
+import { useAppointments } from "@/hooks/useAppointments";
+import { getAppointmentDetail, authStorage } from "@/services/api/client";
 
-import AddAppointmentPopup from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AddAppointmentPopup";
-import { FabButton } from "@/styles/appointments.styled";
-import { Add } from "@mui/icons-material";
+import AddAppointmentPopup from "@/components/pet-owners/MainPage/CalendarPage/appointment/AddAppointmentPopup";
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { QuickDialButton } from "@/components/shared";
 
-export default function Appointments() {
+export default function MyPetsAppointments() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
   // Use mockPets directly as it matches Pet[] expected by PetFilterSelector
-  const petOptions: Pet[] = mockPets;
+  const { pets } = usePets();
+  const petOptions: Pet[] = pets;
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
     const fromUrl = String(petId ?? "");
@@ -56,10 +59,13 @@ export default function Appointments() {
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
   const [showCreatePopup, setShowCreatePopup] = useState(false);
+  const [detail, setDetail] = useState<Appointment | null>(null);
+
+  const { appointments } = useAppointments(); // Fetch all appointments
 
   const allAppointments: Appointment[] = useMemo(() => {
-    return mockAppointmentsByPetId[selectedPetId] ?? [];
-  }, [selectedPetId]);
+    return appointments.filter(a => String(a.petId) === String(selectedPetId));
+  }, [appointments, selectedPetId]);
 
   const filtered = useMemo(() => {
     return allAppointments.filter((a) => a.status === tab);
@@ -68,7 +74,7 @@ export default function Appointments() {
   const grouped = useMemo(() => {
     const map = new Map<string, Appointment[]>();
     for (const a of filtered) {
-      const label = formatDateHeader(a.date);
+      const label = formatDateHeader(a.appointment_date);
       map.set(label, [...(map.get(label) ?? []), a]);
     }
     return Array.from(map.entries()).map(([label, items]) => ({ label, items }));
@@ -79,6 +85,18 @@ export default function Appointments() {
   const handleSubmitPopup = (data: any) => {
     console.log("submit appointment", data);
     setShowCreatePopup(false);
+  };
+
+  const handleOpenDetail = async (id: string) => {
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
+      const data = await getAppointmentDetail(token, id);
+      setDetail(data);
+    } catch (err) {
+      console.error("Failed to load appointment detail:", err);
+      // alert("Failed to load detail");
+    }
   };
 
   return (
@@ -112,16 +130,16 @@ export default function Appointments() {
             <AppointmentDateSection key={sec.label} label={sec.label}>
               {sec.items.map((a) => (
                 <AppointmentCard
-                  key={a.id}
+                  key={a._id}
                   appointment={{
-                    id: a.id,
-                    petName: a.petName,
-                    date: normalizeDateText(a.date),
-                    time: a.time,
+                    id: a._id,
+                    petName: selectedPet?.name || "-",
+                    date: normalizeDateText(a.appointment_date),
+                    time: new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
                     location: a.location,
                     status: a.status,
                   }}
-                  onOpenDetail={(id) => console.log("open detail", id)}
+                  onOpenDetail={handleOpenDetail}
                 />
               ))}
             </AppointmentDateSection>
@@ -129,9 +147,13 @@ export default function Appointments() {
         )}
       </div>
 
-      <FabButton onClick={handleAdd}>
-        <Add />
-      </FabButton>
+      <QuickDialButton
+        iconColor="#fff"
+        position="bottom-right"
+        icon={<AddRoundedIcon />}
+        color="#09BFF8"
+        onClickAction={handleAdd}
+      />
 
       <AddAppointmentPopup
         open={showCreatePopup}
@@ -142,6 +164,23 @@ export default function Appointments() {
           name: selectedPet?.name ?? "-",
           pid: selectedPet?._id ?? "-",
           avatarUrl: selectedPet?.profile_image,
+        }}
+      />
+
+      {/* Appointment Detail Popup */}
+      <AppointmentDetail
+        open={!!detail}
+        appointment={detail}
+        onClose={() => setDetail(null)}
+        onEdit={(appt) => {
+          console.log("Edit clicked", appt);
+          setDetail(null);
+          // implement edit if needed
+        }}
+        onDelete={(id) => {
+          console.log("Delete clicked", id);
+          setDetail(null);
+          // implement delete if needed
         }}
       />
     </div>
