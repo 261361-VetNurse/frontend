@@ -90,7 +90,7 @@ export default function HomePage() {
       if (reminderId) {
         const token = authStorage.getToken() || "";
         // 1. Send API Request
-        await markMedicationTaken(token, Number(reminderId), isTaken);
+        await markMedicationTaken(token, Number(reminderId));
         console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
 
         // 2. Update local state ONLY after successful API response

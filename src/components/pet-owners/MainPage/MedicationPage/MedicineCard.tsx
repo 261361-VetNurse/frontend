@@ -16,7 +16,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { NotificationDetail } from '@/types';
 
-export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
+export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 export interface TimeSlot {
   id: string; // reminder_id
@@ -37,6 +37,7 @@ type Props = {
 
 function getStatusMeta(status: OccurrenceStatus) {
   switch (status) {
+    case 'sent':
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon, color: theme.colors.primary };
     case 'missed':
@@ -87,7 +88,7 @@ export default function MedicineCard({
   const times: TimeSlot[] = (data.reminder_time || []).map((t) => ({
     id: `${data.notification_id}_${t}`,
     timeLabel: t,
-    status: data.istaken ? 'taken' : 'pending'
+    status: (data.istaken || (data as any).status === 'sent') ? 'taken' : 'pending'
   }));
 
   return (
@@ -163,7 +164,6 @@ export default function MedicineCard({
 
       <TimesGrid>
         {times.map((slot) => {
-          const isTaken = slot.status === 'taken';
           const { label, Icon, color } = getStatusMeta(slot.status);
 
           return (
@@ -172,7 +172,11 @@ export default function MedicineCard({
               $status={slot.status}
               onClick={(e) => {
                 e.stopPropagation();
+                if (slot.status === 'pending') {
+                  onToggleTaken(String(data.notification_id), true);
+                }
               }}
+              style={{ cursor: slot.status === 'pending' ? 'pointer' : 'default' }}
             >
               <Icon style={{ fontSize: 16 }} />
               <div className="time">{slot.timeLabel}</div>

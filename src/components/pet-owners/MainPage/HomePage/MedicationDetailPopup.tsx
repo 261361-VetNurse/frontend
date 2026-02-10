@@ -21,6 +21,7 @@ interface MedicationDetailPopupProps {
 
 const getStatusMeta = (status: string) => {
   switch (status) {
+    case 'sent':
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon };
     case 'missed':
@@ -31,9 +32,12 @@ const getStatusMeta = (status: string) => {
   }
 };
 
-const getFrequencyLabel = (freq: string): string => {
-  switch (freq) {
-    case '-1': return 'Everyday';
+export const getFrequencyLabel = (freq: string | number): string => {
+  const f = String(freq).toLowerCase();
+  switch (f) {
+    case '-1':
+    case 'everyday':
+      return 'Everyday';
     case '0': return 'Monday';
     case '1': return 'Tuesday';
     case '2': return 'Wednesday';
@@ -41,7 +45,7 @@ const getFrequencyLabel = (freq: string): string => {
     case '4': return 'Friday';
     case '5': return 'Saturday';
     case '6': return 'Sunday';
-    default: return 'Custom';
+    default: return String(freq);
   }
 };
 
@@ -53,7 +57,7 @@ export default function MedicationDetailPopup({
   onEdit,
 }: MedicationDetailPopupProps) {
 
-  const formatTakenTime = (updatedAt: string) => {
+  const formatTakenTime = (updatedAt: string | undefined) => {
     // Assuming updated_at is the taken time if status is taken
     if (!updatedAt) return '';
     const date = new Date(updatedAt);
@@ -63,7 +67,8 @@ export default function MedicationDetailPopup({
   };
 
   const renderNotification = () => {
-    const { Icon } = getStatusMeta(noti.status);
+    const status = noti.status || 'pending';
+    const { label, Icon } = getStatusMeta(status);
 
     // const notifDate = new Date(notification._at);
     const notiDate = new Date(noti.notification_at);
@@ -77,12 +82,12 @@ export default function MedicationDetailPopup({
 
         <div className='reminder-status'>
           <StatusButton
-            $status={noti.status}
+            $status={noti.status || 'pending'}
             onClick={() => onToggleReminder(noti._id, !noti.istaken)}
-            title={noti.status}
+            title={noti.status || 'pending'}
           >
             <Icon style={{ width: 16, height: 16 }} />
-            <span>{noti.status}</span>
+            <span>{label}</span>
           </StatusButton>
 
           {noti.istaken && (
@@ -120,7 +125,7 @@ export default function MedicationDetailPopup({
           <div className='schedule-info'>
             <div className='info-row'>
               <div className='info-label'>Frequency:</div>
-              <div className='info-value'>{getFrequencyLabel(noti.frequency)}</div>
+              <div className='info-value'>{getFrequencyLabel(noti.frequency || '')}</div>
             </div>
             <div className='info-row'>
               <div className='info-label'>Times per day:</div>

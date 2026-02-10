@@ -27,34 +27,34 @@ import { QuickDialButton } from "@/components/shared";
 
 export default function MyPetsAppointments() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   // Use mockPets directly as it matches Pet[] expected by PetFilterSelector
   const { pets } = usePets();
   const petOptions: Pet[] = pets;
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    const fromUrl = String(petId ?? "");
-    if (fromUrl && petOptions.some((p) => p.pet_id === fromUrl)) return fromUrl;
+    const fromUrl = String(pet_id ?? "");
+    if (fromUrl && petOptions.some((p) => String(p.pet_id) === fromUrl)) return fromUrl;
     return String(petOptions[0]?.pet_id ?? "");
   });
 
   useEffect(() => {
-    const fromUrl = String(petId ?? "");
+    const fromUrl = String(pet_id ?? "");
     if (!fromUrl) return;
 
-    const exists = petOptions.some((p) => p.pet_id === fromUrl);
+    const exists = petOptions.some((p) => String(p.pet_id) === fromUrl);
     if (exists) setSelectedPetId(fromUrl);
-  }, [petId, petOptions]);
+  }, [pet_id, petOptions]);
 
   useEffect(() => {
     if (!selectedPetId) return;
-    const exists = petOptions.some((p) => p.pet_id === selectedPetId);
+    const exists = petOptions.some((p) => String(p.pet_id) === selectedPetId);
     if (!exists) setSelectedPetId(String(petOptions[0]?.pet_id ?? ""));
   }, [selectedPetId, petOptions]);
 
   const selectedPet = useMemo(() => {
-    return petOptions.find((p) => p.pet_id === selectedPetId) ?? petOptions[0];
+    return petOptions.find((p) => String(p.pet_id) === selectedPetId) ?? petOptions[0];
   }, [petOptions, selectedPetId]);
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
@@ -103,7 +103,7 @@ export default function MyPetsAppointments() {
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
-      const data = await getAppointmentDetail(token, id);
+      const data = await getAppointmentDetail(token, Number(id));
       setDetail(data);
     } catch (err) {
       console.error("Failed to load appointment detail:", err);
@@ -122,7 +122,7 @@ export default function MyPetsAppointments() {
         mode="filter"
         allowAllPets={false}
         pets={petOptions}
-        value={selectedPetId}
+        value={Number(selectedPetId)}
         onChange={(id) => {
           const nextId = String(id);
           setSelectedPetId(nextId);
@@ -171,9 +171,9 @@ export default function MyPetsAppointments() {
         onClose={handleClosePopup}
         onSubmit={handleSubmitPopup}
         pet={{
-          pet_id: selectedPet?.pet_id ?? "",
+          pet_id: selectedPet?.pet_id ?? 0,
           name: selectedPet?.name ?? "-",
-          profile_image: selectedPet?.profile_image,
+          profile_image: selectedPet?.profile_image ?? undefined,
         }}
       />
 

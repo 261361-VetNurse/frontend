@@ -1,10 +1,10 @@
-export type OccurrenceStatus = "pending" | "taken" | "skipped";
+export type OccurrenceStatus = "pending" | "taken" | "skipped" | "sent";
 
 export interface ReminderOccurrence {
     reminder_id: string;
     plan_id: string; // References MedicineReminderVM._id
     pet: {
-        _id: string;
+        pet_id: number;
         name: string;
         profile_image: string;
     };

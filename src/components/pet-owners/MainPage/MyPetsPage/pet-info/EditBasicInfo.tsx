@@ -16,13 +16,13 @@ type Sex = "Male" | "Female" | "Unknown";
 
 export default function EditBasicInfo() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   const { pets } = usePets();
 
   const pet: Pet | undefined = useMemo(
-    () => pets.find((p) => String(p._id) === String(petId)),
-    [pets, petId]
+    () => pets.find((p) => String(p.pet_id) === String(pet_id)),
+    [pets, pet_id]
   );
 
   const currentPet = pet;
@@ -50,7 +50,7 @@ export default function EditBasicInfo() {
   const [weight, setWeight] = useState(currentPet?.weight_kg ?? "");
   const [infecund, setInfecund] = useState<boolean>(currentPet?.infecund ?? false);
   const [allergiesInput, setAllergiesInput] = useState(
-    currentPet?.allergies ? currentPet.allergies.join(", ") : ""
+    Array.isArray(currentPet?.allergies) ? currentPet.allergies.join(", ") : (currentPet?.allergies ?? "")
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -72,7 +72,7 @@ export default function EditBasicInfo() {
       setSex((currentPet.gender as Sex) ?? "Unknown");
       setWeight(currentPet.weight_kg ?? "");
       setInfecund(currentPet.infecund ?? false);
-      setAllergiesInput(currentPet.allergies ? currentPet.allergies.join(", ") : "");
+      setAllergiesInput(Array.isArray(currentPet.allergies) ? currentPet.allergies.join(", ") : (currentPet.allergies ?? ""));
     }
   }, [currentPet]);
 
@@ -103,8 +103,8 @@ export default function EditBasicInfo() {
 
     const allergiesArray = allergiesInput
       .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
+      .map((s: string) => s.trim())
+      .filter((s: string) => s !== "");
 
     const payload: Partial<Pet> = {
       name: name.trim(),
@@ -122,8 +122,8 @@ export default function EditBasicInfo() {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      await updatePet(token, currentPet._id, payload);
-      router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
+      await updatePet(token, String(currentPet.pet_id), payload);
+      router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}`);
     } catch (err) {
       console.error("Failed to update pet:", err);
       alert("Failed to update pet. Please try again.");
@@ -138,7 +138,7 @@ export default function EditBasicInfo() {
         <button onClick={() => router.back()} className="underline">
           ← Back
         </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">Pet not found: {String(pet_id)}</div>
       </div>
     );
   }
@@ -147,7 +147,7 @@ export default function EditBasicInfo() {
     <div>
       <TopBar
         title="Edit Basic Information"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet._id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}`)}
       />
 
       <div className="pt-4 pb-28">

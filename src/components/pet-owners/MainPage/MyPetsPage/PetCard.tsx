@@ -26,18 +26,18 @@ function formatAge(birthDateISO: string) {
 }
 
 export default function PetCard({ pet }: { pet: Pet }) {
-  const ageText = formatAge(pet.birth_date);
+  const ageText = formatAge(pet.birth_date || "");
   const router = useRouter();
 
   return (
     <button
       type="button"
-      onClick={() => router.push(`/pet-owners/my-pets-page/${pet._id}`)}
+      onClick={() => router.push(`/pet-owners/my-pets-page/${pet.pet_id}`)}
       className="w-full text-left"
     >
       <div className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-4 hover:bg-zinc-50 active:scale-[0.99] transition">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-zinc-500">{`PID:${pet._id}`}</div>
+          <div className="text-sm text-zinc-500">{`PID:${pet.pet_id}`}</div>
         </div>
 
         {/* Content row */}

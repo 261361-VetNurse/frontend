@@ -10,14 +10,12 @@ import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuI
 import { formatAge } from "@/lib/pets/age";
 import { Page } from "@/styles/components/my-pets-page.styled";
 // shared component
-import PetFilterSelector, {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 import { deletePet, getPets, authStorage } from "@/services/api/client";
 
 export default function PetInfo() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   // Use local state instead of usage hook
   const [pets, setPets] = useState<Pet[]>([]);
@@ -52,8 +50,8 @@ export default function PetInfo() {
 
   // Derived state
   const pet = useMemo(() => {
-    return pets.find((p) => String(p._id) === String(petId));
-  }, [pets, petId]);
+    return pets.find((p) => String(p.pet_id) === String(pet_id));
+  }, [pets, pet_id]);
 
   /* -------- handlers -------- */
   const handleDelete = async () => {
@@ -64,7 +62,7 @@ export default function PetInfo() {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      await deletePet(token, pet._id);
+      await deletePet(token, String(pet.pet_id));
 
       // Navigate back to my pets
       router.replace("/pet-owners/my-pets-page");
@@ -101,14 +99,14 @@ export default function PetInfo() {
           ← Back
         </button>
         <div className="mt-4 text-zinc-700">
-          Pet not found: {String(petId)}
+          Pet not found: {String(pet_id)}
         </div>
       </div>
     );
   }
 
   const currentPet = pet;
-  const ageText = formatAge(currentPet.birth_date);
+  const ageText = formatAge(currentPet.birth_date || "");
 
   const petsForSelector: Pet[] = pets;
 
@@ -116,17 +114,17 @@ export default function PetInfo() {
     {
       iconSrc: "/calendar-app.svg",
       title: "Appointment",
-      href: `/pet-owners/my-pets-page/${currentPet._id}/appointments`,
+      href: `/pet-owners/my-pets-page/${currentPet.pet_id}/appointments`,
     },
     {
       iconSrc: "/medication.svg",
       title: "Medication",
-      href: `/pet-owners/my-pets-page/${currentPet._id}/medications`,
+      href: `/pet-owners/my-pets-page/${currentPet.pet_id}/medications`,
     },
     {
       iconSrc: "/record.svg",
       title: "Pets Symptom Record",
-      href: `/pet-owners/my-pets-page/${currentPet._id}/symptoms`,
+      href: `/pet-owners/my-pets-page/${currentPet.pet_id}/symptoms`,
     },
   ];
 
@@ -143,9 +141,9 @@ export default function PetInfo() {
           mode="filter"
           allowAllPets={false}
           pets={petsForSelector}
-          value={String(currentPet._id) as PetSelectorValue}
+          value={Number(currentPet.pet_id)}
           onChange={(v) => {
-            router.push(`/pet-owners/my-pets-page/${String(v)}`);
+            router.push(`/pet-owners/my-pets-page/${v}`);
           }}
           placeholder="Select your pet"
         />
@@ -157,12 +155,12 @@ export default function PetInfo() {
           name={currentPet.name}
           species={currentPet.species ?? "-"}
           breed={currentPet.breed ?? "-"}
-          birthDate={currentPet.birth_date}
+          birthDate={currentPet.birth_date || ""}
           ageText={ageText}
-          sex={currentPet.gender}
-          inMedical={currentPet.in_medical}
+          sex={currentPet.gender || ""}
+          inMedical={!!currentPet.in_medical}
           onEdit={() =>
-            router.push(`/pet-owners/my-pets-page/${currentPet._id}/edit`)
+            router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}/edit`)
           }
         />
       </div>

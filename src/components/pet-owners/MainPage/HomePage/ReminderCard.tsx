@@ -5,7 +5,8 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Profile from "../../shared/Profile";
 import { ReminderCardStyle } from "@/styles/components/homepage.styled";
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import { DashboardMedicineNotification } from '@/types/domain/dashboard';
+import { DashboardNotification } from '@/types/domain/dashboard';
+import { getFrequencyLabel } from '@/components/pet-owners/MainPage/HomePage/MedicationDetailPopup';
 
 export type OccurrenceStatus = "pending" | "taken" | "missed";
 
@@ -22,7 +23,7 @@ const getStatusIcon = (status: string) => {
 };
 
 export type ReminderBoxProps = {
-  datas: DashboardMedicineNotification;
+  datas: DashboardNotification;
   petImageSize?: number;
   onClick?: () => void;
 };
@@ -36,6 +37,10 @@ export default function ReminderCard({
   const hours = dateObj.getHours().toString().padStart(2, '0');
   const minutes = dateObj.getMinutes().toString().padStart(2, '0');
   const timeStr = `${hours}:${minutes}`;
+
+  const status = datas.status || 'pending';
+  const freqArray = datas.frequency ? String(datas.frequency).split(',') : [];
+
   return (
     <ReminderCardStyle status={status} onClick={onClick} role={onClick ? "button" : undefined}>
       <div className="card-header">
@@ -44,7 +49,9 @@ export default function ReminderCard({
           <div>{timeStr}</div>
         </div>
         <div className="info frequency-label">
-          {datas.frequency}
+          {freqArray.map((freq, index) => (
+            <span key={`${freq}-${index}`}>{getFrequencyLabel(freq.trim())}</span>
+          ))}
           <CalendarMonthIcon />
         </div>
       </div>

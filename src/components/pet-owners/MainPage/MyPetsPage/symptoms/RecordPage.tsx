@@ -7,15 +7,11 @@ import { PetLite } from "@/types/domain/pet";
 
 // Import Components
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 import RecordScreen, {
   type RecordItem,
 } from "@/components/pet-owners/shared/records/RecordScreen";
-import RecordDetailPopup, {
-  type RecordDetailItem,
-} from "@/components/pet-owners/shared/records/RecordDetailPopup";
+import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDetailPopup";
 import EditRecordPopup, {
   type EditSymptomPayload,
 } from "@/components/pet-owners/shared/records/EditRecordPopup";
@@ -52,44 +48,44 @@ function extractTimeFromISO(iso: string) {
 
 export default function RecordPage() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   const { pets } = usePets();
 
   const petOptions: PetLite[] = useMemo(() => {
     return (pets ?? []).map((p: Pet) => ({
-      _id: String(p._id),
+      pet_id: p.pet_id,
       name: p.name ?? "-",
       profile_image: p.profile_image,
     }));
   }, [pets]);
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    const fallback = petOptions[0]?._id ?? "";
-    return String(petId ?? fallback);
+    const fallback = petOptions[0]?.pet_id ? String(petOptions[0].pet_id) : "";
+    return String(pet_id ?? fallback);
   });
 
   useEffect(() => {
-    if (!petId) return;
-    const idFromUrl = String(petId);
-    const exists = petOptions.some((p) => String(p._id) === idFromUrl);
+    if (!pet_id) return;
+    const idFromUrl = String(pet_id);
+    const exists = petOptions.some((p) => String(p.pet_id) === idFromUrl);
     if (exists) {
       setSelectedPetId(idFromUrl);
       return;
     }
-    if (petOptions[0]?._id) setSelectedPetId(String(petOptions[0]._id));
-  }, [petId, petOptions]);
+    if (petOptions[0]?.pet_id) setSelectedPetId(String(petOptions[0].pet_id));
+  }, [pet_id, petOptions]);
 
   const selectedPet: PetLite | null = useMemo(() => {
     if (!petOptions.length) return null;
-    return petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0] ?? null;
+    return petOptions.find((p) => String(p.pet_id) === selectedPetId) ?? petOptions[0] ?? null;
   }, [petOptions, selectedPetId]);
 
   const [items, setItems] = useState<RecordItem[]>([]);
   const [selectedDateISO, setSelectedDateISO] = useState<string>(todayISO());
   const [openCreate, setOpenCreate] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
-  const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
+  const [detailRecord, setDetailRecord] = useState<any | null>(null);
+  const [editRecord, setEditRecord] = useState<any | null>(null);
 
   // Fetch Logic
   const fetchRecords = useCallback(async () => {
@@ -108,21 +104,23 @@ export default function RecordPage() {
       const mappedItems: RecordItem[] = allRecords.map(r => {
         // Mapping Pet Info - assuming r.pet_id is current selectedPetId or we look up from pets list if needed
         // For this page, we mostly filter by selectedPetId anyway.
-        const p = petOptions.find(opt => opt._id === r.pet_id);
+        const p = petOptions.find(opt => String(opt.pet_id) === String(r.pet_id));
 
-        const dateKey = r.date.includes('T') ? r.date.split('T')[0] : r.date;
-        const time = r.date.includes('T') ? extractTimeFromISO(r.date) : "00:00";
+        // SymptomRecord has time_added which might be ISO or HH:MM. 
+        // We'll treat it as ISO for detail mapping.
+        const dateKey = r.date_added || (r.time_added.includes('T') ? r.time_added.split('T')[0] : todayISO());
+        const time = r.time_added.includes('T') ? extractTimeFromISO(r.time_added) : r.time_added;
 
         return {
-          id: r._id,
-          petId: r.pet_id,
-          petName: p?.name ?? "-",
-          petPid: p?._id ?? "-",
-          avatarUrl: p?.profile_image,
+          id: String(r.record_id),
+          petId: String(r.pet_id),
+          petName: p?.name ?? (r.pet_name || "-"),
+          petPid: p?.pet_id ? String(p.pet_id) : (r.pet_id ? String(r.pet_id) : "-"),
+          avatarUrl: p?.profile_image || r.pet_image || undefined,
           date: dateKey,
           time: time,
           note: r.note || "",
-          imageUrls: r.images ?? []
+          imageUrls: r.note_image ?? []
         };
       });
 
@@ -152,12 +150,9 @@ export default function RecordPage() {
       const fullDateISO = `${data.date}T${data.time}:00.000Z`;
 
       await createSymptomRecord(token, {
-        pet_id: data.petId,
-        symptom: "General Symptom",
-        date: fullDateISO,
+        pet_id: Number(data.petId),
         note: data.note,
-        images: data.images, // Now strings[]
-        severity: "Mild"
+        note_image: data.images, // SymptomRecordCreate uses note_image
       });
 
       await fetchRecords();
@@ -176,10 +171,9 @@ export default function RecordPage() {
       const finalImages = [...payload.existingImages, ...payload.newImages]; // payload.newImages is strings[]
       const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
-      await editSymptomRecord(token, payload.id, {
-        date: fullDateISO,
+      await editSymptomRecord(token, Number(payload.id), {
         note: payload.note,
-        images: finalImages,
+        note_image: finalImages,
       });
 
       await fetchRecords();
@@ -196,7 +190,7 @@ export default function RecordPage() {
       const token = authStorage.getToken();
       if (!token) return;
 
-      await deleteSymptomRecord(token, id);
+      await deleteSymptomRecord(token, Number(id));
       await fetchRecords();
       setDetailRecord(null);
     } catch (err) {
@@ -209,8 +203,8 @@ export default function RecordPage() {
     <PetFilterSelector
       mode="filter"
       allowAllPets={false}
-      pets={petOptions}
-      value={selectedPetId as PetSelectorValue}
+      pets={petOptions as any}
+      value={Number(selectedPetId)}
       onChange={(v) => setSelectedPetId(String(v))}
     />
   ), [petOptions, selectedPetId]);
@@ -219,7 +213,7 @@ export default function RecordPage() {
     <>
       <TopBar
         title="Pets Record"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id ?? ""}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.pet_id ?? ""}`)}
       />
 
       <RecordScreen
@@ -258,9 +252,9 @@ export default function RecordPage() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
-            id: selectedPet._id,
+            id: String(selectedPet.pet_id),
             name: selectedPet.name ?? "-",
-            pid: selectedPet._id ?? "-",
+            pid: String(selectedPet.pet_id),
             avatarUrl: selectedPet.profile_image,
           }}
           onSubmit={handleSaveAdd}
@@ -273,7 +267,9 @@ export default function RecordPage() {
         record={detailRecord}
         onClose={() => setDetailRecord(null)}
         onEdit={(rec) => { setDetailRecord(null); setEditRecord(rec); }}
-        onDelete={handleDelete}
+        onDelete={(id: number) => {
+          handleDelete(String(id));
+        }}
         formatTime={(t: string) => t} // Format logic should be handled here or consistent
       />
 

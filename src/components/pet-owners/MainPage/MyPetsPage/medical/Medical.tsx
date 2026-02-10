@@ -4,9 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { Pet, PetLite } from "@/types/domain/pet";
-import PetFilterSelector, {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 
 import MedicalDateSection from "./MedicalDateSection";
 import MedicalItem from "./MedicalItem";
@@ -51,7 +49,7 @@ const mockMedicalSeed: MedicalRecord[] = [
 
 export default function Medical() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
   // 🟢 แก้ไขการ Map ให้ตรงกับ Type ใหม่ (Pet)
@@ -59,7 +57,7 @@ export default function Medical() {
 
   const petOptions: PetLite[] = useMemo(() => {
     return (pets ?? []).map((p: Pet) => ({
-      _id: String(p._id),
+      pet_id: p.pet_id,
       name: p.name ?? "-",
       profile_image: p.profile_image,    // ✅ ใช้ profile_image ตาม PetLite type
     }));
@@ -67,26 +65,26 @@ export default function Medical() {
 
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
-    const fallback = petOptions[0]?._id ?? "";
-    return String(petId ?? fallback);
+    const fallback = petOptions[0]?.pet_id ? String(petOptions[0].pet_id) : "";
+    return String(pet_id ?? fallback);
   });
 
   useEffect(() => {
-    const fallback = petOptions[0]?._id ?? "";
+    const fallback = petOptions[0]?.pet_id ? String(petOptions[0].pet_id) : "";
 
-    if (!petId) {
+    if (!pet_id) {
       if (!selectedPetId && fallback) setSelectedPetId(fallback);
       return;
     }
 
-    const idFromUrl = String(petId);
-    const exists = petOptions.some((p) => p._id === idFromUrl);
+    const idFromUrl = String(pet_id);
+    const exists = petOptions.some((p) => String(p.pet_id) === idFromUrl);
     if (exists) setSelectedPetId(idFromUrl);
     else if (fallback) setSelectedPetId(fallback);
-  }, [petId, petOptions, selectedPetId]);
+  }, [pet_id, petOptions, selectedPetId]);
 
   const selectedPet =
-    petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0];
+    petOptions.find((p) => String(p.pet_id) === selectedPetId) ?? petOptions[0];
 
   const [records, setRecords] = useState<MedicalRecord[]>(mockMedicalSeed);
   const [openCreate, setOpenCreate] = useState(false);
@@ -139,7 +137,7 @@ export default function Medical() {
       <TopBar
         title="Medical History"
         onBack={() =>
-          router.push(`/pet-owners/my-pets-page/${selectedPet?._id ?? ""}`)
+          router.push(`/pet-owners/my-pets-page/${selectedPet?.pet_id ?? ""}`)
         }
       />
 
@@ -149,7 +147,7 @@ export default function Medical() {
           mode="filter"
           allowAllPets={false}
           pets={petOptions}
-          value={selectedPetId as PetSelectorValue}
+          value={Number(selectedPetId)}
           onChange={(v) => {
             const id = String(v);
             setSelectedPetId(id);
@@ -200,10 +198,10 @@ export default function Medical() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
-            id: selectedPet._id,
+            id: String(selectedPet.pet_id),
             name: selectedPet.name,
-            pid: selectedPet._id,
-            avatarUrl: selectedPet.profile_image,
+            pid: String(selectedPet.pet_id),
+            avatarUrl: selectedPet.profile_image ?? undefined,
           }}
           onSubmit={(data) => {
             handleAddMedical(data);

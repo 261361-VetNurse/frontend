@@ -179,7 +179,7 @@ export async function getMedications(token: string, petId?: number, date?: strin
  * Get medication notification detail
  */
 export async function getMedicationNotificationDetail(token: string, notificationId: number): Promise<any> {
-    const response = await loggedFetch(`/v1/medications/notifications/${notificationId}`, {
+    const response = await loggedFetch(`/v1/medications/${notificationId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -189,15 +189,14 @@ export async function getMedicationNotificationDetail(token: string, notificatio
         throw new Error(error.detail || 'Failed to get medication detail');
     }
     const json = await response.json();
-    return json.data || json;
+    return json.data;
 }
 /**
  * Mark medication notification as taken
  */
 export async function markMedicationTaken(
     token: string,
-    notificationId: number,
-    istaken: boolean = true
+    notificationId: number
 ): Promise<any> {
     const response = await loggedFetch(`/v1/medications/${notificationId}/taken`, {
         method: 'PATCH',
@@ -220,7 +219,7 @@ export async function getMedicineDetail(
     notificationId: number
 ): Promise<any> {
     const response = await loggedFetch(
-        `/v1/medications/notifications/${notificationId}`,
+        `/v1/medications/${notificationId}`,
         {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -232,7 +231,7 @@ export async function getMedicineDetail(
         throw new Error(error.detail || 'Failed to get medicine detail');
     }
     const json = await response.json();
-    return json.data || json;
+    return json.data;
 }
 /**
  * Edit medicine
@@ -270,7 +269,7 @@ export async function deleteMedicine(
     medicineId: string
 ): Promise<any> {
     const response = await loggedFetch(
-        `/api/medications/medicines/${medicineId}`,
+        `/v1/medications/medicines/${medicineId}`,
         {
             method: 'DELETE',
             headers: {
@@ -291,7 +290,7 @@ export async function deleteMedicine(
  * Create new medicine
  */
 export async function createMedicine(token: string, medicineData: any): Promise<any> {
-    const response = await loggedFetch(`/api/medications/medicines`, {
+    const response = await loggedFetch(`/v1/medications/medicines`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -688,12 +687,12 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
         throw new Error(error.detail || 'Failed to get user profile');
     }
     const data = await response.json();
-    return data;
+    return data.data;
 }
 /**
  * Update user profile
  */
-export async function updateUserProfile(token: string, profileData: Partial<UserProfile>): Promise<UserProfile> {
+export async function updateUserProfile(token: string, profileData: Partial<UserProfile>): Promise<any> {
     const response = await loggedFetch(`/api/user/profile`, {
         method: 'PATCH',
         headers: {

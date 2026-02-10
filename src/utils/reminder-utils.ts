@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { MedicineReminderVM } from "@/types/domain/medication";
+
 import { ReminderOccurrence, OccurrenceStatus } from "@/types/domain/medication-occurrence";
+import { Medicine } from "@/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -25,14 +26,6 @@ export function getTodayInLocalTimezone(): Date {
 }
 
 /**
- * Get current datetime in user's local timezone
- */
-export function getNowInLocalTimezone(): Date {
-  const userTz = getUserTimezone();
-  return dayjs().tz(userTz).toDate();
-}
-
-/**
  * Format time for display (HH:mm -> 12-hour)
  */
 export function formatTimeForDisplay(timeStr: string): string {
@@ -43,7 +36,7 @@ export function formatTimeForDisplay(timeStr: string): string {
 }
 
 export function buildOccurrencesForDate(
-  reminders: MedicineReminderVM[],
+  reminders: Medicine[],
   date: Date,
   overrides: Record<string, { status: OccurrenceStatus; taken_at?: string | null }>
 ): ReminderOccurrence[] {
@@ -71,7 +64,7 @@ export function buildOccurrencesForDate(
 
       result.push({
         reminder_id: reminderId,
-        plan_id: reminder._id,
+        plan_id: reminder.medicine_id,
         pet: {
           _id: reminder.pet_id,
           name: reminder.pet_name,

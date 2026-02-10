@@ -207,10 +207,10 @@ export default function MedicationPage() {
     }
   };
 
-  const handleToggleReminder = async (notificationId: number, reminderId: number, isTaken: boolean) => {
+  const handleToggleReminder = async (notificationId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      await markMedicationTaken(token, notificationId, isTaken);
+      await markMedicationTaken(token, notificationId);
       const date = baseDate.toISOString().split('T')[0];
       fetchMedicineNotiData(token, selectedPetId, date);
     } catch (e) {
@@ -291,8 +291,8 @@ export default function MedicationPage() {
               key={`${med.notification_id}_${med.medicine_id}`}
               data={med}
               onOpenDetail={() => handleReminderClick(med)}
-              onToggleTaken={(reminderId, next) =>
-                handleToggleReminder(med.notification_id, Number(reminderId), next)
+              onToggleTaken={() =>
+                handleToggleReminder(med.notification_id)
               }
               onEdit={() => handleEditFromCard(med)}
               onDelete={() => handleDelete(med.notification_id.toString(), med.medicine_id.toString())}
@@ -333,8 +333,8 @@ export default function MedicationPage() {
           medicineReminder={selectedReminder.medicineReminder}
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={handleCloseDetail}
-          onToggleReminder={(reminderId: number, isTaken: boolean) =>
-            handleToggleReminder(reminderId, reminderId, isTaken)
+          onToggleReminder={(reminderId: number) =>
+            handleToggleReminder(reminderId)
           }
           onEdit={handleEditFromDetail}
         />

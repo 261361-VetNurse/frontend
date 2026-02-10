@@ -241,7 +241,7 @@ export default function CreateMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => p.pet_id === petId);
+    const selectedPet = pets.find(p => String(p.pet_id) === String(petId));
     if (!selectedPet) {
       alert('Please select a pet');
       return;
@@ -259,7 +259,7 @@ export default function CreateMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload = {
-        pet_id: selectedPet.pet_id,
+        pet_id: Number(selectedPet.pet_id),
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,

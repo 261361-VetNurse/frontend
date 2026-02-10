@@ -24,6 +24,7 @@ export interface DashboardNotification {
     time?: string; // HH:MM from router
     status?: string; // e.g., "pending"
     istaken: boolean;
+    taken_at?: string;
 }
 
 export interface DashboardAppointment {
