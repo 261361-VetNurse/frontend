@@ -42,7 +42,7 @@ export default function AddAppointmentPopup({
 
   // หาข้อมูลสัตว์เลี้ยงที่เลือกจาก ID
   const selectedPet = useMemo(() =>
-    pets.find(p => p._id === selectedPetId),
+    pets.find((p) => p.pet_id === selectedPetId),
     [pets, selectedPetId]);
 
   /** Reset ข้อมูลเมื่อเปิด Popup */
@@ -61,7 +61,20 @@ export default function AddAppointmentPopup({
   }, [selectedPetId, date, time, location]);
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    console.log("AddAppointmentPopup: handleSubmit called. State:", {
+      canSubmit,
+      selectedPetId,
+      date,
+      time,
+      location,
+      isSubmitting
+    });
+
+    if (!canSubmit) {
+      alert("Please fill in all fields (Pet, Date, Time, Location).");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit?.({
@@ -121,7 +134,7 @@ export default function AddAppointmentPopup({
               {selectedPet ? (
                 <>
                   <div className="font-semibold text-zinc-900 truncate">{selectedPet.name}</div>
-                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet._id}</div>
+                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet.pet_id}</div>
                 </>
               ) : (
                 <div className="text-zinc-400">Choose your pet</div>
@@ -138,10 +151,10 @@ export default function AddAppointmentPopup({
             <div className="absolute z-[100] mt-2 w-full max-h-[240px] overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-xl py-1">
               {pets.map((p) => (
                 <button
-                  key={p._id}
+                  key={p.pet_id}
                   type="button"
                   onClick={() => {
-                    setSelectedPetId(p._id);
+                    setSelectedPetId(p.pet_id);
                     setIsSelectorOpen(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-sky-50 transition-colors"
@@ -153,9 +166,9 @@ export default function AddAppointmentPopup({
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="font-semibold text-zinc-900 truncate">{p.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">PID: {p._id}</div>
+                    <div className="text-xs text-zinc-500 truncate">PID: {p.pet_id}</div>
                   </div>
-                  {selectedPetId === p._id && (
+                  {selectedPetId === p.pet_id && (
                     <Check className="text-sky-500" fontSize="small" />
                   )}
                 </button>

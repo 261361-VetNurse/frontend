@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { PetLite } from "@/types/domain/pet";
+import Profile from "@/components/pet-owners/shared/Profile";
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";
@@ -62,7 +63,7 @@ export default function PetFilterSelector({
 
   const selectedPet = useMemo(() => {
     if (value === "all") return null;
-    return pets.find((p) => p._id === value) ?? null;
+    return pets.find((p) => p.pet_id === value) ?? null;
   }, [pets, value]);
 
   const ui = useMemo(() => {
@@ -138,7 +139,7 @@ export default function PetFilterSelector({
               <div className="text-xs text-zinc-500"> </div>
             ) : (
               <div className="truncate text-xs text-zinc-500">
-                {selectedPet?._id ? `PID: ${selectedPet._id}` : " "}
+                {selectedPet?.pet_id ? `PID: ${selectedPet.pet_id}` : " "}
               </div>
             )}
           </div>
@@ -199,13 +200,13 @@ export default function PetFilterSelector({
             ) : (
               pets.map((p) => (
                 <PetRow
-                  key={p._id}
-                  active={value === p._id}
-                  onClick={() => pick(p._id)}
+                  key={p.pet_id}
+                  active={value === p.pet_id}
+                  onClick={() => pick(p.pet_id)}
                   size={size}
                   name={p.name}
-                  pid={p._id}
-                  avatarUrl={p.profile_image}
+                  pid={p.pet_id}
+                  profile_image={p.profile_image}
                 />
               ))
             )}
@@ -222,7 +223,7 @@ function PetRow({
   size,
   name,
   pid,
-  avatarUrl,
+  profile_image,
   isAll,
 }: {
   active?: boolean;
@@ -230,7 +231,7 @@ function PetRow({
   size: "sm" | "md";
   name: string;
   pid?: string;
-  avatarUrl?: string;
+  profile_image?: string | null;
   isAll?: boolean;
 }) {
   const pad = size === "sm" ? "px-3 py-2" : "px-4 py-3";
@@ -257,14 +258,11 @@ function PetRow({
           </div>
 
         ) : (
-          <div className="relative h-10 w-10 overflow-hidden rounded-full bg-zinc-100">
-            <Image
-              src={avatarUrl ?? "/pet-placeholder.svg"}
-              alt={name}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <Profile
+            imageUrl={profile_image}
+            alt={name}
+            size="44px"
+          />
         )}
 
         <div className="min-w-0">

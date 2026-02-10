@@ -6,5 +6,5 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-    return proxyRequest(request, '/v1/user/profile', { method: 'PATCH' });
+    return proxyRequest(request, '/v1/user/profile');
 }

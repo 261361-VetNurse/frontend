@@ -22,54 +22,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initialize from storage or dev fake auth
     useEffect(() => {
         const initAuth = async () => {
-            let initialToken = authStorage.getToken();
+            // --- FAKE AUTH MODE ---
+            if (process.env.NEXT_PUBLIC_USE_FAKE_AUTH === "true") {
+                console.warn("⚠️ [DEV] FAKE AUTH enabled. Using configured fake token.");
+                // HARDCODED VALID JWT FOR DEV (Generated using backend secret)
+                const fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxODAyMTgzODc3fQ.yim5EVgxaivr3f4lNhBSpFYH9cVXf0uG6RGg9zrsK3E";
 
-            // --- DEV ONLY: Fake Auth Handling ---
-            if (process.env.NODE_ENV === "development" &&
-                process.env.NEXT_PUBLIC_USE_DEV_FAKE_AUTH === "true" &&
-                !initialToken) {
-
-                const fakeToken = process.env.NEXT_PUBLIC_DEV_FAKE_TOKEN;
                 if (fakeToken) {
-                    console.warn("⚠️ [DEV] DEV_FAKE_AUTH enabled. Using fake token.");
                     authStorage.setToken(fakeToken);
-                    initialToken = fakeToken;
-                } else {
-                    console.error("⚠️ [DEV] DEV_FAKE_AUTH enabled but NEXT_PUBLIC_DEV_FAKE_TOKEN is missing.");
-                }
-            }
-            // ------------------------------------
+                    setToken(fakeToken);
 
-            if (initialToken) {
-                setToken(initialToken);
+                    // Set mock user immediately without API call
+                    setUser({
+                        id: "dev-fake-user",
+                        display_name: "Dev Fake User",
+                        picture_url: "",
+                        role: "user",
+                        is_registered: true
+                    });
+                } else {
+                    console.error("❌ [DEV] FAKE AUTH enabled but NEXT_PUBLIC_FAKE_TOKEN is missing!");
+                }
+
+                setIsLoading(false);
+                return;
+            }
+            // ----------------------
+
+            // --- NORMAL API MODE ---
+            const storedToken = authStorage.getToken();
+            if (storedToken) {
+                setToken(storedToken);
                 try {
-                    // Start fetching user in parallel or blocking? 
-                    // Let's block to prevent flicker of "logged out" state
-                    const userData = await getCurrentUser(initialToken);
+                    const userData = await getCurrentUser(storedToken);
                     setUser(userData);
                 } catch (error) {
                     console.error("Failed to restore user session:", error);
-
-                    // --- DEV ONLY: Keep token if it matches fake token ---
-                    const isFakeToken = process.env.NODE_ENV === "development" &&
-                        initialToken === process.env.NEXT_PUBLIC_DEV_FAKE_TOKEN;
-
-                    if (isFakeToken) {
-                        console.warn("⚠️ [DEV] API failed with fake token. Creating MOCK user.");
-                        setUser({
-                            id: "dev-mock-user",
-                            display_name: "Dev Mock User",
-                            picture_url: "",
-                            role: "user",
-                            is_registered: true
-                        });
-                        // Do NOT clear token
-                    } else {
-                        // Standard behavior: if token is invalid, clear it
-                        authStorage.removeToken();
-                        setToken(null);
-                    }
-                    // ----------------------------------------------------
+                    authStorage.removeToken();
+                    setToken(null);
                 }
             }
             setIsLoading(false);

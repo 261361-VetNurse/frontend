@@ -1,34 +1,22 @@
-export type SymptomSeverity = 'Mild' | 'Moderate' | 'Severe';
-
 export interface SymptomRecord {
-    _id: string;
-    pet_id: string;
-    symptom: string; // e.g., "Vomiting", "Coughing"
-    severity?: SymptomSeverity;
-    note?: string;
-    images?: string[]; // Array of image URLs
-    date: string; // ISO 8601 date string (YYYY-MM-DD or full timestamp)
-    created_at: string;
-    updated_at: string;
+    record_id: number; // Primary identifier from backend
+    pet_id: number;
+    pet_name: string;
+    pet_image: string;
+    time_added: string; // Full ISO datetime (YYYY-MM-DDTHH:MM:SS)
+    note: string;
+    note_image: string[]; // Array of image URLs (max 4)
 }
 
-export interface CreateSymptomRecordRequest {
-    pet_id: string;
-    symptom: string;
-    severity?: SymptomSeverity;
-    note?: string;
-    images?: string[];
-    date: string;
+export interface SymptomRecordCreate {
+    pet_id: number;
+    note: string;
+    note_image?: string[]; // Max 4 images
 }
 
-export interface UpdateSymptomRecordRequest {
-    symptom?: string;
-    severity?: SymptomSeverity;
+export interface SymptomRecordUpdate {
     note?: string;
-    images?: string[];
-    date?: string;
+    note_image?: string[]; // Max 4 images
 }
 
-export interface SymptomCalendarResponse {
-    [date: string]: SymptomRecord[]; // Key is date string (YYYY-MM-DD), Value is array of records for that day
-}
+export type SymptomCalendarResponse = SymptomRecord[];

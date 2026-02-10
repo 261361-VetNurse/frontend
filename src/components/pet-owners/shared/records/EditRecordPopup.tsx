@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { getPresignedUrl, authStorage } from "@/services/api/client";
+import { uploadImage, authStorage } from "@/services/api/client";
 import type { RecordDetailItem } from "./RecordDetailPopup";
 
 export type EditSymptomPayload = {
@@ -129,14 +129,7 @@ export default function EditRecordPopup({
       const newImageUrls: string[] = [];
       if (newFiles.length > 0) {
         const uploadPromises = newFiles.map(async (file) => {
-          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
-          await fetch(uploadUrl, {
-            method: "PUT",
-            body: file,
-            headers: {
-              "Content-Type": file.type,
-            },
-          });
+          const publicUrl = await uploadImage(file, token);
           return publicUrl;
         });
         const results = await Promise.all(uploadPromises);

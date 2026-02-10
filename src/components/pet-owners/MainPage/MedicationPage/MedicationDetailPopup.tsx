@@ -80,7 +80,7 @@ export default function MedicationDetailPopup({
       <div className='flex flex-col gap-4'>
         <PetSection>
           {/* Handle cases where pet data might be flat or nested */}
-          <Profile imageUrl={medicineReminder.pet_image || medicineReminder.pet?.profile_image} size={50} />
+          <Profile imageUrl={medicineReminder.pet_image || medicineReminder.pet?.profile_image} size={50} isPet={true} />
           <div className='pet-info'>
             <div className="pet-name">{medicineReminder.pet_name || medicineReminder.pet?.name}</div>
             <div className="pet-id">id: {medicineReminder.pet_id || medicineReminder.pet?._id}</div>

@@ -6,5 +6,5 @@ export async function DELETE(
     { params }: { params: Promise<{ recordId: string }> }
 ) {
     const { recordId } = await params;
-    return proxyRequest(request, `/v1/symptom-records/${recordId}/delete`, { method: 'DELETE' });
+    return proxyRequest(request, `/v1/symptom-records/${recordId}/delete`);
 }

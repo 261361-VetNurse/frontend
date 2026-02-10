@@ -1,82 +1,74 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export async function proxyRequest(
-    request: Request,
-    endpoint: string,
-    options: {
-        method?: string;
-        headers?: Record<string, string>;
-        body?: any;
-        skipAuth?: boolean;
-    } = {}
+    request: NextRequest,
+    endpoint: string
 ) {
-    const { method = 'GET', skipAuth = false } = options;
+    const url = `${API_BASE_URL}${endpoint}`;
+    console.log(`[Proxy] ${request.method} ${url}`);
 
-    const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-        ...options.headers,
-    };
+    const incomingAuth = request.headers.get('authorization');
+    console.log(`[Proxy] Incoming Auth: ${incomingAuth ? incomingAuth.substring(0, 20) + '...' : 'NONE'}`);
 
-    // Forward Authorization header if present
-    if (!skipAuth) {
-        const authHeader = request.headers.get('Authorization');
-        if (authHeader) {
-            // Assume Client sends "Bearer <token>"
-            // Backend expects "access_token" header usually, but let's check input context. 
-            // client.ts uses 'access_token': token.
-            // So we will extract token from "Bearer <token>" or just pass it if client sends raw token in specific header.
-            // To be standard, let's assume Client sends "Authorization: Bearer <token>"
-            // and we convert it to 'access_token': <token> for backend.
-            const token = authHeader.replace('Bearer ', '');
-            (headers as any)['access_token'] = token;
-        } else {
-            // Fallback: Check for 'access_token' header directly from client
-            const directToken = request.headers.get('access_token');
-            if (directToken) {
-                (headers as any)['access_token'] = directToken;
-            }
-        }
-    }
 
     try {
-        const url = `${API_BASE_URL}${endpoint}`;
-        console.log(`[Proxy] ${method} ${url}`);
+        // Clone headers to avoid mutation issues and ensure compatibility
+        const headers = new Headers(request.headers);
+
+        // Remove host header to avoid conflicts
+        headers.delete('host');
+
+        // FORCE: Extract token from Authorization and set as access_token header
+        // The backend seems to require 'access_token' header specifically
+        const authHeader = headers.get('authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.substring(7);
+            // Ensure access_token is set
+            headers.set('access_token', token);
+        } else if (authHeader) {
+            // Fallback: if no Bearer prefix, maybe it's just the token?
+            // But usually it is Bearer. Let's try to trust the content.
+            // If the authorization header is just the token, use it.
+            if (!headers.has('access_token')) {
+                headers.set('access_token', authHeader);
+            }
+        }
 
         const fetchOptions: RequestInit = {
-            method,
-            headers,
+            method: request.method,
+            headers: headers,
         };
 
-        if (options.body) {
-            fetchOptions.body = JSON.stringify(options.body);
-        } else if (method !== 'GET' && method !== 'HEAD') {
-            // Try to read body from request if not explicitly passed
+        // Only attach body for non-GET/HEAD requests
+        if (request.method !== 'GET' && request.method !== 'HEAD') {
             try {
-                const body = await request.json();
+                // Clone request to read body without consuming the original stream if needed elsewhere (though here we consume it)
+                const body = await request.clone().json();
                 fetchOptions.body = JSON.stringify(body);
             } catch (e) {
-                // No body or parse error, ignore
+                // Body might be empty or not JSON, try text or blob if needed, or just ignore
+                // For now, if json fails, we might just forward the stream directly or ignore body
+                // Let's try to forward the body stream directly if JSON parsing fails or isn't appropriate
+                // But for this specific case (JSON API), JSON structure is usually expected.
+                // If it fails, it might mean no body.
             }
         }
 
         const response = await fetch(url, fetchOptions);
 
-        const data = await response.json().catch(() => ({}));
-
         if (!response.ok) {
-            return NextResponse.json(
-                { error: data.detail || 'Backend API Error' },
-                { status: response.status }
-            );
+            const error = await response.json().catch(() => ({ detail: 'Backend API Error' }));
+            return NextResponse.json(error, { status: response.status });
         }
 
+        const data = await response.json();
         return NextResponse.json(data);
     } catch (error) {
         console.error('[Proxy Error]', error);
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { detail: 'Internal Server Error' },
             { status: 500 }
         );
     }

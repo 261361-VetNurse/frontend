@@ -3,13 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-
-type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
-};
+import { PetLite } from "@/types/domain/pet";
 
 type AddAppointmentPopupProps = {
   open: boolean;
@@ -42,21 +36,38 @@ export default function AddAppointmentPopup({
   }, [open]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(pet?.id && date && time && location.trim());
-  }, [pet?.id, date, time, location]);
+    return Boolean(pet?.pet_id && date && time && location.trim());
+  }, [pet?.pet_id, date, time, location]);
 
-  function handleSubmit() {
-    if (!canSubmit) return;
+  /* Added logging for debugging */
+  const handleSubmit = () => {
+    console.log("handleSubmit called. State:")
+    // console.log("handleSubmit called. State:", {
+    //   canSubmit,
+    //   petId: pet?.pet_id,
+    //   date,
+    //   time,
+    //   location,
+    //   propsPet: pet,
+    // });
 
-    onSubmit?.({
-      petId: pet.id,
-      date,
-      time,
-      location: location.trim(),
-    });
+    // if (!canSubmit) {
+    //   console.warn("Validation failed: All fields are required.");
+    //   alert("Please fill in all fields (Date, Time, Location).");
+    //   return;
+    // }
 
-    onClose();
-  }
+    // if (onSubmit) {
+    //   onSubmit({
+    //     petId: pet.pet_id,
+    //     date,
+    //     time,
+    //     location: location.trim(),
+    //   });
+    // }
+
+    // onClose();
+  };
 
   return (
     <FormDialog
@@ -74,9 +85,9 @@ export default function AddAppointmentPopup({
       {/* Pet info */}
       <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
         <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-          {pet.avatarUrl ? (
+          {pet.profile_image ? (
             <Image
-              src={pet.avatarUrl}
+              src={pet.profile_image}
               alt={pet.name}
               width={40}
               height={40}
@@ -90,7 +101,7 @@ export default function AddAppointmentPopup({
             {pet.name}
           </div>
           <div className="text-xs text-zinc-500 truncate">
-            PID: {pet.pid}
+            PID: {pet.pet_id}
           </div>
         </div>
       </div>

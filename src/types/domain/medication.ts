@@ -1,43 +1,43 @@
-export type MedicineStatus = "TAKE" | "STOP";
-
-export type MedicineFrequencyEnum = "-1" | "0" | "1" | "2" | "3" | "4" | "5" | "6";
-// -1=Daily, 0=Mon, 6=Sun (Based on schema comment, though usually 0-6 is Sun-Sat or Mon-Sun depending on convention. Schema says 0=Mon, 6=Sun)
+export type MedicineStatus = "active" | "stopped" | "completed";
 
 export interface Medicine {
-    _id: string;
-    user_id: string;
-    pet_id: string;
+    medicine_id: number;
+    user_id?: number;
+    pet_id: number;
     name: string;
-    notes: string[];
-    properties: string; // "properties" in schema is string, might need clarification if it's meant to be something else, but strictly following schema.
+    notes: string[]; // Array of notes (max 3 per backend)
+    properties?: string | null;
     image_urls: string[];
-    dosage: string;
-    frequency: MedicineFrequencyEnum;
-    status: MedicineStatus; // "TAKE" | "STOP"
-    reminder_time: string[]; // Date array in schema, usually ISO strings in frontend
-    start_date: string;
-    end_date: string;
-    created_at: string;
-    updated_at: string;
+    dosage?: string | null;
+    frequency: string; // "daily", "weekly", or comma-separated day numbers
+    status: string; // "active", "stopped", "completed"
+    reminder_time: string[]; // Array of times in HH:MM format
+    start_date: string; // ISO date string
+    end_date: string; // ISO date string
+    created_at?: string;
+    updated_at?: string;
 }
 
-export type NotificationSendingStatus = "pending" | "sent" | "failed"; // Example status
-export type NotificationStatus = "pending" | "taken" | "skipped";
+export interface NotificationItem {
+    notification_id: number;
+    title: string;
+    notification_at: string; // ISO format
+    istaken: boolean;
+    pet_id: number;
+}
 
-export interface EachDayMedicine {
-    _id: string; // Implicit Mongo ID
-    pet_id: string;
-    user_id: string;
-    medicine_id: string;
-    medicine_name: string;
-    medicine_dosage: string;
-    medicine_frequency: string;
-    pet_name: string;
-    pet_image: string;
+export interface NotificationDetail extends NotificationItem {
+    taken_at?: string | null;
+    pet_name?: string | null;
+    pet_image?: string | null;
+    medicine_id: number;
+    medicine_name?: string | null;
+    dosage?: string | null;
+    medicine_frequency?: string | null;
     reminder_time: string[];
-    status?: MedicineStatus; // Optional to handle backward compatibility or lack of it in some mocks
-    created_at: string;
-    updated_at: string;
+    time_per_day: number;
+    user_id?: string;
+    status?: string;
+    created_at?: string;
+    updated_at?: string;
 }
-
-export type MedicineReminderVM = EachDayMedicine;

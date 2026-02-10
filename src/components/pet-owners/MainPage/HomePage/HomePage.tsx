@@ -10,7 +10,7 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { theme } from "@/styles/tokens/theme";
 import ReminderCard from "./ReminderCard";
-import { DashboardData, DashboardMedicineDetail } from "@/types/domain/dashboard";
+import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
@@ -24,7 +24,7 @@ export default function HomePage() {
   const [data, setData] = useState<DashboardData | null>(null);
 
   /* New State for Popup */
-  const [selectedNotification, setSelectedNotification] = useState<DashboardMedicineDetail | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<DashboardNotification | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
 
@@ -170,6 +170,7 @@ export default function HomePage() {
                   label={pet.name}
                   showLabel={true}
                   onClick={() => router.push(`/pet-owners/my-pets-page/${pet.pet_id}`)}
+                  isPet={true}
                 />
               ))}
             </div>

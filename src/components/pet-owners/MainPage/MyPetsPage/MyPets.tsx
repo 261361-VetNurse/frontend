@@ -80,8 +80,8 @@ export default function MyPets() {
       <div className="flex flex-col gap-4">
         <OwnerHeaderCard
           name={user?.fname || (userError ? "Pet Owner" : "Loading...")}
-          ownerId={user?.id || (userError ? "-" : "...")}
-          avatarUrl={user?.picture_url ?? "/images/profile-test.png"}
+          ownerId={user?.user_id || (userError ? "-" : "...")}
+          avatarUrl={user?.profile_image ?? "/images/profile-test.png"}
           OwnerPageUrl="/pet-owners/owner-info-page"
         />
 
@@ -110,7 +110,7 @@ export default function MyPets() {
                 No pets yet. Click "New Pet" to add one.
               </div>
             ) : (
-              pets.map((pet) => <PetCard key={pet._id} pet={pet} />)
+              pets.map((pet) => <PetCard key={pet.pet_id} pet={pet} />)
             )
           )}
         </div>

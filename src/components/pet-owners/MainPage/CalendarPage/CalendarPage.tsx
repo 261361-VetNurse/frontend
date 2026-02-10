@@ -23,7 +23,7 @@ function CalendarPageContent() {
     const petOptions: PetLite[] = useMemo(
         () =>
             pets.map((p: Pet) => ({
-                _id: String(p._id),
+                pet_id: p.pet_id,
                 name: p.name,
                 profile_image: p.profile_image,
             })),

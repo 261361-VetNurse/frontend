@@ -339,7 +339,10 @@ export function buildGrid(month: Date, weekStart: WeekStart): Cell[] {
   return cells;
 }
 
-export function isoToLocalDate(iso: string) {
+export function isoToLocalDate(iso: string | undefined | null) {
+  if (!iso) {
+    return new Date(); // fallback to current date if iso is undefined/null
+  }
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }

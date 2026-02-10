@@ -205,7 +205,7 @@ export default function MedicationPageV2() {
         if (token) {
           const reminder = medicineReminders.find(mr => mr._id === planId);
           if (reminder) {
-            await deleteMedicine(token, planId, reminder.medicine_id);
+            await deleteMedicine(token, reminder.medicine_id);
             setMedicineReminders(prev => prev.filter(mr => mr._id !== planId));
           }
         }

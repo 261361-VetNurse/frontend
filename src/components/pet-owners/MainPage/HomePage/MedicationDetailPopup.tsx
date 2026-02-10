@@ -8,11 +8,11 @@ import { PetSection, MedicineSection, ScheduleSection, RemindersSection, Reminde
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
-import { DashboardMedicineDetail } from '@/types/domain/dashboard';
+import { DashboardNotification } from '@/types/domain/dashboard';
 import { Icon } from 'lucide-react';
 
 interface MedicationDetailPopupProps {
-  noti: DashboardMedicineDetail;
+  noti: DashboardNotification;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
   onToggleReminder: (reminderId: string, isTaken: boolean) => void;
@@ -103,7 +103,7 @@ export default function MedicationDetailPopup({
     >
       <div className='flex flex-col gap-4'>
         <PetSection>
-          <Profile imageUrl={noti.pet_image} size={50} />
+          <Profile imageUrl={noti.pet_image} size={50} isPet={true} />
           <div className='pet-info'>
             <div className="pet-name">{noti.pet_name}</div>
             <div className="pet-id">id: {noti.pet_id}</div>

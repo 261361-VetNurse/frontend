@@ -14,6 +14,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import { NotificationDetail } from '@/types';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
@@ -24,15 +25,7 @@ export interface TimeSlot {
 }
 
 type Props = {
-  petName: string;
-  petImageUrl?: string;
-  medicineName: string;
-  dosage?: string;
-
-  // New prop: list of times
-  times: TimeSlot[];
-
-  isStopped?: boolean;
+  data: NotificationDetail;
   onOpenDetail: () => void;
 
   // Callback now requires reminderId
@@ -55,12 +48,7 @@ function getStatusMeta(status: OccurrenceStatus) {
 }
 
 export default function MedicineCard({
-  petName,
-  petImageUrl,
-  medicineName,
-  dosage,
-  times,
-  isStopped,
+  data,
   onOpenDetail,
   onToggleTaken,
   onEdit,
@@ -90,9 +78,21 @@ export default function MedicineCard({
     onDelete?.();
   };
 
+  // Extract data fields from NotificationDetail
+  const petName = data.pet_name || 'Unknown Pet';
+  const petImageUrl = data.pet_image || undefined;
+  const medicineName = data.medicine_name || 'Unknown Medicine';
+  const dosage = data.dosage || '';
+  const isStopped = false; // NotificationDetail doesn't have a status field for stopped
+  const times: TimeSlot[] = (data.reminder_time || []).map((t) => ({
+    id: `${data.notification_id}_${t}`,
+    timeLabel: t,
+    status: data.istaken ? 'taken' : 'pending'
+  }));
+
   return (
     <Card
-      $disabled={!!isStopped}
+      $disabled={isStopped}
       onClick={onOpenDetail}
       role="button"
       tabIndex={0}

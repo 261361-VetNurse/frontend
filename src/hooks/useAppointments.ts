@@ -27,14 +27,8 @@ export function useAppointments(status?: string): UseAppointmentsReturn {
 
             // Dynamic import to avoid circular dependency
             const { getAppointments } = await import('@/services/api/client');
-            const { USE_MOCK_DATA } = await import('@/utils/mock-helper');
 
-            const tokenToUse = token || (USE_MOCK_DATA ? 'mock_token' : '');
-
-            // Should handle token missing case for real API? 
-            // relying on client to throw or handle.
-
-            const data = await getAppointments(tokenToUse, status);
+            const data = await getAppointments(token, status);
 
             setAppointments(data);
         } catch (err) {

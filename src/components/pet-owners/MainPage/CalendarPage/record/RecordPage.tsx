@@ -27,7 +27,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { Pet, PetLite } from "@/types/domain/pet";
 import { usePets } from "@/hooks/usePets";
-import { useSymptomRecords, type RecordEntry } from "@/hooks/useSymptomRecords";
+import { useSymptomRecords } from "@/hooks/useSymptomRecords";
 
 // API
 import {
@@ -79,7 +79,7 @@ export const RecordPage = ({
 
   const petOptions: PetLite[] = useMemo(() => {
     return (pets ?? []).map((p: Pet) => ({
-      _id: String(p._id),
+      pet_id: p.pet_id,
       name: p.name ?? "-",
       profile_image: p.profile_image,
     }));
@@ -87,7 +87,7 @@ export const RecordPage = ({
 
   const petById = useMemo(() => {
     const m = new Map<string, PetLite>();
-    petOptions.forEach((p) => m.set(p._id, p));
+    petOptions.forEach((p) => m.set(p.pet_id, p));
     return m;
   }, [petOptions]);
 
@@ -126,12 +126,9 @@ export const RecordPage = ({
       const fullDateISO = `${data.date}T${data.time}:00.000Z`;
 
       await createSymptomRecord(token, {
-        pet_id: data.petId,
-        symptom: "General Symptom", // Default title as discussed
-        date: fullDateISO,
+        pet_id: Number(data.petId),
         note: data.note,
-        images: data.images, // Already uploaded URLs
-        severity: "Mild" // Default
+        note_image: data.images, // Already uploaded URLs
       });
 
       await refetch();
@@ -151,9 +148,8 @@ export const RecordPage = ({
       const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
       await editSymptomRecord(token, payload.id, {
-        date: fullDateISO,
         note: payload.note,
-        images: finalImages,
+        note_image: finalImages,
         // symptom: ... // reuse existing or update? API updates partial.
       });
 
@@ -225,14 +221,14 @@ export const RecordPage = ({
                     petName={pet?.name ?? "-"}
                     time={formatTime12h(record.time)}
                     note={record.note}
-                    avatarUrl={pet?.profile_image}
+                    avatarUrl={pet?.profile_image ?? undefined}
                     imageUrls={record.images ?? []}
                     onClick={() => {
                       setDetailRecord({
                         ...record,
                         petName: pet?.name ?? "-",
-                        petPid: pet?._id ?? "-",
-                        avatarUrl: pet?.profile_image,
+                        petPid: pet?.pet_id ?? "-",
+                        avatarUrl: pet?.profile_image ?? undefined,
                         date: record.dateKey,
                         imageUrls: record.images ?? [],
                       });

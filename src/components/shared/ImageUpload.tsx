@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { getPresignedUrl } from '@/services/api/client';
+import { uploadImage } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -56,10 +56,10 @@ export function ImageUpload({
             const token = authStorage.getToken();
             if (!token) throw new Error('Authentication required');
 
-            const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, folder);
+            const publicUrl = await uploadImage(file, token);
 
             // 3. Upload to R2
-            const uploadResponse = await fetch(uploadUrl, {
+            const uploadResponse = await fetch(publicUrl, {
                 method: 'PUT',
                 body: file,
                 headers: {

@@ -30,7 +30,8 @@ export function usePets(): UsePetsReturn {
         // We can't use useAuth inside the function if we didn't import it at top level.
         // But let's assume valid token for now or check storage.
         if (typeof window !== 'undefined') {
-            const t = localStorage.getItem('auth_token');
+            const { authStorage } = require('@/services/api/client');
+            const t = authStorage.getToken();
             setToken(t);
         }
     }, []);
@@ -44,21 +45,10 @@ export function usePets(): UsePetsReturn {
             // But fetchWithMock handles the mock case regardless of token if we pass a dummy one?
             // client.getPets(token) needs a token string.
 
-            const currentToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
+            const { getPets, authStorage } = await import('@/services/api/client');
 
-            // If we are in MOCK mode, we can pass a dummy token if currentToken is null.
-            // But client.ts doesn't export USE_MOCK_DATA check cleanly for external use?
-            // Actually I can import USE_MOCK_DATA from helper.
-
-            /* 
-               If USE_MOCK_DATA is true, client.getPets will return mock data and ignore the token validity (mostly).
-               If USE_MOCK_DATA is false, we need a real token.
-            */
-
-            const { getPets } = await import('@/services/api/client');
-            const { USE_MOCK_DATA } = await import('@/utils/mock-helper');
-
-            const tokenToUse = currentToken || (USE_MOCK_DATA ? 'mock_token' : '');
+            const currentToken = authStorage.getToken();
+            const tokenToUse = currentToken || '';
 
             if (!tokenToUse) {
                 // If not mock and no token, we can't fetch.

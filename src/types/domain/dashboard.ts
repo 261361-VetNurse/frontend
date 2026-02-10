@@ -1,60 +1,50 @@
 export interface DashboardPet {
-    pet_id: string;
-    profile_image: string;
+    pet_id: number;
     name: string;
+    species?: string | null;
+    breed?: string | null;
+    in_medical?: boolean | null;
+    profile_image?: string | null;
 }
 
-export interface DashboardMedicineNotification {
-    _id: string;
+export interface DashboardNotification {
+    notification_id: number;
     title: string;
-    medicine_id: string;
-    medicine_name: string;
-    dosage: string;
-    pet_image: string;
-    notification_at: string;
-    frequency: string;
-    status: string;
+    medicine_id: number;
+    medicine_name?: string | null;
+    dosage?: string | null;
+    frequency?: string | null;
+    reminder_time: string[];
+    time_per_day: number;
+    pet_id: number;
+    pet_name?: string | null;
+    pet_image?: string | null;
+    notification_at: string; // ISO format
+    istaken: boolean;
 }
 
-export interface DashboardAppointmentNotification {
-    _id: string;
-    pet_name: string;
-    pet_image: string;
-    appointment_date: string;
-    location: string;
+export interface DashboardAppointment {
+    appointment_id: number;
+    pet_id: number;
+    pet_name?: string | null;
+    pet_image?: string | null;
+    location?: string | null;
+    appointment_date: string; // YYYY-MM-DD or ISO format
+    appointment_time?: string | null; // HH:MM format
+    status: string;
+    note?: string | null;
 }
 
 export interface DashboardData {
     fname: string;
     lname: string;
-    profile_image: string;
+    profile_image?: string | null;
     pets: DashboardPet[];
-    medicines_notifications: DashboardMedicineNotification[];
-    appointments: DashboardAppointmentNotification[];
+    medicines_notifications: DashboardNotification[];
+    appointments: DashboardAppointment[];
 }
 
 export interface DashboardResponse {
     success: boolean;
     data: DashboardData;
-}
-
-export interface DashboardMedicineDetail {
-    _id: string;
-    medicine_id: string;
-    medicine_name: string;
-    dosage: string;
-    pet_id: string;
-    pet_name: string;
-    pet_image: string;
-    notification_at: string;
-    frequency: string;
-    time_per_day: number;
-    status: string;
-    istaken: boolean;
-    taken_at: string;
-}
-
-export interface DashboardMedicineDetailData {
-    success: boolean;
-    data: DashboardMedicineDetail[];
 }

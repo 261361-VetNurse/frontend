@@ -12,6 +12,7 @@ import {
 } from '@/styles/components/register.styled';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { redirectToLineLogin } from '@/services/line-liff';
 
 export default function LoginPage() {
     const { login, user, isLoading: authLoading } = useAuth();
@@ -19,7 +20,6 @@ export default function LoginPage() {
     const searchParams = useSearchParams();
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
 
     // Combined loading state
     const loading = pageLoading || authLoading;
@@ -58,15 +58,13 @@ export default function LoginPage() {
             return;
         }
 
-        if (token && !isProcessing) {
-            setIsProcessing(true);
+        if (token) {
             handleTokenCallback(token, isNew, userId, displayName);
         }
-        if (token && !isProcessing && !authLoading) {
-            setIsProcessing(true);
+        if (token && !authLoading) {
             handleTokenCallback(token, isNew, userId, displayName);
         }
-    }, [router, isProcessing, user, authLoading]);
+    }, [router, user, authLoading]);
 
     const handleTokenCallback = async (
         token: string,
@@ -90,25 +88,15 @@ export default function LoginPage() {
         } catch (err) {
             console.error('Token handling error:', err);
             setError('Failed to process login. Please try again.');
-            setIsProcessing(false);
         } finally {
             setPageLoading(false);
         }
     };
 
-    const handleLoginClick = async () => {
+    const handleLoginClick = () => {
         setError(null);
         setPageLoading(true);
-
-        // Mock Login
-        try {
-            await login("mock_token_user_1_long_live");
-            router.push('/pet-owners/home-page');
-        } catch (e) {
-            setError("Mock login failed");
-        } finally {
-            setPageLoading(false);
-        }
+        redirectToLineLogin();
     };
 
     return (
@@ -155,6 +143,6 @@ export default function LoginPage() {
                     </div>
                 )}
             </RegisterCard>
-        </RegisterContainer>
+        </RegisterContainer >
     );
 }

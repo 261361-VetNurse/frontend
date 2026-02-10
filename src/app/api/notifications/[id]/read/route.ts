@@ -7,7 +7,5 @@ export async function POST(
 ) {
     const { id } = await params;
     // Target: POST /v1/notifications/{id}/read
-    return proxyRequest(request, `/notifications/${id}/read`, {
-        method: "POST"
-    });
+    return proxyRequest(request, `/v1/notifications/${id}/read`);
 }

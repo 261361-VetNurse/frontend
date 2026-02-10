@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { authStorage, getSymptomRecordsCalendar } from "@/services/api/client";
 import { PetSelectorValue } from "@/components/pet-owners/shared/PetFilterSelector";
+import { SymptomRecord } from "@/types/domain/symptom";
 
 export type RecordEntry = {
     id: string;
@@ -36,28 +37,26 @@ export function useSymptomRecords(selectedPetId: PetSelectorValue = "all") {
 
             const response = await getSymptomRecordsCalendar(token, pId);
 
-            // Flatten the response
-            const allRecords = Object.values(response).flat();
+            // Transform SymptomRecord[] to RecordEntry[] for component compatibility
+            const allRecords: RecordEntry[] = Array.isArray(response)
+                ? response.map(record => {
+                    // Extract date (YYYY-MM-DD) and time (HH:MM) from time_added ISO datetime
+                    const timeAdded = record.time_added || "";
+                    const dateKey = timeAdded.includes('T') ? timeAdded.split('T')[0] : timeAdded;
+                    const time = timeAdded.includes('T') ? extractTimeFromISO(timeAdded) : "00:00";
 
-            // Map to RecordEntry
-            const mapped: RecordEntry[] = allRecords.map(r => {
-                // Handle different date formats or ensure consistency
-                const dateKey = r.date.includes('T') ? r.date.split('T')[0] : r.date;
-                // If the date string itself contains time info, extract it, otherwise default "00:00"
-                // Note: The API likely returns full ISO strings for 'date' based on previous context, but we handle fallback
-                const time = r.date.includes('T') ? extractTimeFromISO(r.date) : "00:00";
+                    return {
+                        id: String(record.record_id),
+                        dateKey, // YYYY-MM-DD format
+                        petId: String(record.pet_id),
+                        time, // HH:MM format
+                        note: record.note || "",
+                        images: record.note_image || [],
+                    };
+                })
+                : [];
 
-                return {
-                    id: r._id,
-                    dateKey: dateKey,
-                    petId: r.pet_id,
-                    time: time,
-                    note: r.note || "",
-                    images: r.images
-                };
-            });
-
-            setRecords(mapped);
+            setRecords(allRecords);
 
         } catch (err) {
             console.error("Failed to fetch records", err);

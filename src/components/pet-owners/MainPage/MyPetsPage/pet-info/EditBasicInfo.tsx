@@ -35,7 +35,7 @@ export default function EditBasicInfo() {
 
   // Safe defaults
   const [avatarUrl, setAvatarUrl] = useState(
-    currentPet?.profile_image ?? "/pet-placeholder.svg"
+    currentPet?.profile_image || undefined
   );
   const [name, setName] = useState(currentPet?.name ?? "");
   const [species, setSpecies] = useState(currentPet?.species ?? "");

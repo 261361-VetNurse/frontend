@@ -50,7 +50,7 @@ export default function ReminderCard({
       </div>
       <div className="card-info">
         <div className='flex flex-row gap-2 items-center'>
-          <Profile imageUrl={datas.pet_image} size={petImageSize} />
+          <Profile imageUrl={datas.pet_image} size={petImageSize} isPet={true} />
           <div className="reminder-text">
             <div className="med-name">{datas.medicine_name}</div>
             <div className="med-dosage">{datas.dosage ? `${datas.dosage}` : ''}</div>

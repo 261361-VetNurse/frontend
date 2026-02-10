@@ -8,5 +8,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ recordId: string }> }) {
     const { recordId } = await params;
-    return proxyRequest(request, `/v1/symptom-records/${recordId}`, { method: 'PATCH' });
+    return proxyRequest(request, `/v1/symptom-records/${recordId}`);
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ recordId: string }> }) {
+    const { recordId } = await params;
+    return proxyRequest(request, `/v1/symptom-records/${recordId}`);
 }

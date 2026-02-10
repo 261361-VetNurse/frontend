@@ -19,7 +19,7 @@ import AppointmentDetail from "@/components/pet-owners/shared/appointment/Appoin
 import type { Appointment } from "@/types/domain/appointment";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
-import { getAppointmentDetail, authStorage } from "@/services/api/client";
+import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
 
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/CalendarPage/appointment/AddAppointmentPopup";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -35,26 +35,26 @@ export default function MyPetsAppointments() {
 
   const [selectedPetId, setSelectedPetId] = useState<string>(() => {
     const fromUrl = String(petId ?? "");
-    if (fromUrl && petOptions.some((p) => p._id === fromUrl)) return fromUrl;
-    return String(petOptions[0]?._id ?? "");
+    if (fromUrl && petOptions.some((p) => p.pet_id === fromUrl)) return fromUrl;
+    return String(petOptions[0]?.pet_id ?? "");
   });
 
   useEffect(() => {
     const fromUrl = String(petId ?? "");
     if (!fromUrl) return;
 
-    const exists = petOptions.some((p) => p._id === fromUrl);
+    const exists = petOptions.some((p) => p.pet_id === fromUrl);
     if (exists) setSelectedPetId(fromUrl);
   }, [petId, petOptions]);
 
   useEffect(() => {
     if (!selectedPetId) return;
-    const exists = petOptions.some((p) => p._id === selectedPetId);
-    if (!exists) setSelectedPetId(String(petOptions[0]?._id ?? ""));
+    const exists = petOptions.some((p) => p.pet_id === selectedPetId);
+    if (!exists) setSelectedPetId(String(petOptions[0]?.pet_id ?? ""));
   }, [selectedPetId, petOptions]);
 
   const selectedPet = useMemo(() => {
-    return petOptions.find((p) => p._id === selectedPetId) ?? petOptions[0];
+    return petOptions.find((p) => p.pet_id === selectedPetId) ?? petOptions[0];
   }, [petOptions, selectedPetId]);
 
   const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
@@ -64,11 +64,11 @@ export default function MyPetsAppointments() {
   const { appointments } = useAppointments(); // Fetch all appointments
 
   const allAppointments: Appointment[] = useMemo(() => {
-    return appointments.filter(a => String(a.petId) === String(selectedPetId));
+    return appointments.filter((a: any) => String(a.pet_id) === String(selectedPetId));
   }, [appointments, selectedPetId]);
 
   const filtered = useMemo(() => {
-    return allAppointments.filter((a) => a.status === tab);
+    return allAppointments.filter((a) => a.status.toLowerCase() === tab.toLowerCase());
   }, [allAppointments, tab]);
 
   const grouped = useMemo(() => {
@@ -82,9 +82,21 @@ export default function MyPetsAppointments() {
 
   const handleAdd = () => setShowCreatePopup(true);
   const handleClosePopup = () => setShowCreatePopup(false);
-  const handleSubmitPopup = (data: any) => {
-    console.log("submit appointment", data);
-    setShowCreatePopup(false);
+  const handleSubmitPopup = async (data: any) => {
+    console.log("handleSubmitPopup called. Data:", data);
+    // try {
+    //   const token = authStorage.getToken();
+    //   if (!token) throw new Error("No token found");
+
+    //   await createAppointment(token, data);
+    //   setShowCreatePopup(false);
+
+    //   // Refresh appointments list
+    //   window.location.reload();
+    // } catch (err) {
+    //   console.error("Failed to create appointment:", err);
+    //   alert("Failed to create appointment. Please try again.");
+    // }
   };
 
   const handleOpenDetail = async (id: string) => {
@@ -103,7 +115,7 @@ export default function MyPetsAppointments() {
     <div className="flex flex-col gap-4">
       <TopBar
         title="Appointment"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.pet_id}`)}
       />
 
       <PetFilterSelector
@@ -130,14 +142,13 @@ export default function MyPetsAppointments() {
             <AppointmentDateSection key={sec.label} label={sec.label}>
               {sec.items.map((a) => (
                 <AppointmentCard
-                  key={a._id}
+                  key={a.appointment_id}
                   appointment={{
-                    id: a._id,
+                    id: String(a.appointment_id),
                     petName: selectedPet?.name || "-",
                     date: normalizeDateText(a.appointment_date),
                     time: new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
                     location: a.location,
-                    status: a.status,
                   }}
                   onOpenDetail={handleOpenDetail}
                 />
@@ -160,10 +171,9 @@ export default function MyPetsAppointments() {
         onClose={handleClosePopup}
         onSubmit={handleSubmitPopup}
         pet={{
-          id: selectedPet?._id ?? "",
+          pet_id: selectedPet?.pet_id ?? "",
           name: selectedPet?.name ?? "-",
-          pid: selectedPet?._id ?? "-",
-          avatarUrl: selectedPet?.profile_image,
+          profile_image: selectedPet?.profile_image,
         }}
       />
 

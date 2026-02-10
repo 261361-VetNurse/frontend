@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Add } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import { getPresignedUrl, authStorage } from "@/services/api/client";
+import { uploadImage, authStorage } from "@/services/api/client";
 
 type PetLite = {
   id: string;
@@ -111,8 +111,8 @@ export default function AddSymptomPopup({
       const imageUrls: string[] = [];
       if (files.length > 0) {
         const uploadPromises = files.map(async (file) => {
-          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
-          await fetch(uploadUrl, {
+          const publicUrl = await uploadImage(file, token);
+          await fetch(publicUrl, {
             method: "PUT",
             body: file,
             headers: {

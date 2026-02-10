@@ -377,7 +377,7 @@ export default function EditMedicationPopup({
       // editMedicine signature: (token, notificationId, medicineId, data)
       // Assuming medicineReminder._id is the plan/notification ID for EachDayMedicine, and targetMedicineId is the medicine ID.
       // If Medicine object, usage might be different but current mocks suggest consistency around IDs.
-      await editMedicine(token, medicineReminder._id, targetMedicineId, payload);
+      await editMedicine(token, targetMedicineId, payload);
       // Note: usage of (token, notificationId, medicineId, data). 
       // Using _id for both notification and medicine ID as per prior assumption. However, for Edit, usually we edit the Medicine definition.
 

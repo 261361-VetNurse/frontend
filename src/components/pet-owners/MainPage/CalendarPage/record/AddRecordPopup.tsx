@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { Add, KeyboardArrowDown, Check } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import { getPresignedUrl, authStorage } from "@/services/api/client";
+import { uploadImage, authStorage } from "@/services/api/client";
 import type { PetLite } from "@/types/domain/pet";
 
 export type AddSymptomPayload = {
@@ -45,7 +45,7 @@ export default function AddRecordPopup({
 
   // หาข้อมูลสัตว์เลี้ยงที่เลือก
   const selectedPet = useMemo(() =>
-    pets.find(p => p._id === selectedPetId),
+    pets.find(p => p.pet_id === selectedPetId),
     [pets, selectedPetId]);
 
   function resetFileInput() {
@@ -116,14 +116,7 @@ export default function AddRecordPopup({
       const imageUrls: string[] = [];
       if (files.length > 0) {
         const uploadPromises = files.map(async (file) => {
-          const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, "symptom-record");
-          await fetch(uploadUrl, {
-            method: "PUT",
-            body: file,
-            headers: {
-              "Content-Type": file.type,
-            },
-          });
+          const publicUrl = await uploadImage(file, token);
           return publicUrl;
         });
         const results = await Promise.all(uploadPromises);
@@ -179,7 +172,7 @@ export default function AddRecordPopup({
               {selectedPet ? (
                 <>
                   <div className="font-semibold text-zinc-900 truncate">{selectedPet.name}</div>
-                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet._id}</div>
+                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet.pet_id}</div>
                 </>
               ) : (
                 <div className="text-zinc-400">Choose your pet</div>
@@ -195,10 +188,10 @@ export default function AddRecordPopup({
             <div className="absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-xl border border-zinc-200 bg-white shadow-lg py-1">
               {pets.map((p) => (
                 <button
-                  key={p._id}
+                  key={p.pet_id}
                   type="button"
                   onClick={() => {
-                    setSelectedPetId(p._id);
+                    setSelectedPetId(p.pet_id);
                     setIsSelectorOpen(false);
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 transition-colors"
@@ -208,9 +201,9 @@ export default function AddRecordPopup({
                   </div>
                   <div className="flex-1 text-left min-w-0">
                     <div className="font-semibold text-zinc-900 truncate">{p.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">PID: {p._id}</div>
+                    <div className="text-xs text-zinc-500 truncate">PID: {p.pet_id}</div>
                   </div>
-                  {selectedPetId === p._id && <Check className="text-sky-500" fontSize="small" />}
+                  {selectedPetId === p.pet_id && <Check className="text-sky-500" fontSize="small" />}
                 </button>
               ))}
             </div>

@@ -1,14 +1,16 @@
-export type AppointmentStatus = "upcoming" | "completed" | "canceled";
+export type AppointmentStatus = "Upcoming" | "Completed" | "Canceled";
 
 export type Appointment = {
-  _id: string;
-  pet_id: string;
-  pet_name: string;
-  pet_image: string;
-  note?: string;
+  appointment_id: number;
+  pet_id: number;
+  pet_name?: string;
+  pet_image?: string;
   location: string;
   appointment_date: string; // ISO String
+  appointment_time?: string; // Separate time field (HH:MM)
   status: AppointmentStatus;
+  note?: string;
+  user_id?: number;
   created_at?: string;
   updated_at?: string;
 };

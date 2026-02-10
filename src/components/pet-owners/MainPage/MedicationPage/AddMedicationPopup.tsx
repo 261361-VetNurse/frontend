@@ -9,6 +9,7 @@ import { theme } from '@/styles/tokens/theme';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import type { Pet } from '@/types/domain/pet';
+import { createMedicine, authStorage } from '@/services/api/client';
 
 
 
@@ -255,17 +256,20 @@ export default function CreateMedicationPopup({
     }
 
     try {
-      // Simulate API call with console.log instead of actual API request
-      console.log('[MOCK] Creating medication with payload:', {
+      const token = authStorage.getToken() || "";
+
+      const payload = {
         pet_id: selectedPet._id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
-        starting_date: startDate,
-        reminders: reminders.map(r => r.time),
-      });
+        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+        reminder_time: reminders.map(r => r.time),
+        status: 'TAKE'
+      };
 
-      // Simulate success
+      await createMedicine(token, payload);
+
       alert('Medication created successfully!');
       onSuccess?.();
 

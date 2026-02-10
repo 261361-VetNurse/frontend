@@ -6,5 +6,5 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    return proxyRequest(request, '/v1/pets', { method: 'POST' });
+    return proxyRequest(request, '/v1/pets');
 }
