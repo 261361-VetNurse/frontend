@@ -4,10 +4,6 @@ import { useMemo, useState } from "react";
 
 import { Page } from "@/styles/components/calendar.styled";
 
-import {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
-
 import CalendarModule, {
   type CalendarDayMeta,
   type DayMarker,
@@ -20,13 +16,12 @@ import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
 import AddRecordPopup, { type AddSymptomPayload } from "./AddRecordPopup";
 import EditRecordPopup, { type EditSymptomPayload } from "@/components/pet-owners/shared/records/EditRecordPopup";
-import RecordDetailPopup, { type RecordDetailItem } from "@/components/pet-owners/shared/records/RecordDetailPopup";
+import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDetailPopup";
 
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
 import { Pet, PetLite } from "@/types/domain/pet";
-import { usePets } from "@/hooks/usePets";
 import { useSymptomRecords } from "@/hooks/useSymptomRecords";
 
 // API
@@ -37,6 +32,7 @@ import {
   authStorage,
 } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { SymptomRecord } from "@/types/domain/symptom";
 
 /* ---------------- helpers ---------------- */
 function pad2(n: number) { return String(n).padStart(2, "0"); }
@@ -61,9 +57,11 @@ function formatHeaderDate(isoDate: string) {
 
 /* ================= page ================= */
 export const RecordPage = ({
-  selectedPetId = "all",
+  selectedPetId = 0,
+  allPets,
 }: {
-  selectedPetId?: PetSelectorValue;
+  selectedPetId?: number;
+  allPets: Pet[];
 }) => {
   const { records, error, refetch } = useSymptomRecords(selectedPetId);
 
@@ -72,21 +70,19 @@ export const RecordPage = ({
   const [month, setMonth] = useState<Date>(new Date());
 
   const [openCreate, setOpenCreate] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<RecordDetailItem | null>(null);
-  const [editRecord, setEditRecord] = useState<RecordDetailItem | null>(null);
-
-  const { pets } = usePets();
+  const [detailRecord, setDetailRecord] = useState<SymptomRecord | null>(null);
+  const [editRecord, setEditRecord] = useState<SymptomRecord | null>(null);
 
   const petOptions: PetLite[] = useMemo(() => {
-    return (pets ?? []).map((p: Pet) => ({
+    return (allPets ?? []).map((p: Pet) => ({
       pet_id: p.pet_id,
       name: p.name ?? "-",
       profile_image: p.profile_image,
     }));
-  }, [pets]);
+  }, [allPets]);
 
   const petById = useMemo(() => {
-    const m = new Map<string, PetLite>();
+    const m = new Map<number, PetLite>();
     petOptions.forEach((p) => m.set(p.pet_id, p));
     return m;
   }, [petOptions]);
@@ -98,13 +94,15 @@ export const RecordPage = ({
     // But if selectedPetId changes, we re-fetch.
     // However, for immediate UI feedback if we wanted client side filtering:
     return records.filter(
-      (r) => selectedPetId === "all" || String(r.petId) === String(selectedPetId)
+      (r) => selectedPetId === 0 || r.pet_id === selectedPetId
     );
   }, [records, selectedPetId]);
 
   const dayMeta: CalendarDayMeta[] = useMemo(() => {
     const set = new Set<string>();
-    filteredByPet.forEach((r) => set.add(r.dateKey));
+    filteredByPet.forEach((r) => {
+      if (r.date_added) set.add(r.date_added);
+    });
     return Array.from(set).map((iso) => ({
       date: isoToLocalDate(iso),
       markers: [{ type: "dot", colorKey: "record" } as DayMarker],
@@ -113,8 +111,8 @@ export const RecordPage = ({
 
   const recordsOnSelectedDate = useMemo(() => {
     return filteredByPet
-      .filter((r) => r.dateKey === selectedIso)
-      .sort((a, b) => a.time.localeCompare(b.time));
+      .filter((r) => r.date_added === selectedIso)
+      .sort((a, b) => a.time_added.localeCompare(b.time_added));
   }, [filteredByPet, selectedIso]);
 
   /* -------- handlers -------- */
@@ -161,7 +159,7 @@ export const RecordPage = ({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
       if (!confirm("Are you sure?")) return;
       const token = authStorage.getToken();
@@ -214,24 +212,17 @@ export const RecordPage = ({
               <div className="line" />
 
               {recordsOnSelectedDate.map((record) => {
-                const pet = petById.get(String(record.petId));
+                const pet = petById.get(record.pet_id);
                 return (
                   <RecordCard
-                    key={record.id}
+                    key={record.record_id}
                     petName={pet?.name ?? "-"}
-                    time={formatTime12h(record.time)}
+                    time={formatTime12h(record.time_added)}
                     note={record.note}
                     avatarUrl={pet?.profile_image ?? undefined}
-                    imageUrls={record.images ?? []}
+                    imageUrls={record.note_image ?? []}
                     onClick={() => {
-                      setDetailRecord({
-                        ...record,
-                        petName: pet?.name ?? "-",
-                        petPid: pet?.pet_id ?? "-",
-                        avatarUrl: pet?.profile_image ?? undefined,
-                        date: record.dateKey,
-                        imageUrls: record.images ?? [],
-                      });
+                      setDetailRecord(record);
                     }}
                   />
                 );
@@ -253,7 +244,7 @@ export const RecordPage = ({
         open={openCreate}
         onClose={() => setOpenCreate(false)}
         pets={petOptions}
-        initialPetId={selectedPetId !== "all" ? String(selectedPetId) : undefined}
+        initialPetId={selectedPetId !== 0 ? String(selectedPetId) : undefined}
         onSubmit={handleSaveAdd}
       />
 

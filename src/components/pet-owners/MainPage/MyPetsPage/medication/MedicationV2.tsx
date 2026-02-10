@@ -3,13 +3,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, { PetSelectorValue, PetSelectorValue as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
+import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import { MedicineReminderVM } from '@/types/domain/medication';
+import { Medicine, NotificationDetail } from '@/types/domain/medication';
 import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
 import {
   formatTimeForDisplay,
@@ -60,7 +60,7 @@ export default function MedicationPageV2() {
   const router = useRouter();
   const { petId } = useParams<{ petId: string }>();
 
-  const [medicineReminders, setMedicineReminders] = useState<MedicineReminderVM[]>([]);
+  const [medicineReminders, setMedicineReminders] = useState<Medicine[]>([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,12 +68,12 @@ export default function MedicationPageV2() {
   const { pets: apiPets, loading: petsLoading } = usePets();
 
   // Selected Pet Logic
-  const [selectedPetId, setSelectedPetId] = useState<string>(petId ? String(petId) : '');
+  const [selectedPetId, setSelectedPetId] = useState<number>(petId ? Number(petId) : 0);
 
   // Sync state with URL param
   useEffect(() => {
     if (petId) {
-      setSelectedPetId(String(petId));
+      setSelectedPetId(Number(petId));
     } else if (apiPets.length > 0 && !selectedPetId) {
       // If no petId in URL but we have pets, default to first or stay empty?
       // MyPetsPage usually requires a pet context, but let's handle if URL changes.
@@ -84,7 +84,7 @@ export default function MedicationPageV2() {
 
   const selectedPet = useMemo(() => {
     // If selectedPetId matches a pet, use it
-    return apiPets.find(p => p._id === selectedPetId);
+    return apiPets.find(p => p.pet_id === selectedPetId);
   }, [apiPets, selectedPetId]);
 
   // Tabs
@@ -92,11 +92,11 @@ export default function MedicationPageV2() {
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const [selectedReminder, setSelectedReminder] = useState<{
-    medicineReminder: MedicineReminderVM;
+    medicineReminder: Medicine;
     highlightedReminderId?: string;
   } | null>(null);
 
-  const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
+  const [editingReminder, setEditingReminder] = useState<Medicine | null>(null);
   const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, OccurrenceOverride>>({});
 
   const fetchReminders = useCallback(async () => {
@@ -163,15 +163,14 @@ export default function MedicationPageV2() {
 
   const filteredOccurrences = useMemo(() => {
     // Already filtered by API for selectedPetId, but double check
-    return occurrences.filter(o => o.pet._id === selectedPetId);
+    return occurrences.filter(o => o.pet.pet_id === selectedPetId || Number(o.plan_id.split('_')[0]) === selectedPetId);
   }, [occurrences, selectedPetId]);
 
 
   // Handlers
-  const handlePetSelect = (id: PetSelectorValue) => {
-    const nextId = String(id);
-    setSelectedPetId(nextId);
-    router.push(`/pet-owners/my-pets-page/${nextId}/medications`);
+  const handlePetSelect = (id: number) => {
+    setSelectedPetId(id);
+    router.push(`/pet-owners/my-pets-page/${id}/medications`);
   };
 
   const handleAdd = () => setShowCreatePopup(true);
@@ -203,10 +202,10 @@ export default function MedicationPageV2() {
       try {
         const token = authStorage.getToken();
         if (token) {
-          const reminder = medicineReminders.find(mr => mr._id === planId);
+          const reminder = medicineReminders.find(mr => mr.medicine_id === Number(planId.split('_')[0]));
           if (reminder) {
             await deleteMedicine(token, reminder.medicine_id);
-            setMedicineReminders(prev => prev.filter(mr => mr._id !== planId));
+            setMedicineReminders(prev => prev.filter(mr => mr.medicine_id !== reminder.medicine_id));
           }
         }
       } catch (err) {
@@ -216,17 +215,11 @@ export default function MedicationPageV2() {
   };
 
   const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
-    const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
-    setMedicineReminders(updated);
-    if (selectedReminder?.medicineReminder._id === planId) {
-      const updatedPlan = updated.find(mr => mr._id === planId);
-      if (updatedPlan) {
-        setSelectedReminder(prev => prev ? { ...prev, medicineReminder: updatedPlan } : prev);
-      }
-    }
+    // Simplified update logic for V2 as we rely on re-fetching or state management that matches MedicationPage
     try {
       const token = authStorage.getToken();
       if (token) await markMedicationTaken(token, reminderId, isTaken);
+      fetchReminders(); // Refresh after toggle
     } catch (err) {
       console.error(err);
       fetchReminders();
@@ -260,14 +253,14 @@ export default function MedicationPageV2() {
     <div className="flex flex-col gap-4">
       <TopBar
         title="Medication"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.pet_id}`)}
       />
 
       <PetFilterSelector
         mode="filter"
         allowAllPets={false}
         pets={apiPets}
-        value={selectedPetId as PetSelectorValue}
+        value={selectedPetId}
         onChange={handlePetSelect}
       />
 
@@ -347,12 +340,20 @@ export default function MedicationPageV2() {
               return groupedList.map(group => (
                 <MedicineCard
                   key={group.planId}
-                  petName={group.pet.name}
-                  petImageUrl={group.pet.profile_image}
-                  medicineName={group.medicine.name}
-                  dosage={group.medicine.dosage}
-                  times={group.slots}
-                  isStopped={group.isStopped}
+                  data={{
+                    notification_id: Number(group.planId.split('_')[0]), // Fallback extraction
+                    medicine_id: group.medicine._id ? Number(group.medicine._id) : 0,
+                    pet_id: group.pet.pet_id,
+                    pet_name: group.pet.name,
+                    pet_image: group.pet.profile_image,
+                    medicine_name: group.medicine.name,
+                    dosage: group.medicine.dosage,
+                    reminder_time: group.slots.map(s => s.timeLabel),
+                    istaken: group.slots.every(s => s.status === 'taken'),
+                    time_per_day: group.slots.length,
+                    notification_at: '', // Placeholder
+                    title: `Medication for ${group.pet.name}`,
+                  }}
                   onOpenDetail={() => {
                     // Find generic occurrence to trigger click
                     const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
@@ -366,7 +367,6 @@ export default function MedicationPageV2() {
                     if (firstOcc) handleEditFromCard(firstOcc);
                   }}
                   onDelete={() => handleDeleteFromCard(group.planId)}
-
                 />
               ));
             })()}
@@ -391,7 +391,7 @@ export default function MedicationPageV2() {
         onClose={handleCloseCreatePopup}
         onSuccess={handleSubmitCreatePopup}
         pets={apiPets}
-        initialPetId={selectedPetId}
+        initialPetId={selectedPetId.toString()}
       />
 
       {selectedReminder && (
@@ -401,7 +401,7 @@ export default function MedicationPageV2() {
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={() => setSelectedReminder(null)}
           onToggleReminder={(reminderId: string, isTaken: boolean) =>
-            handleToggleReminder(selectedReminder.medicineReminder._id, reminderId, isTaken)
+            handleToggleReminder(selectedReminder.medicineReminder.medicine_id.toString(), reminderId, isTaken)
           }
           onEdit={handleEditFromDetail}
         />

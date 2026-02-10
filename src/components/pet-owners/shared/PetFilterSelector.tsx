@@ -9,8 +9,6 @@ type Mode = "filter" | "formField";
 type Size = "sm" | "md";
 type VisualState = "default" | "disabled" | "error";
 
-export type PetSelectorValue = string | "all";
-
 type Props = {
   mode?: Mode;
 
@@ -22,8 +20,8 @@ type Props = {
   state?: VisualState;
 
   pets: PetLite[];
-  value: PetSelectorValue;
-  onChange: (value: PetSelectorValue) => void;
+  value: number;
+  onChange: (value: number) => void;
 
   // formField extras
   label?: string;
@@ -62,7 +60,7 @@ export default function PetFilterSelector({
   }, []);
 
   const selectedPet = useMemo(() => {
-    if (value === "all") return null;
+    if (value === 0) return null;
     return pets.find((p) => p.pet_id === value) ?? null;
   }, [pets, value]);
 
@@ -76,7 +74,7 @@ export default function PetFilterSelector({
     return { pad, round, border, dis };
   }, [size, disabled, isError]);
 
-  function pick(v: PetSelectorValue) {
+  function pick(v: number) {
     if (disabled) return;
     onChange(v);
     setOpen(false);
@@ -107,7 +105,7 @@ export default function PetFilterSelector({
         aria-haspopup="listbox"
       >
         <div className="min-w-0 flex items-center gap-3">
-          {allowAllPets && value === "all" ? (
+          {allowAllPets && value === 0 ? (
             <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
               <Image
                 src="/pet-paw.svg"
@@ -130,12 +128,12 @@ export default function PetFilterSelector({
 
           <div className="min-w-0 text-left">
             <div className="truncate text-sm font-semibold text-zinc-900">
-              {allowAllPets && value === "all"
+              {allowAllPets && value === 0
                 ? "All Pets"
                 : selectedPet?.name ?? placeholder}
             </div>
 
-            {allowAllPets && value === "all" ? (
+            {allowAllPets && value === 0 ? (
               <div className="text-xs text-zinc-500"> </div>
             ) : (
               <div className="truncate text-xs text-zinc-500">
@@ -187,8 +185,8 @@ export default function PetFilterSelector({
             {allowAllPets ? (
               <PetRow
                 key="all"
-                active={value === "all"}
-                onClick={() => pick("all")}
+                active={value === 0}
+                onClick={() => pick(0)}
                 size={size}
                 name="All Pets"
                 isAll
@@ -230,7 +228,7 @@ function PetRow({
   onClick: () => void;
   size: "sm" | "md";
   name: string;
-  pid?: string;
+  pid?: number;
   profile_image?: string | null;
   isAll?: boolean;
 }) {

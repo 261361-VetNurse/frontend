@@ -12,7 +12,7 @@ interface UseMedicationsReturn {
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD)
  */
-export function useMedications(petId?: string, date?: string): UseMedicationsReturn {
+export function useMedications(petId?: number, date?: string): UseMedicationsReturn {
     const [medications, setMedications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

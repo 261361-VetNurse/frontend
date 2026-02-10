@@ -24,7 +24,7 @@ export type FormDialogProps = {
 
     secondaryLabel?: string;
     onSecondary?: () => void;
-    secondaryActionStyle?: "secondary" | "outline";
+    secondaryActionStyle?: "secondary" | "outline" | "danger";
 
     children: React.ReactNode;
 };
@@ -58,16 +58,6 @@ export function FormDialog({
     const contentCls =
         layout === "twoColumn" ? "grid grid-cols-2 gap-4" : `grid grid-cols-1 ${gap}`;
 
-    const primaryCls =
-        primaryActionStyle === "danger"
-            ? "bg-red-600 hover:bg-red-700"
-            : "bg-[#09BFF8] hover:bg-sky-600";
-
-    const secondaryCls =
-        secondaryActionStyle === "secondary"
-            ? "bg-zinc-100 hover:bg-zinc-200 text-zinc-900"
-            : "border border-black/20 hover:bg-black/5 text-zinc-900";
-
     return (
         <Modal
             open={open}
@@ -89,7 +79,7 @@ export function FormDialog({
                 <div className="flex items-center gap-3">
                     {secondaryLabel && onSecondary ? (
                         <Button
-                            variant="secondary"
+                            variant={secondaryActionStyle === "danger" ? "danger" : secondaryActionStyle === "secondary" ? "secondary" : "outline"}
                             shape="pill"
                             fullWidth
                             onClick={onSecondary}
@@ -101,7 +91,7 @@ export function FormDialog({
                     ) : null}
 
                     <Button
-                        variant="primary"
+                        variant={primaryActionStyle === "danger" ? "danger" : "primary"}
                         shape="pill"
                         fullWidth
                         onClick={onPrimary}

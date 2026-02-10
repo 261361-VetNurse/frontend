@@ -6,7 +6,7 @@ export type Appointment = {
   pet_name?: string;
   pet_image?: string;
   location: string;
-  appointment_date: string; // ISO String
+  appointment_date: string; // ISO String or YYYY-MM-DD
   appointment_time?: string; // Separate time field (HH:MM)
   status: AppointmentStatus;
   note?: string;

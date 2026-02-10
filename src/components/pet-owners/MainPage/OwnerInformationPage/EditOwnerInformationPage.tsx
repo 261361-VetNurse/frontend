@@ -52,9 +52,9 @@ const EditOwnerInformationPage = () => {
         setFormData({
           firstName: user.fname || '',
           lastName: user.lname || '',
-          gender: user.contact?.gender || 'male',
-          phone: user.contact?.phone || '',
-          email: user.contact?.email || ''
+          gender: user.gender || 'male',
+          phone: user.phone || '',
+          email: user.email || ''
         });
         if (user.picture_url) {
           setProfilePicture(user.picture_url);
@@ -86,17 +86,13 @@ const EditOwnerInformationPage = () => {
     try {
       const token = authStorage.getToken() || "";
 
-      // Prepare partial update object with safe merge for contact
-      const currentContact = originalUser?.contact || {};
-      const updateData: Partial<UserProfile> = {
+      // Prepare payload aligned with backend UserProfileUpdate schema
+      const updateData: any = {
         fname: formData.firstName,
         lname: formData.lastName,
-        contact: {
-          ...currentContact,
-          gender: formData.gender,
-          phone: formData.phone,
-          email: formData.email,
-        }
+        gender: formData.gender,
+        phone: formData.phone,
+        email: formData.email,
       };
 
       await updateUserProfile(token, updateData);

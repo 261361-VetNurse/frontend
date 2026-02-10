@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadImage, authStorage } from "@/services/api/client";
-import type { RecordDetailItem } from "./RecordDetailPopup";
+import { SymptomRecord } from "@/types/domain/symptom";
 
 export type EditSymptomPayload = {
   id: string;
@@ -17,7 +17,7 @@ export type EditSymptomPayload = {
 
 type Props = {
   open: boolean;
-  record: RecordDetailItem | null;
+  record: SymptomRecord | null;
   onClose: () => void;
   onSave?: (data: EditSymptomPayload) => void;
   maxImages?: number; // default 4
@@ -44,11 +44,11 @@ export default function EditRecordPopup({
   useEffect(() => {
     if (!open || !record) return;
 
-    setDate(record.date ?? "");
-    setTime(record.time ?? "");
+    setDate(record.date_added ?? "");
+    setTime(record.time_added ?? "");
     setNote(record.note ?? "");
 
-    setExistingImages(record.imageUrls ?? []);
+    setExistingImages(record.note_image ?? []);
     setNewFiles([]);
 
     // Clear old previews
@@ -63,7 +63,7 @@ export default function EditRecordPopup({
       // cleanup on unmount or close? 
       // We'll clean up previews in the next effect or when unmounting
     };
-  }, [open, record?.id]);
+  }, [open, record?.record_id]);
 
   // Clean up previews when component unmounts
   useEffect(() => {
@@ -73,8 +73,8 @@ export default function EditRecordPopup({
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const canSubmit = useMemo(() => {
-    return Boolean(record?.id && date && time && note.trim());
-  }, [record?.id, date, time, note]);
+    return Boolean(record?.record_id && date && time && note.trim());
+  }, [record?.record_id, date, time, note]);
 
   // guard
   if (!open || !record) return null;
@@ -137,8 +137,8 @@ export default function EditRecordPopup({
       }
 
       onSave?.({
-        id: r.id,
-        petId: r.petId,
+        id: String(r.record_id),
+        petId: String(r.pet_id),
         date,
         time,
         note: note.trim(),
@@ -182,10 +182,10 @@ export default function EditRecordPopup({
         {/* Pet row */}
         <div className="px-5 pb-4 flex items-center gap-3">
           <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
-            {r.avatarUrl ? (
+            {r.pet_image ? (
               <Image
-                src={r.avatarUrl}
-                alt={r.petName}
+                src={r.pet_image}
+                alt={r.pet_name}
                 fill
                 className="object-cover"
               />
@@ -194,9 +194,9 @@ export default function EditRecordPopup({
 
           <div className="min-w-0">
             <div className="text-sm font-semibold text-zinc-900 truncate">
-              {r.petName}
+              {r.pet_name}
             </div>
-            <div className="text-xs text-zinc-500 truncate">{`PID: ${r.petPid}`}</div>
+            <div className="text-xs text-zinc-500 truncate">{`PID: ${r.pet_id}`}</div>
           </div>
         </div>
 

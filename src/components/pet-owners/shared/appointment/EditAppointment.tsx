@@ -1,26 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import dayjs from "dayjs";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import type { Appointment } from "@/types/domain/appointment";
-
-export type EditAppointmentPayload = {
-  id: string;
-  petId: string;
-  date: string;      // YYYY-MM-DD
-  time: string;      // HH:mm
-  location: string;
-  status?: string;
-};
+import type { Appointment, AppointmentStatus } from "@/types/domain/appointment";
+import Profile from "@/components/pet-owners/shared/Profile";
 
 type Props = {
   open: boolean;
   appointment: Appointment | null;
   onClose: () => void;
-  onSave?: (data: EditAppointmentPayload) => void;
-  onCancelAppointment?: (id: string) => void;
+  onSave?: (data: Appointment) => void;
+  onCancelAppointment?: (id: number) => void;
 };
 
 export default function EditAppointment({
@@ -33,7 +24,7 @@ export default function EditAppointment({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<string | undefined>(undefined);
+  const [status, setStatus] = useState<AppointmentStatus>("Upcoming");
 
   useEffect(() => {
     if (!open || !appointment) return;
@@ -43,16 +34,16 @@ export default function EditAppointment({
     setTime(dateObj.format("HH:mm"));
     setLocation(appointment.location ?? "");
     setStatus(appointment.status);
-  }, [open, appointment?._id]);
+  }, [open, appointment?.appointment_id]);
 
   const canSubmit = useMemo(() => {
     return Boolean(
-      appointment?._id &&
+      appointment?.appointment_id &&
       date &&
       time &&
       location.trim()
     );
-  }, [appointment?._id, date, time, location]);
+  }, [appointment?.appointment_id, date, time, location]);
 
   // guard
   if (!open || !appointment) return null;
@@ -63,10 +54,10 @@ export default function EditAppointment({
     if (!canSubmit) return;
 
     onSave?.({
-      id: a._id,
-      petId: a.pet_id,
-      date,
-      time,
+      appointment_id: a.appointment_id,
+      pet_id: a.pet_id,
+      appointment_date: date,
+      appointment_time: time,
       location: location.trim(),
       status,
     });
@@ -76,7 +67,7 @@ export default function EditAppointment({
 
   function handleCancel() {
     if (confirm("Are you sure you want to cancel this appointment?")) {
-      onCancelAppointment?.(a._id);
+      onCancelAppointment?.(a.appointment_id);
       onClose();
     }
   }
@@ -97,14 +88,11 @@ export default function EditAppointment({
       {/* Pet row */}
       <div className="flex items-center gap-3 pb-4 border-b border-zinc-100">
         <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-          {a.pet_image ? (
-            <Image
-              src={a.pet_image}
-              alt={a.pet_name}
-              fill
-              className="object-cover"
-            />
-          ) : null}
+          <Profile
+            imageUrl={a.pet_image}
+            alt={a.pet_name}
+            size="sm"
+          />
         </div>
 
         <div className="min-w-0">

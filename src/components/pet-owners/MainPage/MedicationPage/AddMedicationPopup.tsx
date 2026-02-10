@@ -158,7 +158,7 @@ export default function CreateMedicationPopup({
   pets,
   initialPetId
 }: CreateMedicationPopupProps) {
-  const [petId, setPetId] = useState(initialPetId || '');
+  const [petId, setPetId] = useState(initialPetId);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
 
@@ -241,7 +241,7 @@ export default function CreateMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => p._id === petId);
+    const selectedPet = pets.find(p => p.pet_id === petId);
     if (!selectedPet) {
       alert('Please select a pet');
       return;
@@ -259,7 +259,7 @@ export default function CreateMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload = {
-        pet_id: selectedPet._id,
+        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -289,7 +289,7 @@ export default function CreateMedicationPopup({
     }
   };
 
-  const selectedPet = pets.find(p => p._id === petId);
+  const selectedPet = pets.find(p => p.pet_id === petId);
 
   return (
     <FormDialog
@@ -307,7 +307,7 @@ export default function CreateMedicationPopup({
           allowAllPets={false}
           pets={pets}
           value={petId}
-          onChange={(id) => setPetId(String(id))}
+          onChange={(id) => setPetId(id)}
         />
 
         <Row>

@@ -10,10 +10,10 @@ import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
   medicineReminder: any; // Accepting any to be flexible with Medicine vs Notification
-  highlightedReminderId?: string;
+  highlightedReminderId?: number;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
-  onToggleReminder: (reminderId: string, isTaken: boolean) => void;
+  onToggleReminder: (reminderId: number, isTaken: boolean) => void;
   onEdit: () => void;
 }
 

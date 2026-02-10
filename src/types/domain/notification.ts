@@ -14,7 +14,7 @@ export interface NotificationDetail extends NotificationItem {
     medicine_id: number;
     medicine_name?: string | null;
     dosage?: string | null;
-    frequency?: string | null;
+    frequency?: string | null; // Match backend frequency field
     reminder_time: string[];
     time_per_day: number;
 }

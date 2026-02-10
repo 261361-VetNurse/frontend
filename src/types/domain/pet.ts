@@ -1,5 +1,5 @@
 export type Pet = {
-  pet_id: string;
+  pet_id: number;
   user_id?: number;
   name: string;
   species?: string | null;
@@ -21,7 +21,7 @@ export type Pet = {
 export type PetId = Pet['pet_id'];
 
 export type PetLite = {
-  pet_id: string;
+  pet_id: number;
   name: string;
   profile_image?: string | null;
 };

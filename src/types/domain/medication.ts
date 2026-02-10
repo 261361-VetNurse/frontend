@@ -9,7 +9,7 @@ export interface Medicine {
     properties?: string | null;
     image_urls: string[];
     dosage?: string | null;
-    frequency: string; // "daily", "weekly", or comma-separated day numbers
+    frequency?: string | null; // Renamed from medicine_frequency to frequency
     status: string; // "active", "stopped", "completed"
     reminder_time: string[]; // Array of times in HH:MM format
     start_date: string; // ISO date string

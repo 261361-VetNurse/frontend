@@ -6,10 +6,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 import { Page } from "@/styles/components/calendar.styled";
 
-import {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
-
 import CalendarModule, {
   type CalendarDayMeta,
   type DayMarker,
@@ -18,7 +14,7 @@ import CalendarModule, {
 import AddAppointmentPopup, { AddAppointmentPayload } from "../../../shared/appointment/AddAppointmentPopup";
 import AppointmentCard from "./AppointmentCard";
 import AppointmentDetail from "../../../shared/appointment/AppointmentDetail";
-import EditAppointment, { EditAppointmentPayload } from "../../../shared/appointment/EditAppointment";
+import EditAppointment from "../../../shared/appointment/EditAppointment";
 
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -32,9 +28,11 @@ import {
   cancelAppointment,
   deleteAppointment,
   authStorage,
+  getPets,
 } from "@/services/api/client";
 
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { Pet } from "@/types";
 
 /* ---------------- tabs ---------------- */
 
@@ -46,9 +44,11 @@ const appointmentTabs = [
 /* ================= page ================= */
 
 export default function AppointmentPage({
-  selectedPetId = "all",
+  selectedPetId = 0,
+  allPets
 }: {
-  selectedPetId?: PetSelectorValue;
+  selectedPetId?: number;
+  allPets: Pet[];
 }) {
   /* -------- pets -------- */
   // Removed local petOptions and selectedPetId state
@@ -71,7 +71,7 @@ export default function AppointmentPage({
   const { appointments: apiAppointments, loading: loadingApps, error, refetch } = useAppointments();
 
   const filteredByPet = useMemo(() => {
-    if (selectedPetId === "all") return apiAppointments;
+    if (selectedPetId === 0) return apiAppointments;
     return apiAppointments.filter((a) => a.pet_id === selectedPetId);
   }, [apiAppointments, selectedPetId]);
 
@@ -161,24 +161,24 @@ export default function AppointmentPage({
     }
   };
 
-  const handleEdit = async (data: EditAppointmentPayload) => {
+  const handleEdit = async (data: Appointment) => {
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
       // Canceled check
       if (data.status === "Canceled") {
-        await cancelAppointment(token, data.id);
+        await cancelAppointment(token, data.appointment_id);
       } else {
         // Normal edit
-        const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
+        const dateTime = dayjs(`${data.appointment_date}T${data.appointment_time}`).toISOString();
         const payload = {
-          pet_id: data.petId,
+          pet_id: data.pet_id,
           appointment_date: dateTime,
           location: data.location,
           status: data.status,
         };
-        await editAppointment(token, data.id, payload);
+        await editAppointment(token, data.appointment_id, payload);
       }
 
       await refetch();
@@ -189,7 +189,7 @@ export default function AppointmentPage({
     }
   };
 
-  const handleCancelAppointment = async (id: string) => {
+  const handleCancelAppointment = async (id: number) => {
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
@@ -202,7 +202,7 @@ export default function AppointmentPage({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this appointment?")) return;
     try {
       const token = authStorage.getToken();
@@ -220,11 +220,12 @@ export default function AppointmentPage({
   return (
     <Page>
       <AddAppointmentPopup
+        allPets={allPets}
         open={openCreate}
         onClose={() => setOpenCreate(false)}
         initialDate={selectedDateKey}
         initialPetId={
-          selectedPetId !== "all" ? selectedPetId : undefined
+          selectedPetId !== 0 ? selectedPetId : undefined
         }
         onSubmit={handleCreate}
       />

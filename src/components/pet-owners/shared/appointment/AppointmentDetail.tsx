@@ -5,13 +5,14 @@ import dayjs from "dayjs";
 import { LocationOn, AccessTime, CalendarToday } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import type { Appointment } from "@/types/domain/appointment";
+import Profile from "../Profile";
 
 type Props = {
   open: boolean;
   appointment: Appointment | null;
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
-  onDelete?: (id: string) => void;
+  onDelete?: (id: number) => void;
 };
 
 export default function AppointmentDetail({
@@ -37,19 +38,16 @@ export default function AppointmentDetail({
       primaryLabel="Edit"
       onPrimary={() => onEdit?.(appointment)}
       secondaryLabel="Delete"
-      onSecondary={() => onDelete?.(appointment._id)}
+      onSecondary={() => onDelete?.(appointment.appointment_id)}
     >
       {/* Pet row */}
       <div className="flex items-center gap-3 pb-4 border-b border-zinc-100">
         <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-          {appointment.pet_image ? (
-            <Image
-              src={appointment.pet_image}
-              alt={appointment.pet_name}
-              fill
-              className="object-cover"
-            />
-          ) : null}
+          <Profile
+            imageUrl={appointment.pet_image}
+            alt={appointment.pet_name}
+            size="small"
+          />
         </div>
 
         <div className="min-w-0">

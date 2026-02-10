@@ -10,9 +10,10 @@ export interface UserProfile {
     user_id: string;
     line_id: string;
     display_name?: string | null;
-    profile_image?: string | null;
+    picture_url?: string | null;
     fname: string;
     lname: string;
+    gender?: string | null;
     phone?: string | null;
     email?: string | null;
     address_line1?: string | null;

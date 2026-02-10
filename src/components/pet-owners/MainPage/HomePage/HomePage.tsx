@@ -55,7 +55,7 @@ export default function HomePage() {
   if (loading && !data && !error) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
 
   /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
-  const handleReminderClick = async (noti: string) => {
+  const handleReminderClick = async (noti: number) => {
     try {
       setPopupLoading(true);
       const token = authStorage.getToken() || "";
@@ -69,7 +69,7 @@ export default function HomePage() {
     }
   };
 
-  const handleAppointmentClick = async (apt: string) => {
+  const handleAppointmentClick = async (apt: number) => {
     try {
       setPopupLoading(true);
       const token = authStorage.getToken() || "";
@@ -90,7 +90,7 @@ export default function HomePage() {
       if (reminderId) {
         const token = authStorage.getToken() || "";
         // 1. Send API Request
-        await markMedicationTaken(token, reminderId, isTaken);
+        await markMedicationTaken(token, Number(reminderId), isTaken);
         console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
 
         // 2. Update local state ONLY after successful API response
@@ -162,7 +162,7 @@ export default function HomePage() {
         ) : (
           <>
             <div className="pet-list">
-              {data?.pets?.map((pet) => (
+              {data?.pets?.slice(-4).map((pet) => (
                 <Profile
                   key={pet.pet_id}
                   imageUrl={pet.profile_image}
@@ -208,7 +208,7 @@ export default function HomePage() {
                   <ReminderCard
                     datas={med_noti}
                     petImageSize={40}
-                    onClick={() => handleReminderClick(med_noti._id)}
+                    onClick={() => handleReminderClick(med_noti.notification_id)}
                   />
                 </div>
               );
@@ -282,7 +282,7 @@ export default function HomePage() {
                   key={apt._id}
                   datas={apt}
                   petImageSize={40}
-                  onClick={() => handleAppointmentClick(apt._id)}
+                  onClick={() => handleAppointmentClick(apt.appointment_id)}
                 />
               );
             })
@@ -307,7 +307,7 @@ export default function HomePage() {
           appointment={selectedAppointment}
           onClose={() => setSelectedAppointment(null)}
           onEdit={() => {
-            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment._id}&open=edit`);
+            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.appointment_id}&open=edit`);
           }}
         />
       )}
