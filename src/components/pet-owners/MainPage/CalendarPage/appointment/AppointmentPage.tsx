@@ -11,7 +11,8 @@ import CalendarModule, {
   type DayMarker,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-import AddAppointmentPopup, { AddAppointmentPayload } from "../../../shared/appointment/AddAppointmentPopup";
+import AddAppointmentPopup from "../../../shared/appointment/AddAppointmentPopup";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 import AppointmentCard from "./AppointmentCard";
 import AppointmentDetail from "../../../shared/appointment/AppointmentDetail";
 import EditAppointment from "../../../shared/appointment/EditAppointment";
@@ -47,7 +48,7 @@ export default function AppointmentPage({
   selectedPetId = 0,
   allPets
 }: {
-  selectedPetId?: number;
+  selectedPetId?: number | null;
   allPets: Pet[];
 }) {
   /* -------- pets -------- */
@@ -141,23 +142,11 @@ export default function AppointmentPage({
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      // Construct payload
-      // Backend expects: { pet_id, appointment_date (ISO), location, status? }
-      const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
-
-      const payload = {
-        pet_id: data.petId,
-        appointment_date: dateTime,
-        location: data.location,
-        status: "Upcoming", // default
-      };
-
-      await createAppointment(token, payload);
+      await createAppointment(token, data);
       await refetch();
       setOpenCreate(false);
     } catch (err) {
       console.error("Failed to create appointment:", err);
-      // You might want to show a toast/alert here
     }
   };
 

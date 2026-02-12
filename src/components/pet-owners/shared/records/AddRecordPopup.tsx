@@ -6,19 +6,12 @@ import { Add } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { uploadImage, authStorage } from "@/services/api/client";
 import { PetLite } from "@/types/domain/pet";
-
-export type AddSymptomPayload = {
-  petId: number;
-  date: string;
-  time: string;
-  note: string;
-  images: string[];
-};
+import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
 
 type AddSymptomPopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: AddSymptomPayload) => void;
+  onSubmit?: (data: AddSymptomPayloadDTO) => void;
   pet: PetLite;
 };
 
@@ -113,11 +106,9 @@ export default function AddSymptomPopup({
       }
 
       await onSubmit?.({
-        petId: pet.pet_id,
-        date,
-        time,
+        pet_id: Number(pet.pet_id),
         note: note.trim(),
-        images: imageUrls, // Pass URLs instead of Files
+        note_image: imageUrls, // Corrected field name to match DTO
       });
       onClose();
     } catch (err) {

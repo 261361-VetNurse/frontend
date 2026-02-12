@@ -20,10 +20,11 @@ import type { Appointment } from "@/types/domain/appointment";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
 import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
-
 import AddAppointmentPopup from "@/components/pet-owners/MainPage/CalendarPage/appointment/AddAppointmentPopup";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+
 import { QuickDialButton } from "@/components/shared";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 export default function MyPetsAppointments() {
   const router = useRouter();
@@ -64,7 +65,7 @@ export default function MyPetsAppointments() {
   const { appointments } = useAppointments(); // Fetch all appointments
 
   const allAppointments: Appointment[] = useMemo(() => {
-    return appointments.filter((a: any) => String(a.pet_id) === String(selectedPetId));
+    return appointments.filter((a: Appointment) => String(a.pet_id) === String(selectedPetId));
   }, [appointments, selectedPetId]);
 
   const filtered = useMemo(() => {
@@ -82,21 +83,20 @@ export default function MyPetsAppointments() {
 
   const handleAdd = () => setShowCreatePopup(true);
   const handleClosePopup = () => setShowCreatePopup(false);
-  const handleSubmitPopup = async (data: any) => {
+  const handleSubmitPopup = async (data: AddAppointmentPayload) => {
     console.log("handleSubmitPopup called. Data:", data);
-    // try {
-    //   const token = authStorage.getToken();
-    //   if (!token) throw new Error("No token found");
+    try {
+      const token = authStorage.getToken();
+      if (!token) throw new Error("No token found");
 
-    //   await createAppointment(token, data);
-    //   setShowCreatePopup(false);
+      await createAppointment(token, data);
+      setShowCreatePopup(false);
 
-    //   // Refresh appointments list
-    //   window.location.reload();
-    // } catch (err) {
-    //   console.error("Failed to create appointment:", err);
-    //   alert("Failed to create appointment. Please try again.");
-    // }
+      // Refresh or refetch
+      window.location.reload();
+    } catch (err) {
+      console.error("Failed to create appointment:", err);
+    }
   };
 
   const handleOpenDetail = async (id: string) => {

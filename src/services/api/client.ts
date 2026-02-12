@@ -32,6 +32,30 @@ interface LineExchangeResponse {
 }
 import { User, UserProfile } from '@/types/domain/user';
 import { Pet } from '@/types/domain/pet';
+import {
+    AddMedicationPayload,
+    EditMedicationPayload,
+    MedicineItem
+} from '@/types/api/medication.dto';
+import {
+    AddAppointmentPayload,
+    EditAppointmentPayload
+} from '@/types/api/appointment.dto';
+import {
+    CreatePetDTO,
+    UpdatePetDTO
+} from '@/types/api/pet.dto';
+import {
+    RegisterOwnerPayload,
+    UserProfileUpdatePayload
+} from '@/types/api/auth.dto';
+import {
+    AddSymptomPayload,
+    EditSymptomPayload
+} from '@/types/api/record.dto';
+import {
+    AddMedicalPayload
+} from '@/types/api/medical.dto';
 /**
  * Exchange LINE authorization code for access token
  */
@@ -125,12 +149,12 @@ export const authStorage = {
             localStorage.removeItem('auth_token');
         }
     },
-    setUser(user: any) {
+    setUser(user: User) {
         if (typeof window !== 'undefined') {
             localStorage.setItem('user', JSON.stringify(user));
         }
     },
-    getUser(): any {
+    getUser(): User | null {
         if (typeof window !== 'undefined') {
             const user = localStorage.getItem('user');
             return user ? JSON.parse(user) : null;
@@ -242,7 +266,7 @@ export async function getMedicineDetail(
 export async function editMedicine(
     token: string,
     medicineId: string,
-    medicineData: any
+    medicineData: EditMedicationPayload
 ): Promise<any> {
     const response = await loggedFetch(
         `/v1/medications/medicines/${medicineId}`,
@@ -289,7 +313,7 @@ export async function deleteMedicine(
 /**
  * Create new medicine
  */
-export async function createMedicine(token: string, medicineData: any): Promise<any> {
+export async function createMedicine(token: string, medicineData: AddMedicationPayload): Promise<any> {
     const response = await loggedFetch(`/v1/medications/medicines`, {
         method: 'POST',
         headers: {
@@ -323,7 +347,7 @@ export async function getMedicinesByPet(token: string, petId: string): Promise<a
 /**
  * Filter medicines
  */
-export async function filterMedicines(token: string, params: any): Promise<any> {
+export async function filterMedicines(token: string, params: Record<string, any>): Promise<MedicineItem[]> {
     const queryString = new URLSearchParams(params).toString();
     const response = await loggedFetch(`/v1/medications/medicines/filter?${queryString}`, {
         headers: {
@@ -381,7 +405,7 @@ export async function getAppointmentDetail(token: string, appointmentId: number)
 /**
  * Create new appointment
  */
-export async function createAppointment(token: string, appointmentData: any): Promise<any> {
+export async function createAppointment(token: string, appointmentData: AddAppointmentPayload): Promise<any> {
     const response = await loggedFetch(`/v1/appointments`, {
         method: 'POST',
         headers: {
@@ -402,7 +426,7 @@ export async function createAppointment(token: string, appointmentData: any): Pr
 export async function editAppointment(
     token: string,
     appointmentId: number,
-    appointmentData: any
+    appointmentData: EditAppointmentPayload
 ): Promise<any> {
     const response = await loggedFetch(`/v1/appointments/${appointmentId}/edit`, {
         method: 'PATCH',
@@ -503,7 +527,7 @@ export async function getPetDetail(token: string, petId: string): Promise<Pet> {
 /**
  * Create new pet (register pet)
  */
-export async function createPet(token: string, petData: Partial<Pet>): Promise<Pet> {
+export async function createPet(token: string, petData: CreatePetDTO): Promise<Pet> {
     const response = await loggedFetch(`/v1/pets`, {
         method: 'POST',
         headers: {
@@ -522,7 +546,7 @@ export async function createPet(token: string, petData: Partial<Pet>): Promise<P
 /**
  * Register a new pet (special registration flow)
  */
-export async function registerPet(token: string, petData: Partial<Pet>): Promise<{ message: string, pet_id: number }> {
+export async function registerPet(token: string, petData: CreatePetDTO): Promise<{ message: string, pet_id: number }> {
     const response = await loggedFetch(`/v1/register/pet`, {
         method: 'POST',
         headers: {
@@ -540,7 +564,7 @@ export async function registerPet(token: string, petData: Partial<Pet>): Promise
 /**
  * Update pet information
  */
-export async function updatePet(token: string, petId: string, petData: Partial<Pet>): Promise<Pet> {
+export async function updatePet(token: string, petId: string, petData: UpdatePetDTO): Promise<Pet> {
     const response = await loggedFetch(`/v1/pets/${petId}`, {
         method: 'PATCH',
         headers: {
@@ -575,7 +599,7 @@ export async function deletePet(token: string, petId: string): Promise<any> {
 /**
  * Record pet symptom
  */
-export async function recordPetSymptom(token: string, petId: string, data: any): Promise<any> {
+export async function recordPetSymptom(token: string, petId: string, data: AddSymptomPayload): Promise<any> {
     const response = await loggedFetch(`/v1/pets/${petId}/symptoms`, {
         method: 'POST',
         headers: {
@@ -608,7 +632,7 @@ export async function getPetMedicalHistory(token: string, petId: string): Promis
 /**
  * Add pet medical history
  */
-export async function addPetMedicalHistory(token: string, petId: string, data: any): Promise<any> {
+export async function addPetMedicalHistory(token: string, petId: string, data: AddMedicalPayload): Promise<any> {
     const response = await loggedFetch(`/v1/pets/${petId}/medical-history`, {
         method: 'POST',
         headers: {
@@ -711,7 +735,7 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
 /**
  * Update user profile
  */
-export async function updateUserProfile(token: string, profileData: Partial<UserProfile>): Promise<any> {
+export async function updateUserProfile(token: string, profileData: UserProfileUpdatePayload): Promise<any> {
     const response = await loggedFetch(`/v1/user/profile`, {
         method: 'PATCH',
         headers: {
@@ -730,7 +754,7 @@ export async function updateUserProfile(token: string, profileData: Partial<User
 /**
  * Register owner profile
  */
-export async function registerOwner(token: string, ownerData: any): Promise<{ message: string }> {
+export async function registerOwner(token: string, ownerData: RegisterOwnerPayload): Promise<{ message: string }> {
     const response = await loggedFetch(`/v1/register/owner`, {
         method: 'POST',
         headers: {
@@ -774,7 +798,7 @@ export async function getSymptomRecordsCalendar(token: string, petId?: string, m
 /**
  * Create symptom record
  */
-export async function createSymptomRecord(token: string, data: SymptomRecordCreate): Promise<SymptomRecord> {
+export async function createSymptomRecord(token: string, data: AddSymptomPayload): Promise<any> {
     const response = await loggedFetch(`/v1/symptom-records`, {
         method: 'POST',
         headers: {
@@ -809,7 +833,7 @@ export async function getSymptomRecordDetail(token: string, recordId: string): P
 /**
  * Edit symptom record
  */
-export async function editSymptomRecord(token: string, recordId: string, data: SymptomRecordUpdate): Promise<SymptomRecord> {
+export async function editSymptomRecord(token: string, recordId: number, data: EditSymptomPayload): Promise<any> {
     const response = await loggedFetch(`/v1/symptom-records/${recordId}`, {
         method: 'PATCH',
         headers: {

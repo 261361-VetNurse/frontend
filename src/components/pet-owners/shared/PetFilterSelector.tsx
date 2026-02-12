@@ -20,8 +20,8 @@ type Props = {
   state?: VisualState;
 
   pets: PetLite[];
-  value: number;
-  onChange: (value: number) => void;
+  value: number | null;
+  onChange: (value: number | null) => void;
 
   // formField extras
   label?: string;

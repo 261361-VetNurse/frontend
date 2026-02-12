@@ -51,7 +51,7 @@ export default function NotificationsPage() {
             if (!token) return;
             await markNotificationAsRead(token, id);
             // Update local state
-            setNotifications(prev => prev.map(n => n._id === id ? { ...n, is_read: true } : n));
+            setNotifications(prev => prev.map(n => String(n.notification_id) === id ? { ...n, istaken: true } : n));
         } catch (err) {
             console.error(err);
         }
@@ -61,10 +61,10 @@ export default function NotificationsPage() {
         const groups: { [key: string]: NotificationItem[] } = {};
 
         // Sort by Date Desc
-        const sorted = [...notifications].sort((a, b) => dayjs(b.created_at).diff(dayjs(a.created_at)));
+        const sorted = [...notifications].sort((a, b) => dayjs(b.notification_at).diff(dayjs(a.notification_at)));
 
         sorted.forEach(n => {
-            const d = dayjs(n.created_at);
+            const d = dayjs(n.notification_at);
             let key = d.format("D MMM YYYY");
 
             if (d.isToday()) key = "Today";
@@ -79,7 +79,7 @@ export default function NotificationsPage() {
         // Let's rely on reconstructing the list based on sorted unique keys from the sorted items to preserve order.
 
         const uniqueKeys = Array.from(new Set(sorted.map(n => {
-            const d = dayjs(n.created_at);
+            const d = dayjs(n.notification_at);
             if (d.isToday()) return "Today";
             if (d.isYesterday()) return "Yesterday";
             return d.format("D MMM YYYY");
@@ -114,9 +114,9 @@ export default function NotificationsPage() {
                                     <div className="space-y-3">
                                         {group.items.map(n => (
                                             <NotificationCard
-                                                key={n._id}
+                                                key={n.notification_id}
                                                 item={n}
-                                                onClick={() => handleRead(n._id, n.is_read)}
+                                                onClick={() => handleRead(String(n.notification_id), n.istaken)}
                                             />
                                         ))}
                                     </div>

@@ -29,7 +29,7 @@ function CalendarPageContent() {
     );
 
     const [selectedPetId, setSelectedPetId] =
-        useState<number>(0);
+        useState<number | null>(null);
 
     const recordTabs = [
         { name: "Appointment", path: "/appointment", params: "appointment" },
@@ -46,7 +46,7 @@ function CalendarPageContent() {
                         allowAllPets
                         pets={petOptions}
                         value={selectedPetId}
-                        onChange={setSelectedPetId}
+                        onChange={(id) => setSelectedPetId(id)}
                     />
                 </div>
             </div>

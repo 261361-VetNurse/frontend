@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadImage, authStorage } from "@/services/api/client";
 import { SymptomRecord } from "@/types/domain/symptom";
+import { EditSymptomPayload } from "@/types/api/record.dto";
 
-export type EditSymptomPayload = {
+export type EditRecordFormState = {
   id: string;
   petId: string;
   date: string; // YYYY-MM-DD
@@ -19,7 +20,7 @@ type Props = {
   open: boolean;
   record: SymptomRecord | null;
   onClose: () => void;
-  onSave?: (data: EditSymptomPayload) => void;
+  onSave?: (record_id: number, data: EditRecordFormState) => void;
   maxImages?: number; // default 4
 };
 
@@ -136,7 +137,7 @@ export default function EditRecordPopup({
         newImageUrls.push(...results);
       }
 
-      onSave?.({
+      onSave?.(Number(r.record_id), {
         id: String(r.record_id),
         petId: String(r.pet_id),
         date,

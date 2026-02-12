@@ -77,9 +77,9 @@ export function usePets(): UsePetsReturn {
 /**
  * Custom hook to fetch a single pet by ID
  */
-export function usePet(petId: string | number) {
+export function usePet(petId: number) {
     const { pets, loading, error } = usePets();
-    const pet = pets.find((p) => String(p._id) === String(petId));
+    const pet = pets.find((p) => p.pet_id === petId);
 
     return { pet, loading, error, pets };
 }

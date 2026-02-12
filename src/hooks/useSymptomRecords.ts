@@ -11,7 +11,7 @@ function extractTimeFromISO(iso: string) {
     return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-export function useSymptomRecords(selectedPetId: number = 0) {
+export function useSymptomRecords(selectedPetId: number | null = null) {
     const [records, setRecords] = useState<SymptomRecord[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);

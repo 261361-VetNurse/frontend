@@ -14,6 +14,7 @@ import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
 import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/client';
+import { UserProfileUpdatePayload } from '@/types/api/auth.dto';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 
 const EditOwnerInformationPage = () => {
@@ -81,7 +82,7 @@ const EditOwnerInformationPage = () => {
       const token = authStorage.getToken() || "";
 
       // Prepare payload aligned with backend UserProfileUpdate schema
-      const updateData: any = {
+      const updateData: UserProfileUpdatePayload = {
         fname: formData.firstName,
         lname: formData.lastName,
         gender: formData.gender,

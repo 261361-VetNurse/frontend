@@ -221,7 +221,7 @@ export default function EditMedicationPopup({
   pets,
   onSuccess
 }: EditMedicationPopupProps) {
-  const [petId, setPetId] = useState('');
+  const [petId, setPetId] = useState<number | null>(null);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
 
@@ -236,7 +236,7 @@ export default function EditMedicationPopup({
 
   useEffect(() => {
     if (medicineReminder) {
-      setPetId(medicineReminder.pet_id || '');
+      setPetId(medicineReminder.pet_id || null);
       setMedicineName(medicineReminder.name || medicineReminder.medicine_name || '');
       setDosage(medicineReminder.dosage || medicineReminder.medicine_dosage || '');
 
@@ -341,7 +341,7 @@ export default function EditMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => String(p.pet_id) === String(petId));
+    const selectedPet = pets.find(p => (p.pet_id) === petId);
     if (!selectedPet) {
       alert('Please select a valid pet');
       return;
@@ -362,7 +362,7 @@ export default function EditMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload = {
-        pet_id: selectedPet._id,
+        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -402,7 +402,7 @@ export default function EditMedicationPopup({
           allowAllPets={false}
           pets={pets}
           value={petId}
-          onChange={(id) => setPetId(String(id))}
+          onChange={(id) => setPetId(id)}
         />
 
         <FormField label="Medicine Name" htmlFor="medication-name">

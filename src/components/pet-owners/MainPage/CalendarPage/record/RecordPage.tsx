@@ -14,8 +14,9 @@ import CalendarModule, {
 import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
-import AddRecordPopup, { type AddSymptomPayload } from "./AddRecordPopup";
-import EditRecordPopup, { type EditSymptomPayload } from "@/components/pet-owners/shared/records/EditRecordPopup";
+import AddRecordPopup from "./AddRecordPopup";
+import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
+import EditRecordPopup, { type EditRecordFormState } from "@/components/pet-owners/shared/records/EditRecordPopup";
 import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDetailPopup";
 
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
@@ -57,10 +58,10 @@ function formatHeaderDate(isoDate: string) {
 
 /* ================= page ================= */
 export const RecordPage = ({
-  selectedPetId = 0,
+  selectedPetId = null,
   allPets,
 }: {
-  selectedPetId?: number;
+  selectedPetId?: number | null;
   allPets: Pet[];
 }) => {
   const { records, error, refetch } = useSymptomRecords(selectedPetId);
@@ -116,18 +117,12 @@ export const RecordPage = ({
   }, [filteredByPet, selectedIso]);
 
   /* -------- handlers -------- */
-  const handleSaveAdd = async (data: AddSymptomPayload) => {
+  const handleSaveAdd = async (data: AddSymptomPayloadDTO) => {
     try {
       const token = authStorage.getToken();
       if (!token) return;
 
-      const fullDateISO = `${data.date}T${data.time}:00.000Z`;
-
-      await createSymptomRecord(token, {
-        pet_id: Number(data.petId),
-        note: data.note,
-        note_image: data.images, // Already uploaded URLs
-      });
+      await createSymptomRecord(token, data);
 
       await refetch();
       setOpenCreate(false);
@@ -137,7 +132,7 @@ export const RecordPage = ({
     }
   };
 
-  const handleSaveEdit = async (payload: EditSymptomPayload) => {
+  const handleSaveEdit = async (record_id: number, payload: EditRecordFormState) => {
     try {
       const token = authStorage.getToken();
       if (!token) return;
@@ -145,7 +140,7 @@ export const RecordPage = ({
       const finalImages = [...payload.existingImages, ...payload.newImages];
       const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
-      await editSymptomRecord(token, payload.id, {
+      await editSymptomRecord(token, record_id, {
         note: payload.note,
         note_image: finalImages,
         // symptom: ... // reuse existing or update? API updates partial.
@@ -244,7 +239,7 @@ export const RecordPage = ({
         open={openCreate}
         onClose={() => setOpenCreate(false)}
         pets={petOptions}
-        initialPetId={selectedPetId !== 0 ? selectedPetId : undefined}
+        initialPetId={selectedPetId}
         onSubmit={handleSaveAdd}
       />
 
@@ -253,7 +248,7 @@ export const RecordPage = ({
         open={!!editRecord}
         record={editRecord}
         onClose={() => setEditRecord(null)}
-        onSave={handleSaveEdit}
+        onSave={(record_id: number, payload: EditRecordFormState) => handleSaveEdit(record_id, payload)}
         maxImages={4}
       />
 

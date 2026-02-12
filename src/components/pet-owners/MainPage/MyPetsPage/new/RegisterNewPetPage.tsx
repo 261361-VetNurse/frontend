@@ -7,7 +7,7 @@ import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
 import { createPet, authStorage } from "@/services/api/client";
-import { Pet } from "@/types";
+import { CreatePetDTO, Pet } from "@/types";
 
 type Sex = "Male" | "Female" | "Unknown" | "";
 
@@ -26,9 +26,9 @@ export default function RegisterNewPetPage() {
 
   const [sex, setSex] = useState<Sex>(""); // ยังไม่เลือก
   const [infecund, setInfecund] = useState<boolean | null>(false); // ยังไม่เลือก
-  const [inMedical, setInMedical] = useState<boolean | null>(false);
+  const [inMedical, setInMedical] = useState<boolean>(false);
 
-  const [weight, setWeight] = useState("");
+  const [weight, setWeight] = useState<string>("");
   const [allergiesInput, setAllergiesInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -59,15 +59,15 @@ export default function RegisterNewPetPage() {
       .map((s) => s.trim())
       .filter(Boolean);
 
-    const payload: Partial<Pet> = {
+    const payload: CreatePetDTO = {
       name: name.trim(),
       species: species.trim(),
-      breed: breed.trim(),
+      breed: breed.trim() || null,
       birth_date: dob,
       gender: sex,
       infecund: infecund ?? false,
-      weight_kg: weight.trim() === "" ? null : Number(weight),
-      allergies: allergiesArray,
+      in_medical: inMedical,
+      weight_kg: weight ? parseFloat(weight) : undefined,
       profile_image: avatarUrl,
       color: null,
     };

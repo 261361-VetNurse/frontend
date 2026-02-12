@@ -4,20 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { LocationOn } from "@mui/icons-material";
 import PetFilterSelector from "../PetFilterSelector";
-import { Pet } from "@/types";
-
-export type AddAppointmentPayload = {
-  petId: number;
-  date: string;
-  time: string;
-  location: string;
-};
+import { PetLite } from "@/types/domain/pet";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 type AddCalendarAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
-  allPets: Pet[];
-  initialPetId?: number;
+  allPets: PetLite[];
+  initialPetId?: number | null;
   initialDate?: string;
   onSubmit?: (data: AddAppointmentPayload) => void;
 };
@@ -30,7 +24,7 @@ export default function AddAppointmentPopup({
   initialDate,
   onSubmit,
 }: AddCalendarAppointmentPopupProps) {
-  const [selectedPetId, setSelectedPetId] = useState<number>(0);
+  const [selectedPetId, setSelectedPetId] = useState<number | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
@@ -46,36 +40,39 @@ export default function AddAppointmentPopup({
     }
   }, [open, initialPetId, initialDate]);
 
+  const pet = useMemo(() => {
+    return allPets.find((p) => p.pet_id === selectedPetId);
+  }, [allPets, selectedPetId]);
+
   const canSubmit = useMemo(() => {
-    return Boolean(selectedPetId && date && time && location.trim());
-  }, [selectedPetId, date, time, location]);
+    return Boolean(pet && date && time && location.trim());
+  }, [pet, date, time, location]);
 
-  const handleSubmit = async () => {
-    console.log("AddAppointmentPopup: handleSubmit called. State:", {
-      canSubmit,
-      selectedPetId,
-      date,
-      time,
-      location,
-      isSubmitting
-    });
-
+  const handleSubmit = () => {
     if (!canSubmit) {
-      alert("Please fill in all fields (Pet, Date, Time, Location).");
+      console.warn("Validation failed: All fields are required.");
+      alert("Please fill in all fields (Date, Time, Location).");
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      await onSubmit?.({
-        petId: selectedPetId,
-        date,
-        time,
-        location: location.trim(),
-      });
-      onClose();
-    } finally {
-      setIsSubmitting(false);
+    if (onSubmit && pet) {
+      setIsSubmitting(true);
+      try {
+        // Combine date and time into ISO string
+        const appointmentDate = new Date(`${date}T${time}:00`).toISOString();
+
+        onSubmit({
+          pet_id: Number(pet.pet_id),
+          appointment_date: appointmentDate,
+          location: location.trim(),
+          status: "Upcoming"
+        });
+        onClose();
+      } catch (error) {
+        console.error("Failed to submit appointment:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 

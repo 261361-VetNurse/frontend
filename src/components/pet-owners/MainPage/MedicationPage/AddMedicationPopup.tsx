@@ -8,8 +8,9 @@ import { theme } from '@/styles/tokens/theme';
 
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
-import type { Pet } from '@/types/domain/pet';
+import { PetLite } from '@/types/domain/pet';
 import { createMedicine, authStorage } from '@/services/api/client';
+import { AddMedicationPayload } from '@/types/api/medication.dto';
 
 
 
@@ -147,7 +148,7 @@ type CreateMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  pets: Pet[];
+  pets: PetLite[];
   initialPetId?: number;
 };
 
@@ -158,7 +159,7 @@ export default function CreateMedicationPopup({
   pets,
   initialPetId
 }: CreateMedicationPopupProps) {
-  const [petId, setPetId] = useState(initialPetId);
+  const [petId, setPetId] = useState<number | null>(null);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
 
@@ -258,14 +259,15 @@ export default function CreateMedicationPopup({
     try {
       const token = authStorage.getToken() || "";
 
-      const payload = {
+      const payload: AddMedicationPayload = {
         pet_id: Number(selectedPet.pet_id),
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
         start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
         reminder_time: reminders.map(r => r.time),
-        status: 'TAKE'
+        status: 'TAKE',
+        end_date: new Date(new Date(startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week if not specified
       };
 
       await createMedicine(token, payload);

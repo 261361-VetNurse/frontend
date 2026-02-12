@@ -137,13 +137,13 @@ export default function MedicationPage() {
   }, [medicineNoti, selectedPetId]);
 
 
-  const handlePetSelect = (petId: number) => {
-    setSelectedPetId(petId);
+  const handlePetSelect = (petId: number | null) => {
+    setSelectedPetId(petId || 0);
     const params = new URLSearchParams(searchParams.toString());
     if (petId === 0) {
       params.delete('pet_id');
     } else {
-      params.set('pet_id', petId.toString());
+      params.set('pet_id', petId?.toString() || '');
     }
     router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -257,7 +257,7 @@ export default function MedicationPage() {
             allowAllPets
             pets={pets}
             value={selectedPetId}
-            onChange={handlePetSelect}
+            onChange={(petId) => handlePetSelect(petId)}
           />
         </div>
       </div>

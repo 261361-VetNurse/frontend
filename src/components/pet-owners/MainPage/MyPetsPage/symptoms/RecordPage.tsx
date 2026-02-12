@@ -12,10 +12,10 @@ import RecordScreen, {
   type RecordItem,
 } from "@/components/pet-owners/shared/records/RecordScreen";
 import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDetailPopup";
-import EditRecordPopup, {
-  type EditSymptomPayload,
-} from "@/components/pet-owners/shared/records/EditRecordPopup";
-import AddRecordPopup, { AddSymptomPayload } from "@/components/pet-owners/shared/records/AddRecordPopup";
+import EditRecordPopup, { EditRecordFormState } from "@/components/pet-owners/shared/records/EditRecordPopup";
+import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
+import { AddSymptomPayload } from "@/types/api/record.dto";
+import { EditSymptomPayload } from "@/types/api/record.dto";
 
 // Import UI Library & Icons
 import { Add } from "@mui/icons-material";
@@ -147,12 +147,10 @@ export default function RecordPage() {
       const token = authStorage.getToken();
       if (!token) return;
 
-      const fullDateISO = `${data.date}T${data.time}:00.000Z`;
-
       await createSymptomRecord(token, {
-        pet_id: Number(data.petId),
+        pet_id: data.pet_id,
         note: data.note,
-        note_image: data.images, // SymptomRecordCreate uses note_image
+        note_image: data.note_image,
       });
 
       await fetchRecords();
@@ -163,15 +161,14 @@ export default function RecordPage() {
     }
   }
 
-  async function handleSaveEdit(payload: EditSymptomPayload) {
+  async function handleSaveEdit(recordId: number, payload: EditRecordFormState) {
     try {
       const token = authStorage.getToken();
       if (!token) return;
 
-      const finalImages = [...payload.existingImages, ...payload.newImages]; // payload.newImages is strings[]
-      const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
+      const finalImages = [...(payload.existingImages ?? []), ...(payload.newImages ?? [])];
 
-      await editSymptomRecord(token, payload.id, {
+      await editSymptomRecord(token, recordId, {
         note: payload.note,
         note_image: finalImages,
       });
@@ -276,7 +273,7 @@ export default function RecordPage() {
         open={!!editRecord}
         record={editRecord}
         onClose={() => setEditRecord(null)}
-        onSave={handleSaveEdit}
+        onSave={(record_id: number, data: EditRecordFormState) => handleSaveEdit(record_id, data)}
         maxImages={4}
       />
     </>

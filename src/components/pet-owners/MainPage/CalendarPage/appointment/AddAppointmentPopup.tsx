@@ -4,16 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { PetLite } from "@/types/domain/pet";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 type AddAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: {
-    petId: string;
-    date: string;
-    time: string;
-    location: string;
-  }) => void;
+  onSubmit?: (data: AddAppointmentPayload) => void;
   pet: PetLite;
 };
 
@@ -41,32 +37,25 @@ export default function AddAppointmentPopup({
 
   /* Added logging for debugging */
   const handleSubmit = () => {
-    console.log("handleSubmit called. State:")
-    // console.log("handleSubmit called. State:", {
-    //   canSubmit,
-    //   petId: pet?.pet_id,
-    //   date,
-    //   time,
-    //   location,
-    //   propsPet: pet,
-    // });
+    if (!canSubmit) {
+      console.warn("Validation failed: All fields are required.");
+      alert("Please fill in all fields (Date, Time, Location).");
+      return;
+    }
 
-    // if (!canSubmit) {
-    //   console.warn("Validation failed: All fields are required.");
-    //   alert("Please fill in all fields (Date, Time, Location).");
-    //   return;
-    // }
+    if (onSubmit) {
+      // Combine date and time into ISO string
+      const appointmentDate = new Date(`${date}T${time}:00`).toISOString();
 
-    // if (onSubmit) {
-    //   onSubmit({
-    //     petId: pet.pet_id,
-    //     date,
-    //     time,
-    //     location: location.trim(),
-    //   });
-    // }
+      onSubmit({
+        pet_id: Number(pet.pet_id),
+        appointment_date: appointmentDate,
+        location: location.trim(),
+        status: "Upcoming"
+      });
+    }
 
-    // onClose();
+    onClose();
   };
 
   return (

@@ -5,22 +5,15 @@ import Image from "next/image";
 import { Add, KeyboardArrowDown, Check } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { uploadImage, authStorage } from "@/services/api/client";
-import type { PetLite } from "@/types/domain/pet";
-
-export type AddSymptomPayload = {
-  petId: number;
-  date: string;
-  time: string;
-  note: string;
-  images: string[];
-};
+import { PetLite } from "@/types/domain/pet";
+import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
 
 type AddSymptomPopupProps = {
   open: boolean;
   onClose: () => void;
   pets: PetLite[]; // รับรายชื่อสัตว์เลี้ยงทั้งหมด
-  initialPetId?: number; // รองรับค่าเริ่มต้น
-  onSubmit?: (data: AddSymptomPayload) => void;
+  initialPetId?: number | null; // รองรับค่าเริ่มต้น
+  onSubmit?: (data: AddSymptomPayloadDTO) => void;
 };
 
 export default function AddRecordPopup({
@@ -124,11 +117,9 @@ export default function AddRecordPopup({
       }
 
       await onSubmit?.({
-        petId: selectedPetId,
-        date,
-        time,
+        pet_id: Number(selectedPetId),
         note: note.trim(),
-        images: imageUrls,
+        note_image: imageUrls,
       });
       onClose();
     } catch (err) {

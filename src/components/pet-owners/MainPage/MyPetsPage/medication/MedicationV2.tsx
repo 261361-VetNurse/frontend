@@ -168,8 +168,8 @@ export default function MedicationPageV2() {
 
 
   // Handlers
-  const handlePetSelect = (id: number) => {
-    setSelectedPetId(id);
+  const handlePetSelect = (id: number | null) => {
+    setSelectedPetId(id || 0);
     router.push(`/pet-owners/my-pets-page/${id}/medications`);
   };
 
@@ -261,7 +261,7 @@ export default function MedicationPageV2() {
         allowAllPets={false}
         pets={apiPets}
         value={selectedPetId}
-        onChange={handlePetSelect}
+        onChange={(petId) => handlePetSelect(petId)}
       />
 
       <div style={{ marginTop: 8 }}>
