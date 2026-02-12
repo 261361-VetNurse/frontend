@@ -8,7 +8,7 @@ import { uploadImage, authStorage } from "@/services/api/client";
 import type { PetLite } from "@/types/domain/pet";
 
 export type AddSymptomPayload = {
-  petId: string;
+  petId: number;
   date: string;
   time: string;
   note: string;
@@ -19,7 +19,7 @@ type AddSymptomPopupProps = {
   open: boolean;
   onClose: () => void;
   pets: PetLite[]; // รับรายชื่อสัตว์เลี้ยงทั้งหมด
-  initialPetId?: string; // รองรับค่าเริ่มต้น
+  initialPetId?: number; // รองรับค่าเริ่มต้น
   onSubmit?: (data: AddSymptomPayload) => void;
 };
 
@@ -32,7 +32,7 @@ export default function AddRecordPopup({
 }: AddSymptomPopupProps) {
   const MAX_FILES = 4;
 
-  const [selectedPetId, setSelectedPetId] = useState("");
+  const [selectedPetId, setSelectedPetId] = useState<number>();
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
@@ -58,7 +58,7 @@ export default function AddRecordPopup({
 
   useEffect(() => {
     if (open) {
-      setSelectedPetId(initialPetId || "");
+      setSelectedPetId(initialPetId || 0);
       setDate("");
       setTime("");
       setNote("");
@@ -106,7 +106,7 @@ export default function AddRecordPopup({
   }
 
   const handleSubmit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || selectedPetId === undefined) return;
     setIsSubmitting(true);
     try {
       const token = authStorage.getToken();

@@ -45,13 +45,11 @@ export default function EditBasicInfo() {
       ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
       : ""
   );
-
   const [sex, setSex] = useState<Sex>((currentPet?.gender as Sex) ?? "Unknown");
   const [weight, setWeight] = useState(currentPet?.weight_kg ?? "");
   const [infecund, setInfecund] = useState<boolean>(currentPet?.infecund ?? false);
-  const [allergiesInput, setAllergiesInput] = useState(
-    Array.isArray(currentPet?.allergies) ? currentPet.allergies.join(", ") : (currentPet?.allergies ?? "")
-  );
+  const [inMedical, setInMedical] = useState<boolean>(currentPet?.in_medical ?? false);
+  const [note, setNote] = useState(currentPet?.note ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If initially undefined, we might want to sync when it becomes defined.
@@ -72,20 +70,10 @@ export default function EditBasicInfo() {
       setSex((currentPet.gender as Sex) ?? "Unknown");
       setWeight(currentPet.weight_kg ?? "");
       setInfecund(currentPet.infecund ?? false);
-      setAllergiesInput(Array.isArray(currentPet.allergies) ? currentPet.allergies.join(", ") : (currentPet.allergies ?? ""));
+      setInMedical(currentPet.in_medical ?? false);
+      setNote(currentPet.note ?? "");
     }
   }, [currentPet]);
-
-
-  if (!currentPet) {
-    // If usePets is loading (not exposed directly by hook here but inferred), we could show loading.
-    // For now, if not found and check length or some delay?
-    // Existing code returned "Pet not found" immediately which might flash if loading.
-    // Let's keep it simply "Pet not found" if truly missing, but maybe check if pets length > 0
-
-    // Returning here breaks hook rules if we put hooks above? 
-    // No, I moved hooks up.
-  }
 
   const computedAge = useMemo(() => (dob ? formatAge(dob) : "-"), [dob]);
 
@@ -101,11 +89,6 @@ export default function EditBasicInfo() {
     if (!canSubmit || !currentPet) return;
     setIsSubmitting(true);
 
-    const allergiesArray = allergiesInput
-      .split(",")
-      .map((s: string) => s.trim())
-      .filter((s: string) => s !== "");
-
     const payload: Partial<Pet> = {
       name: name.trim(),
       species: species.trim(),
@@ -114,7 +97,8 @@ export default function EditBasicInfo() {
       gender: sex,
       weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : Number(weight)) : weight,
       infecund: infecund,
-      allergies: allergiesArray,
+      in_medical: inMedical,
+      note: note,
       profile_image: avatarUrl,
     };
 
@@ -278,16 +262,43 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
+          {/* In Medical */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-2">
+              In Medical
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={inMedical === true}
+                  onChange={() => setInMedical(true)}
+                  className="accent-sky-500 w-4 h-4"
+                />
+                Yes
+              </label>
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={inMedical === false}
+                  onChange={() => setInMedical(false)}
+                  className="accent-sky-500 w-4 h-4"
+                />
+                No
+              </label>
+            </div>
+          </div>
+
           {/* Allergies */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
-              Allergies
+              Note
             </label>
             <input
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-              value={allergiesInput}
-              onChange={(e) => setAllergiesInput(e.target.value)}
-              placeholder="e.g. Chicken, Beef, Dust (comma separated)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. allergies, medical conditions, notes"
             />
           </div>
 

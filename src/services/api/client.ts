@@ -639,21 +639,40 @@ export async function addPetMedicalHistory(token: string, petId: string, data: a
  * Upload image to R2 storage via backend API
  */
 export async function uploadImage(file: File, token: string): Promise<string> {
-    const formData = new FormData();
-    formData.append('file', file);
-    const response = await loggedFetch(`/api/upload/image`, {
+    // 1. Get Presigned URL
+    const response = await loggedFetch(`/api/upload/presigned-url`, {
         method: 'POST',
         headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`,
         },
-        body: formData,
+        body: JSON.stringify({
+            filename: file.name,
+            content_type: file.type
+        }),
     });
+
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.detail || 'Failed to upload image');
+        throw new Error(error.detail || 'Failed to get upload URL');
     }
-    const json = await response.json();
-    return json.url;
+
+    const { upload_url, public_url } = await response.json();
+
+    // 2. Upload directly to R2
+    const uploadResponse = await fetch(upload_url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': file.type,
+        },
+        body: file,
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image to storage');
+    }
+
+    return public_url;
 }
 /**
  * Delete image from R2 storage

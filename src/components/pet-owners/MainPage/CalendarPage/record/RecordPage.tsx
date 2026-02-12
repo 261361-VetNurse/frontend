@@ -244,7 +244,7 @@ export const RecordPage = ({
         open={openCreate}
         onClose={() => setOpenCreate(false)}
         pets={petOptions}
-        initialPetId={selectedPetId !== 0 ? String(selectedPetId) : undefined}
+        initialPetId={selectedPetId !== 0 ? selectedPetId : undefined}
         onSubmit={handleSaveAdd}
       />
 

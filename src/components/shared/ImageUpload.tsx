@@ -52,26 +52,13 @@ export function ImageUpload({
                 throw new Error('File too large. Maximum size is 10MB.');
             }
 
-            // 2. Get Presigned URL
+            // 2. Upload to R2 via backend
             const token = authStorage.getToken();
             if (!token) throw new Error('Authentication required');
 
             const publicUrl = await uploadImage(file, token);
 
-            // 3. Upload to R2
-            const uploadResponse = await fetch(publicUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error('Failed to upload image to storage');
-            }
-
-            // 4. Success
+            // 3. Success - use the returned URL directly
             setPreview(publicUrl);
             onUploadComplete(publicUrl);
 

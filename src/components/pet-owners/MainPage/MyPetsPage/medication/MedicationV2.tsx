@@ -391,7 +391,7 @@ export default function MedicationPageV2() {
         onClose={handleCloseCreatePopup}
         onSuccess={handleSubmitCreatePopup}
         pets={apiPets}
-        initialPetId={selectedPetId.toString()}
+        initialPetId={selectedPetId}
       />
 
       {selectedReminder && (

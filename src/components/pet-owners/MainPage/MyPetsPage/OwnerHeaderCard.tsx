@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 type OwnerHeaderCardProps = {
   name: string;
   ownerId: string;
-  avatarUrl?: string;
+  avatarUrl?: string | null;
   OwnerPageUrl?: string | null;
 };
 

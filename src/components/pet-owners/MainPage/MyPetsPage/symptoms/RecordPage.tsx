@@ -171,7 +171,7 @@ export default function RecordPage() {
       const finalImages = [...payload.existingImages, ...payload.newImages]; // payload.newImages is strings[]
       const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
-      await editSymptomRecord(token, Number(payload.id), {
+      await editSymptomRecord(token, payload.id, {
         note: payload.note,
         note_image: finalImages,
       });
@@ -252,10 +252,9 @@ export default function RecordPage() {
           open={openCreate}
           onClose={() => setOpenCreate(false)}
           pet={{
-            id: String(selectedPet.pet_id),
             name: selectedPet.name ?? "-",
-            pid: String(selectedPet.pet_id),
-            avatarUrl: selectedPet.profile_image,
+            pet_id: selectedPet.pet_id,
+            profile_image: selectedPet.profile_image,
           }}
           onSubmit={handleSaveAdd}
         />

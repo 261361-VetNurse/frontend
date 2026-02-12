@@ -43,16 +43,24 @@ export async function proxyRequest(
 
         // Only attach body for non-GET/HEAD requests
         if (request.method !== 'GET' && request.method !== 'HEAD') {
-            try {
-                // Clone request to read body without consuming the original stream if needed elsewhere (though here we consume it)
-                const body = await request.clone().json();
-                fetchOptions.body = JSON.stringify(body);
-            } catch (e) {
-                // Body might be empty or not JSON, try text or blob if needed, or just ignore
-                // For now, if json fails, we might just forward the stream directly or ignore body
-                // Let's try to forward the body stream directly if JSON parsing fails or isn't appropriate
-                // But for this specific case (JSON API), JSON structure is usually expected.
-                // If it fails, it might mean no body.
+            const contentType = headers.get('content-type');
+
+            if (contentType?.includes('application/json')) {
+                try {
+                    const body = await request.json();
+                    fetchOptions.body = JSON.stringify(body);
+                } catch (e) {
+                    console.error('[Proxy] Failed to parse JSON body', e);
+                }
+            } else {
+                // For multipart/form-data and others, forward the body as ArrayBuffer
+                // This preserves the original boundary in Content-Type header
+                try {
+                    const arrayBuffer = await request.arrayBuffer();
+                    fetchOptions.body = Buffer.from(arrayBuffer);
+                } catch (e) {
+                    console.error('[Proxy] Failed to read request body', e);
+                }
             }
         }
 

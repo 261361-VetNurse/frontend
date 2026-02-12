@@ -5,16 +5,10 @@ import Image from "next/image";
 import { Add } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import { uploadImage, authStorage } from "@/services/api/client";
-
-type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
-};
+import { PetLite } from "@/types/domain/pet";
 
 export type AddSymptomPayload = {
-  petId: string;
+  petId: number;
   date: string;
   time: string;
   note: string;
@@ -71,11 +65,11 @@ export default function AddSymptomPopup({
         return [];
       });
     };
-  }, [open, pet?.id]);
+  }, [open, pet?.pet_id]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(pet?.id && date && time && note.trim());
-  }, [pet?.id, date, time, note]);
+    return Boolean(pet?.pet_id && date && time && note.trim());
+  }, [pet?.pet_id, date, time, note]);
 
   function onPickFiles(list: FileList | null) {
     if (!list) return;
@@ -112,13 +106,6 @@ export default function AddSymptomPopup({
       if (files.length > 0) {
         const uploadPromises = files.map(async (file) => {
           const publicUrl = await uploadImage(file, token);
-          await fetch(publicUrl, {
-            method: "PUT",
-            body: file,
-            headers: {
-              "Content-Type": file.type,
-            },
-          });
           return publicUrl;
         });
         const results = await Promise.all(uploadPromises);
@@ -126,7 +113,7 @@ export default function AddSymptomPopup({
       }
 
       await onSubmit?.({
-        petId: pet.id,
+        petId: pet.pet_id,
         date,
         time,
         note: note.trim(),
@@ -158,9 +145,9 @@ export default function AddSymptomPopup({
       {/* Pet info - โครงสร้างแบบเดียวกับ Appointment */}
       <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
         <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-          {pet.avatarUrl ? (
+          {pet.profile_image ? (
             <Image
-              src={pet.avatarUrl}
+              src={pet.profile_image}
               alt={pet.name}
               width={40}
               height={40}
@@ -173,7 +160,7 @@ export default function AddSymptomPopup({
             {pet.name}
           </div>
           <div className="text-xs text-zinc-500 truncate">
-            PID: {pet.pid}
+            PID: {pet.pet_id}
           </div>
         </div>
       </div>

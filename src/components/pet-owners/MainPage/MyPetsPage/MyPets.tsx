@@ -81,7 +81,7 @@ export default function MyPets() {
         <OwnerHeaderCard
           name={user?.fname || (userError ? "Pet Owner" : "Loading...")}
           ownerId={user?.user_id || (userError ? "-" : "...")}
-          avatarUrl={user?.profile_image ?? "/images/profile-test.png"}
+          avatarUrl={user?.picture_url}
           OwnerPageUrl="/pet-owners/owner-info-page"
         />
 

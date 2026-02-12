@@ -148,7 +148,7 @@ type CreateMedicationPopupProps = {
   onClose: () => void;
   onSuccess?: () => void;
   pets: Pet[];
-  initialPetId?: string;
+  initialPetId?: number;
 };
 
 export default function CreateMedicationPopup({
@@ -274,7 +274,7 @@ export default function CreateMedicationPopup({
       onSuccess?.();
 
       // Reset form
-      setPetId('');
+      setPetId(0);
       setMedicineName('');
       setDosage('');
       setIsEveryday(true);
@@ -288,8 +288,6 @@ export default function CreateMedicationPopup({
       alert(`Failed to create medication: ${err.message}`);
     }
   };
-
-  const selectedPet = pets.find(p => p.pet_id === petId);
 
   return (
     <FormDialog
@@ -306,7 +304,7 @@ export default function CreateMedicationPopup({
           mode="filter"
           allowAllPets={false}
           pets={pets}
-          value={petId}
+          value={petId || 0}
           onChange={(id) => setPetId(id)}
         />
 

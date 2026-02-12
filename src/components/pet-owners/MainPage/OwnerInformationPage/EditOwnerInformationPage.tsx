@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -10,13 +9,11 @@ import {
   BackButton,
   PageTitle,
 } from '@/styles/components/owner-information.styled';
-import { theme } from '@/styles/tokens/theme';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
 import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/client';
-import { UserProfile } from '@/types/domain/user';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 
 const EditOwnerInformationPage = () => {
@@ -25,9 +22,6 @@ const EditOwnerInformationPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string>("/images/profile-test.png");
-
-  const [originalUser, setOriginalUser] = useState<UserProfile | null>(null);
-
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -48,8 +42,6 @@ const EditOwnerInformationPage = () => {
       try {
         const token = authStorage.getToken() || "";
         const user = await getUserProfile(token);
-        setOriginalUser(user);
-
         setFormData({
           firstName: user.fname || '',
           lastName: user.lname || '',

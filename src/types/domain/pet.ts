@@ -8,7 +8,7 @@ export type Pet = {
   weight_kg?: number | null;
   color?: string | null;
   gender?: string | null;
-  allergies?: string[] | string | null;
+  note?: string[] | string | null;
   in_medical?: boolean | null;
   infecund?: boolean | null;
   profile_image?: string | null;
