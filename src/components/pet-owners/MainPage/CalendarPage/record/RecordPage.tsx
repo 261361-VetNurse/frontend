@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { Page } from "@/styles/components/calendar.styled";
 
@@ -64,6 +65,12 @@ export const RecordPage = ({
   selectedPetId?: number | null;
   allPets: Pet[];
 }) => {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const recordIdParam = searchParams.get("record_id");
+  const popupParam = searchParams.get("popup"); // "view-record", "edit-record", "add-record"
+
   const { records, error, refetch } = useSymptomRecords(selectedPetId);
 
   // Removed local selectedPetId state
@@ -73,6 +80,55 @@ export const RecordPage = ({
   const [openCreate, setOpenCreate] = useState(false);
   const [detailRecord, setDetailRecord] = useState<SymptomRecord | null>(null);
   const [editRecord, setEditRecord] = useState<SymptomRecord | null>(null);
+
+  // Deep linking
+  useEffect(() => {
+    if (records.length > 0) {
+      if (popupParam === "view-record" && recordIdParam) {
+        const target = records.find((r) => String(r.record_id) === recordIdParam);
+        if (target) setDetailRecord(target);
+      } else if (popupParam === "edit-record" && recordIdParam) {
+        const target = records.find((r) => String(r.record_id) === recordIdParam);
+        if (target) setEditRecord(target);
+      } else if (popupParam === "add-record") {
+        setOpenCreate(true);
+      }
+    }
+  }, [recordIdParam, popupParam, records]);
+
+  const openViewPopup = (rec: SymptomRecord) => {
+    setDetailRecord(rec);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "view-record");
+    newParams.set("record_id", String(rec.record_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openEditPopup = (rec: SymptomRecord) => {
+    setEditRecord(rec);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "edit-record");
+    newParams.set("record_id", String(rec.record_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openCreatePopup = () => {
+    setOpenCreate(true);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "add-record");
+    router.push(`${pathname}?${newParams.toString()}`);
+  }
+
+  const closePopup = () => {
+    setDetailRecord(null);
+    setEditRecord(null);
+    setOpenCreate(false);
+
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete("popup");
+    newParams.delete("record_id");
+    router.replace(`${pathname}?${newParams.toString()}`);
+  };
 
   const petOptions: PetLite[] = useMemo(() => {
     return (allPets ?? []).map((p: Pet) => ({
@@ -125,7 +181,8 @@ export const RecordPage = ({
       await createSymptomRecord(token, data);
 
       await refetch();
-      setOpenCreate(false);
+      await refetch();
+      closePopup();
     } catch (err) {
       console.error("Create failed", err);
     }
@@ -144,7 +201,8 @@ export const RecordPage = ({
       });
 
       await refetch();
-      setEditRecord(null);
+      await refetch();
+      closePopup();
     } catch (err) {
       console.error("Edit failed", err);
     }
@@ -158,7 +216,9 @@ export const RecordPage = ({
 
       await deleteSymptomRecord(token, id);
       await refetch();
+      await refetch();
       setDetailRecord(null);
+      closePopup();
 
     } catch (err) {
       console.error("Delete failed", err);
@@ -212,7 +272,7 @@ export const RecordPage = ({
                     avatarUrl={pet?.profile_image ?? undefined}
                     imageUrls={record.note_image ?? []}
                     onClick={() => {
-                      setDetailRecord(record);
+                      openViewPopup(record);
                     }}
                   />
                 );
@@ -227,12 +287,12 @@ export const RecordPage = ({
         position="bottom-right"
         icon={<AddRoundedIcon />}
         color="#09BFF8"
-        onClickAction={() => setOpenCreate(true)}
+        onClickAction={openCreatePopup}
       />
 
       <AddRecordPopup
         open={openCreate}
-        onClose={() => setOpenCreate(false)}
+        onClose={closePopup}
         pets={petOptions}
         initialPetId={selectedPetId}
         onSubmit={handleSaveAdd}
@@ -242,7 +302,7 @@ export const RecordPage = ({
       <EditRecordPopup
         open={!!editRecord}
         record={editRecord}
-        onClose={() => setEditRecord(null)}
+        onClose={closePopup}
         onSave={(record_id: number, payload: EditRecordFormState) => handleSaveEdit(record_id, payload)}
         maxImages={4}
       />
@@ -250,8 +310,8 @@ export const RecordPage = ({
       <RecordDetailPopup
         open={!!detailRecord}
         record={detailRecord}
-        onClose={() => setDetailRecord(null)}
-        onEdit={(rec) => { setDetailRecord(null); setEditRecord(rec); }}
+        onClose={closePopup}
+        onEdit={(rec) => { setDetailRecord(null); openEditPopup(rec); }}
         onDelete={handleDelete}
         formatTime={(t: string) => formatTime12h(t)} // Format 24h to 12h for detail view
       />

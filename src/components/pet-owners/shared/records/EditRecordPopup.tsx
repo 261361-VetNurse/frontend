@@ -130,7 +130,7 @@ export default function EditRecordPopup({
       const newImageUrls: string[] = [];
       if (newFiles.length > 0) {
         const uploadPromises = newFiles.map(async (file) => {
-          const publicUrl = await uploadImage(file, token);
+          const publicUrl = await uploadImage(file, token, 'records');
           return publicUrl;
         });
         const results = await Promise.all(uploadPromises);

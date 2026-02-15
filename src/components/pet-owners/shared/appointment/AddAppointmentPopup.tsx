@@ -2,18 +2,20 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import { LocationOn } from "@mui/icons-material";
+import { LocationOn, Note as NoteIcon } from "@mui/icons-material";
 import PetFilterSelector from "../PetFilterSelector";
 import { PetLite } from "@/types/domain/pet";
 import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 type AddCalendarAppointmentPopupProps = {
-  open: boolean;
+  open?: boolean;
   onClose: () => void;
   allPets: PetLite[];
   initialPetId?: number | null;
   initialDate?: string;
   onSubmit?: (data: AddAppointmentPayload) => void;
+  triggerParam?: string;
+  triggerValue?: string;
 };
 
 export default function AddAppointmentPopup({
@@ -23,11 +25,14 @@ export default function AddAppointmentPopup({
   initialPetId,
   initialDate,
   onSubmit,
+  triggerParam,
+  triggerValue,
 }: AddCalendarAppointmentPopupProps) {
   const [selectedPetId, setSelectedPetId] = useState<number | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   /** Reset ข้อมูลเมื่อเปิด Popup */
@@ -37,6 +42,7 @@ export default function AddAppointmentPopup({
       setDate(initialDate || "");
       setTime("");
       setLocation("");
+      setNote("");
     }
   }, [open, initialPetId, initialDate]);
 
@@ -58,13 +64,17 @@ export default function AddAppointmentPopup({
     if (onSubmit && pet) {
       setIsSubmitting(true);
       try {
-        // Combine date and time into ISO string
-        const appointmentDate = new Date(`${date}T${time}:00`).toISOString();
+        // Create date as UTC to prevent timezone shifting
+        const [y, m, d] = date.split("-").map(Number);
+        const [h, min] = time.split(":").map(Number);
+
+        const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
 
         onSubmit({
           pet_id: Number(pet.pet_id),
-          appointment_date: appointmentDate,
+          appointment_date: appointmentDate.toISOString(),
           location: location.trim(),
+          note: note.trim(),
           status: "Upcoming"
         });
         onClose();
@@ -80,6 +90,8 @@ export default function AddAppointmentPopup({
     <FormDialog
       open={open}
       onClose={onClose}
+      triggerParam={triggerParam}
+      triggerValue={triggerValue}
       title="Create Appointment"
       layout="singleColumn"
       density="compact"
@@ -144,6 +156,23 @@ export default function AddAppointmentPopup({
             className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 4. Note */}
+      <div className="pt-2">
+        <label className="block text-sm font-medium text-zinc-800 mb-1">
+          Note
+        </label>
+        <div className="relative">
+          <NoteIcon className="absolute left-3 top-2.5 text-zinc-400" fontSize="small" />
+          <input
+            type="text"
+            placeholder="e.g. Any additional notes or instructions"
+            className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
       </div>

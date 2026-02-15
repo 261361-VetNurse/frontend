@@ -15,7 +15,6 @@ import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDeta
 import EditRecordPopup, { EditRecordFormState } from "@/components/pet-owners/shared/records/EditRecordPopup";
 import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
 import { AddSymptomPayload } from "@/types/api/record.dto";
-import { EditSymptomPayload } from "@/types/api/record.dto";
 
 // Import UI Library & Icons
 import { Add } from "@mui/icons-material";

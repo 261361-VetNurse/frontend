@@ -1,12 +1,14 @@
-"use client";
-
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import React from "react";
 import { Modal } from "./Modal";
 import Button from "./Button";
 
 export type FormDialogProps = {
-    open: boolean;
+    open?: boolean;
     onClose: () => void;
+
+    triggerParam?: string;
+    triggerValue?: string;
 
     title: string;
     subtitle?: string;
@@ -30,8 +32,11 @@ export type FormDialogProps = {
 };
 
 export function FormDialog({
-    open,
+    open = false,
     onClose,
+
+    triggerParam,
+    triggerValue,
 
     title,
     subtitle,
@@ -53,6 +58,37 @@ export function FormDialog({
 
     children,
 }: FormDialogProps) {
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    // Determine open state: either strictly passed 'open' prop, OR matching URL param
+    const isOpen = (triggerParam && triggerValue)
+        ? searchParams.get(triggerParam) === triggerValue
+        : open;
+
+    const handleClose = () => {
+        if (triggerParam && triggerValue && isOpen) {
+            // Remove the trigger param from URL
+            const newParams = new URLSearchParams(searchParams.toString());
+            newParams.delete(triggerParam);
+
+            // If we also want to remove 'id' or other associated params, we might need a more aggressive clear 
+            // or just rely on the parent to handle data clearing.
+            // For now, let's keep it simple: assume closing means returning to the base pathname + remaining params
+            // OR finding a way to just unset THIS param.
+
+            // However, typically typically "closing" a detail/edit view that has an ID implies clearing the ID too.
+            // But FormDialog doesn't know about 'id'.
+            // Use router.push to the base pathname might be too aggressive if there are filters...
+
+            // Safer: replace URL with params removed
+            router.push(`${pathname}?${newParams.toString()}`);
+        }
+
+        onClose();
+    };
+
     const gap = density === "compact" ? "gap-4" : "gap-5";
 
     const contentCls =
@@ -60,8 +96,8 @@ export function FormDialog({
 
     return (
         <Modal
-            open={open}
-            onClose={onClose}
+            open={isOpen}
+            onClose={handleClose}
             placement="center"
             size="md"
             scroll="inside"

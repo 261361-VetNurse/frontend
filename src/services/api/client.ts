@@ -428,7 +428,7 @@ export async function editAppointment(
     appointmentId: number,
     appointmentData: EditAppointmentPayload
 ): Promise<any> {
-    const response = await loggedFetch(`/v1/appointments/${appointmentId}/edit`, {
+    const response = await loggedFetch(`/v1/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',

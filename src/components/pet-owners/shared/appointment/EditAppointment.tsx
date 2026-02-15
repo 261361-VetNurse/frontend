@@ -7,11 +7,13 @@ import type { Appointment, AppointmentStatus } from "@/types/domain/appointment"
 import Profile from "@/components/pet-owners/shared/Profile";
 
 type Props = {
-  open: boolean;
+  open?: boolean;
   appointment: Appointment | null;
   onClose: () => void;
   onSave?: (data: Appointment) => void;
   onCancelAppointment?: (id: number) => void;
+  triggerParam?: string;
+  triggerValue?: string;
 };
 
 export default function EditAppointment({
@@ -20,11 +22,14 @@ export default function EditAppointment({
   onClose,
   onSave,
   onCancelAppointment,
+  triggerParam,
+  triggerValue,
 }: Props) {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
   const [status, setStatus] = useState<AppointmentStatus>("Upcoming");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (!open || !appointment) return;
@@ -33,6 +38,7 @@ export default function EditAppointment({
     setDate(dateObj.format("YYYY-MM-DD"));
     setTime(dateObj.format("HH:mm"));
     setLocation(appointment.location ?? "");
+    setNote(appointment.note ?? "");
     setStatus(appointment.status);
   }, [open, appointment?.appointment_id]);
 
@@ -41,9 +47,10 @@ export default function EditAppointment({
       appointment?.appointment_id &&
       date &&
       time &&
-      location.trim()
+      location.trim() &&
+      note.trim()
     );
-  }, [appointment?.appointment_id, date, time, location]);
+  }, [appointment?.appointment_id, date, time, location, note]);
 
   // guard
   if (!open || !appointment) return null;
@@ -51,18 +58,32 @@ export default function EditAppointment({
   const a = appointment;
 
   function handleSave() {
-    if (!canSubmit) return;
+    if (!canSubmit) {
+      alert("The data filed not valid");
+      return
+    };
 
-    onSave?.({
-      appointment_id: a.appointment_id,
-      pet_id: a.pet_id,
-      appointment_date: date,
-      appointment_time: time,
-      location: location.trim(),
-      status,
-    });
+    if (onSave) {
+      try {
+        // Create date as UTC to prevent timezone shifting
+        const [y, m, d] = date.split("-").map(Number);
+        const [h, min] = time.split(":").map(Number);
 
-    onClose();
+        const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
+
+        onSave({
+          appointment_id: a.appointment_id,
+          pet_id: Number(a.pet_id),
+          appointment_date: appointmentDate.toISOString(),
+          location: location.trim(),
+          note: note.trim(),
+          status: "Upcoming"
+        });
+        onClose();
+      } catch (error) {
+        console.error("Failed to submit appointment:", error);
+      }
+    }
   }
 
   function handleCancel() {
@@ -76,6 +97,8 @@ export default function EditAppointment({
     <FormDialog
       open={open}
       onClose={onClose}
+      triggerParam={triggerParam}
+      triggerValue={triggerValue}
       title="Edit Appointment"
       layout="singleColumn"
       density="compact"
@@ -145,6 +168,20 @@ export default function EditAppointment({
             className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+
+        {/* Note */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-800 mb-1">
+            Note
+          </label>
+          <input
+            type="text"
+            placeholder="Enter note"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
       </div>

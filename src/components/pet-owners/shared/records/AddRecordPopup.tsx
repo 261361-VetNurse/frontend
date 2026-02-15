@@ -98,7 +98,7 @@ export default function AddSymptomPopup({
       const imageUrls: string[] = [];
       if (files.length > 0) {
         const uploadPromises = files.map(async (file) => {
-          const publicUrl = await uploadImage(file, token);
+          const publicUrl = await uploadImage(file, token, 'records');
           return publicUrl;
         });
         const results = await Promise.all(uploadPromises);

@@ -17,7 +17,6 @@ import { redirectToLineLogin } from '@/services/line-liff';
 export default function LoginPage() {
     const { login, user, isLoading: authLoading } = useAuth();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -59,18 +58,16 @@ export default function LoginPage() {
         }
 
         if (token) {
-            handleTokenCallback(token, isNew, userId, displayName);
+            handleTokenCallback(token, isNew);
         }
         if (token && !authLoading) {
-            handleTokenCallback(token, isNew, userId, displayName);
+            handleTokenCallback(token, isNew);
         }
     }, [router, user, authLoading]);
 
     const handleTokenCallback = async (
         token: string,
-        isNew: boolean,
-        userId: string | null,
-        displayName: string | null
+        isNew: boolean
     ) => {
         setPageLoading(true);
         try {
@@ -80,11 +77,7 @@ export default function LoginPage() {
             window.history.replaceState({}, '', window.location.pathname);
 
             // Redirect based on user registration status
-            if (isNew) {
-                router.push('/pet-owners/register-page');
-            } else {
-                router.push('/pet-owners/home-page');
-            }
+            router.push(`/pet-owners/home-page?code=${token}`);
         } catch (err) {
             console.error('Token handling error:', err);
             setError('Failed to process login. Please try again.');
@@ -97,6 +90,14 @@ export default function LoginPage() {
         setError(null);
         setPageLoading(true);
         redirectToLineLogin();
+    };
+
+    const [devCode, setDevCode] = useState('');
+
+    const handleDevLogin = () => {
+        if (!devCode) return;
+        // Redirect to home page with code, letting HomePage handle the exchange
+        router.push(`/pet-owners/home-page?code=${encodeURIComponent(devCode)}`);
     };
 
     return (
@@ -132,16 +133,34 @@ export default function LoginPage() {
                     {loading ? 'Loading...' : 'Login With Line'}
                 </PrimaryButton>
 
-                {loading && (
-                    <div style={{
-                        marginTop: '16px',
-                        textAlign: 'center',
-                        color: '#6b7280',
-                        fontSize: '14px'
-                    }}>
-                        Please wait while we log you in...
+                {/* --- Dev Login Section --- */}
+                <div className="mt-6 pt-6 border-t border-zinc-100">
+                    <div className="text-xs text-center text-zinc-400 mb-3 uppercase tracking-wider font-medium">
+                        Developer Access
                     </div>
-                )}
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Enter Code / Token ex.DEV_TEST_CODE"
+                            className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 text-sm outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                            value={devCode}
+                            onChange={(e) => setDevCode(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && devCode) {
+                                    handleDevLogin();
+                                }
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={handleDevLogin}
+                            disabled={loading || !devCode}
+                            className="h-10 px-4 rounded-lg bg-zinc-800 text-white text-sm font-medium hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Enter
+                        </button>
+                    </div>
+                </div>
             </RegisterCard>
         </RegisterContainer >
     );

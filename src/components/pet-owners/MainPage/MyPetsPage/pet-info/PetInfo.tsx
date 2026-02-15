@@ -152,13 +152,7 @@ export default function PetInfo() {
       {/* Basic Information */}
       <div className="mt-3">
         <BasicInfoCard
-          name={currentPet.name}
-          species={currentPet.species ?? "-"}
-          breed={currentPet.breed ?? "-"}
-          birthDate={currentPet.birth_date || ""}
-          ageText={ageText}
-          sex={currentPet.gender || ""}
-          inMedical={!!currentPet.in_medical}
+          petInfo={currentPet}
           onEdit={() =>
             router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}/edit`)
           }

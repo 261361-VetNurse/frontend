@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { Page } from "@/styles/components/calendar.styled";
 
@@ -30,6 +30,7 @@ import {
   deleteAppointment,
   authStorage,
   getPets,
+  getAppointmentDetail,
 } from "@/services/api/client";
 
 import SectionError from "@/components/pet-owners/shared/SectionError";
@@ -56,8 +57,9 @@ export default function AppointmentPage({
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const appointmentIdParam = searchParams.get("appointment_id");
-  const openParam = searchParams.get("open");
+  const popupParam = searchParams.get("popup"); // "view-appointment", "edit-appointment", "add-appointment"
 
   /* -------- calendar -------- */
 
@@ -116,28 +118,72 @@ export default function AppointmentPage({
   /* -------- popups -------- */
 
   const [openCreate, setOpenCreate] = useState(false);
-  const [detail, setDetail] =
-    useState<Appointment | null>(null);
-  const [editing, setEditing] =
-    useState<Appointment | null>(null);
+  const [detail, setDetail] = useState<Appointment | null>(null);
+  const [editing, setEditing] = useState<Appointment | null>(null);
 
-  // Deep linking for Edit
+  // Deep linking for View & Edit
+  // Deep linking for View & Edit
   useEffect(() => {
-    if (appointmentIdParam && openParam === "edit" && !loadingApps && apiAppointments.length > 0) {
-      const target = apiAppointments.find((a) => String(a.appointment_id) === appointmentIdParam);
-      if (target) {
-        setEditing(target);
+    const fetchPopupData = async () => {
+      const token = authStorage.getToken() || "";
+      if (popupParam === "view-appointment" && appointmentIdParam) {
+        try {
+          // Fetch fresh detail from API
+          const data = await getAppointmentDetail(token, Number(appointmentIdParam));
+          setDetail(data);
+        } catch (err) {
+          console.error("Failed to fetch appointment detail:", err);
+        }
+      } else if (popupParam === "edit-appointment" && appointmentIdParam) {
+        try {
+          const data = await getAppointmentDetail(token, Number(appointmentIdParam));
+          setEditing(data);
+        } catch (err) {
+          console.error("Failed to fetch appointment for edit:", err);
+        }
+      } else if (popupParam === "add-appointment") {
+        setOpenCreate(true);
       }
-    }
-  }, [appointmentIdParam, openParam, loadingApps, apiAppointments]);
+    };
 
-  const closeEdit = () => {
-    setEditing(null);
-    // Clear query params
+    if (popupParam) {
+      fetchPopupData();
+    }
+  }, [appointmentIdParam, popupParam]);
+
+  const openViewPopup = (appt: Appointment) => {
+    // setDetail(appt); // Removed: Fetch from API via URL param
     const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "view-appointment");
+    newParams.set("appointment_id", String(appt.appointment_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openEditPopup = (appt: Appointment) => {
+    // setEditing(appt); // Removed: Fetch from API via URL param
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "edit-appointment");
+    newParams.set("appointment_id", String(appt.appointment_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openCreatePopup = () => {
+    setOpenCreate(true);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "add-appointment");
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const closePopup = () => {
+    setDetail(null);
+    setEditing(null);
+    setOpenCreate(false);
+
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete("popup");
     newParams.delete("appointment_id");
-    newParams.delete("open");
-    router.replace(`?${newParams.toString()}`);
+    // Also specific params if any
+    router.replace(`${pathname}?${newParams.toString()}`);
   };
 
   /* -------- handlers -------- */
@@ -149,7 +195,7 @@ export default function AppointmentPage({
 
       await createAppointment(token, data);
       await refetch();
-      setOpenCreate(false);
+      closePopup();
     } catch (err) {
       console.error("Failed to create appointment:", err);
     }
@@ -176,7 +222,7 @@ export default function AppointmentPage({
       }
 
       await refetch();
-      closeEdit();
+      closePopup();
     } catch (err) {
       console.error("Failed to edit appointment:", err);
     }
@@ -189,7 +235,7 @@ export default function AppointmentPage({
 
       await cancelAppointment(token, id);
       await refetch();
-      closeEdit();
+      closePopup();
     } catch (err) {
       console.error("Failed to cancel appointment:", err);
     }
@@ -214,7 +260,7 @@ export default function AppointmentPage({
       <AddAppointmentPopup
         allPets={allPets}
         open={openCreate}
-        onClose={() => setOpenCreate(false)}
+        onClose={closePopup}
         initialDate={selectedDateKey}
         initialPetId={
           selectedPetId !== 0 ? selectedPetId : undefined
@@ -226,10 +272,10 @@ export default function AppointmentPage({
       <AppointmentDetail
         open={!!detail}
         appointment={detail}
-        onClose={() => setDetail(null)}
+        onClose={closePopup}
         onEdit={(a) => {
           setDetail(null);
-          setEditing(a);
+          openEditPopup(a);
         }}
         onDelete={handleDelete}
       />
@@ -238,7 +284,7 @@ export default function AppointmentPage({
       <EditAppointment
         open={!!editing}
         appointment={editing}
-        onClose={closeEdit}
+        onClose={closePopup}
         onSave={handleEdit}
         onCancelAppointment={handleCancelAppointment}
       />
@@ -249,7 +295,7 @@ export default function AppointmentPage({
         position="bottom-right"
         icon={<AddRoundedIcon />}
         color="#09BFF8"
-        onClickAction={() => setOpenCreate(true)}
+        onClickAction={openCreatePopup}
       />
 
       <div className="scroll-area">
@@ -292,7 +338,7 @@ export default function AppointmentPage({
                 <AppointmentCard
                   key={a.appointment_id}
                   appointment={a}
-                  onClick={() => setDetail(a)}
+                  onClick={() => openViewPopup(a)}
                 />
               ))}
             </>

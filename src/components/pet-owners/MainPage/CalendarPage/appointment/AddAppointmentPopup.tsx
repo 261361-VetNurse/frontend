@@ -22,12 +22,14 @@ export default function AddAppointmentPopup({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (open) {
       setDate("");
       setTime("");
       setLocation("");
+      setNote("");
     }
   }, [open]);
 
@@ -44,13 +46,17 @@ export default function AddAppointmentPopup({
     }
 
     if (onSubmit) {
-      // Combine date and time into ISO string
-      const appointmentDate = new Date(`${date}T${time}:00`).toISOString();
+      // Create date as UTC to prevent timezone shifting
+      const [y, m, d] = date.split("-").map(Number);
+      const [h, min] = time.split(":").map(Number);
+
+      const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
 
       onSubmit({
         pet_id: Number(pet.pet_id),
-        appointment_date: appointmentDate,
+        appointment_date: appointmentDate.toISOString(),
         location: location.trim(),
+        note: note.trim(),
         status: "Upcoming"
       });
     }
@@ -139,6 +145,20 @@ export default function AddAppointmentPopup({
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="e.g. Examination Room 1"
+        />
+      </div>
+
+      {/* Note */}
+      <div>
+        <label className="block text-sm font-medium text-zinc-800 mb-1">
+          Note
+        </label>
+        <input
+          type="text"
+          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="e.g. Note"
         />
       </div>
     </FormDialog>

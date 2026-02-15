@@ -1,18 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import dayjs from "dayjs";
-import { LocationOn, AccessTime, CalendarToday } from "@mui/icons-material";
+import { LocationOn, AccessTime, CalendarToday, Note } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import type { Appointment } from "@/types/domain/appointment";
 import Profile from "../Profile";
 
 type Props = {
-  open: boolean;
+  open?: boolean;
   appointment: Appointment | null;
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
   onDelete?: (id: number) => void;
+  triggerParam?: string;
+  triggerValue?: string;
 };
 
 export default function AppointmentDetail({
@@ -21,17 +22,23 @@ export default function AppointmentDetail({
   onClose,
   onEdit,
   onDelete,
+  triggerParam,
+  triggerValue,
 }: Props) {
   if (!open || !appointment) return null;
 
   const dateObj = dayjs(appointment.appointment_date);
   const dateText = dateObj.format("DD/MM/YYYY");
-  const timeText = dateObj.format("HH:mm");
+  const timeText = appointment.appointment_time
+    ? appointment.appointment_time.slice(0, 5)
+    : dateObj.format("HH:mm");
 
   return (
     <FormDialog
       open={open}
       onClose={onClose}
+      triggerParam={triggerParam}
+      triggerValue={triggerValue}
       title="Appointment"
       layout="singleColumn"
       density="compact"
@@ -91,6 +98,19 @@ export default function AppointmentDetail({
             {appointment.location}
           </div>
         </div>
+
+        {/* Note */}
+        {appointment.note ? (
+          <div>
+            <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
+              <Note fontSize="small" />
+              Note
+            </div>
+            <div className="mt-1 text-sm text-zinc-700">
+              {appointment.note}
+            </div>
+          </div>
+        ) : null}
 
         {/* Status */}
         {appointment.status ? (

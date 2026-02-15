@@ -87,6 +87,65 @@ export default function HomePage() {
     handleLineLogin();
   }, [router]);
 
+  // Deep linking for Home Page
+  useEffect(() => {
+    // We use window.location.search to avoid router dependency loop, 
+    // but we need to be careful about when this runs.
+    const params = new URLSearchParams(window.location.search);
+    const popupParam = params.get('popup');
+    const notiId = Number(params.get('noti_id'));
+    const appointmentId = Number(params.get('appointment_id'));
+
+    const handleDeepLink = async () => {
+      if (popupParam === 'view-medication' && notiId) {
+        setPopupLoading(true);
+        try {
+          const token = authStorage.getToken() || "";
+          const notiDetail = await getMedicationNotificationDetail(token, notiId);
+          setSelectedNotification(notiDetail);
+        } catch (e) {
+          console.error(e);
+          // If failed, maybe clear params?
+        } finally { setPopupLoading(false); }
+      } else if (popupParam === 'view-appointment' && appointmentId) {
+        setPopupLoading(true);
+        try {
+          const token = authStorage.getToken() || "";
+          const aptDetail = await getAppointmentDetail(token, appointmentId);
+          setSelectedAppointment(aptDetail);
+        } catch (e) { console.error(e); } finally { setPopupLoading(false); }
+      }
+    };
+
+    // Only run if we actually have params to process
+    if (popupParam) {
+      handleDeepLink();
+    }
+  }, []);
+
+  const openMedicationPopup = (noti: number) => {
+    // Optimistic or just fetch? original logic fetches first.
+    handleReminderClick(noti);
+  };
+
+  const openAppointmentPopup = (apt: number) => {
+    handleAppointmentClick(apt);
+  };
+
+  const closePopup = () => {
+    setSelectedNotification(null);
+    setSelectedAppointment(null);
+
+    // Clear params
+    const params = new URLSearchParams(window.location.search);
+    params.delete('popup');
+    params.delete('noti_id');
+    params.delete('appointment_id');
+
+    // Use replace to avoid building up history
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
   const fetchDashboard = async () => {
     try {
       const token = authStorage.getToken();
@@ -115,7 +174,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchDashboard();
-  }, [router]);
+  }, []);
 
   // Removed blocking error return
   // if (error) return ...
@@ -129,6 +188,12 @@ export default function HomePage() {
       const token = authStorage.getToken() || "";
       const notiDetail = await getMedicationNotificationDetail(token, noti);
       setSelectedNotification(notiDetail);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('popup', 'view-medication');
+      params.set('noti_id', noti.toString());
+      router.push(`?${params.toString()}`, { scroll: false });
+
     } catch (err) {
       console.error("Failed to load medication detail:", err);
       alert("Failed to load medication details.");
@@ -143,9 +208,17 @@ export default function HomePage() {
       const token = authStorage.getToken() || "";
       const aptDetail = await getAppointmentDetail(token, apt);
       setSelectedAppointment(aptDetail);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('popup', 'view-appointment');
+      params.set('appointment_id', apt.toString());
+      router.push(`?${params.toString()}`, { scroll: false });
+
     } catch (err) {
       console.error("Failed to load appointment detail:", err);
-      alert("Failed to load appointment details.");
+      // More detailed error message with stringify
+      const msg = err instanceof Error ? err.message : JSON.stringify(err);
+      alert(`Failed to load appointment details: ${msg} (ID: ${apt})`);
     } finally {
       setPopupLoading(false);
     }
@@ -181,10 +254,7 @@ export default function HomePage() {
     }
   };
 
-  const handleClosePopup = () => {
-    setSelectedNotification(null);
-    setSelectedAppointment(null);
-  };
+
 
   return (
     <HomePageStyled>
@@ -276,7 +346,7 @@ export default function HomePage() {
                   <ReminderCard
                     datas={med_noti}
                     petImageSize={40}
-                    onClick={() => handleReminderClick(med_noti.notification_id)}
+                    onClick={() => openMedicationPopup(med_noti.notification_id)}
                   />
                 </div>
               );
@@ -301,11 +371,11 @@ export default function HomePage() {
         <MedicationDetailPopup
           page="home-page"
           noti={selectedNotification}
-          onClose={handleClosePopup}
+          onClose={closePopup}
           onToggleReminder={handleToggleReminder}
           onEdit={() => {
             // Optional: Handle edit if needed
-            router.push(`/pet-owners/medication-page?noti_id=${selectedNotification._id}&med_id=${selectedNotification.medicine_id}&open=edit`);
+            router.push(`/pet-owners/medication-page?popup=edit-medication&med_id=${selectedNotification.medicine_id}`);
           }}
         />
       )}
@@ -344,16 +414,19 @@ export default function HomePage() {
           <SectionError message="Could not load appointments" onRetry={fetchDashboard} />
         ) : (
           data?.appointments && data.appointments.length > 0 ? (
-            data.appointments.slice(0, 3).map((apt) => {
-              return (
-                <AppointmentCard
-                  key={apt._id}
-                  datas={apt}
-                  petImageSize={40}
-                  onClick={() => handleAppointmentClick(apt.appointment_id)}
-                />
-              );
-            })
+            data.appointments
+              .filter((apt) => apt.status === "Upcoming")
+              .slice(0, 3)
+              .map((apt) => {
+                return (
+                  <AppointmentCard
+                    key={apt._id}
+                    datas={apt}
+                    petImageSize={40}
+                    onClick={() => openAppointmentPopup(Number(apt.appointment_id || apt._id))}
+                  />
+                );
+              })
           ) : (
             <div
               style={{
@@ -373,9 +446,9 @@ export default function HomePage() {
       {selectedAppointment && (
         <AppointmentDetailPopup
           appointment={selectedAppointment}
-          onClose={() => setSelectedAppointment(null)}
+          onClose={closePopup}
           onEdit={() => {
-            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.appointment_id}&open=edit`);
+            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.appointment_id}&popup=edit-appointment`);
           }}
         />
       )}
