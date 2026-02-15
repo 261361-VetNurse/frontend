@@ -19,7 +19,7 @@ export default function AppointmentCard({
   className,
 }: AppointmentCardProps) {
   const dateObj = dayjs(appointment.appointment_date);
-  const timeStr = dateObj.format("HH:mm");
+  const timeStr = appointment.appointment_time || dateObj.format("HH:mm");
 
   return (
     <Card

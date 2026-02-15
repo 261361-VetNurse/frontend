@@ -22,33 +22,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initialize from storage or dev fake auth
     useEffect(() => {
         const initAuth = async () => {
-            // --- FAKE AUTH MODE ---
-            if (process.env.NEXT_PUBLIC_USE_FAKE_AUTH === "true") {
-                console.warn("⚠️ [DEV] FAKE AUTH enabled. Using configured fake token.");
-                // HARDCODED VALID JWT FOR DEV (Generated using backend secret)
-                const fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZXhwIjoxODAyMTgzODc3fQ.yim5EVgxaivr3f4lNhBSpFYH9cVXf0uG6RGg9zrsK3E";
-
-                if (fakeToken) {
-                    authStorage.setToken(fakeToken);
-                    setToken(fakeToken);
-
-                    // Set mock user immediately without API call
-                    setUser({
-                        id: "dev-fake-user",
-                        display_name: "Dev Fake User",
-                        picture_url: "",
-                        role: "user",
-                        is_registered: true
-                    });
-                } else {
-                    console.error("❌ [DEV] FAKE AUTH enabled but NEXT_PUBLIC_FAKE_TOKEN is missing!");
-                }
-
-                setIsLoading(false);
-                return;
-            }
-            // ----------------------
-
             // --- NORMAL API MODE ---
             const storedToken = authStorage.getToken();
             if (storedToken) {

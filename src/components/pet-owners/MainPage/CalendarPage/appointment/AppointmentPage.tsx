@@ -79,14 +79,19 @@ export default function AppointmentPage({
   const appointmentsBySelectedDate = useMemo(() => {
     return filteredByPet
       .filter((a) => {
+        // Handle both ISO string and date string formats
         const d = dayjs(a.appointment_date).format("YYYY-MM-DD");
         return d === selectedDateKey;
       })
       .sort((a, b) => {
-        // compare time
-        const tA = dayjs(a.appointment_date).unix();
-        const tB = dayjs(b.appointment_date).unix();
-        return tA - tB;
+        // Sort by date and time
+        const timeA = a.appointment_time || dayjs(a.appointment_date).format("HH:mm");
+        const timeB = b.appointment_time || dayjs(b.appointment_date).format("HH:mm");
+
+        const dateStrA = `${dayjs(a.appointment_date).format("YYYY-MM-DD")}T${timeA}`;
+        const dateStrB = `${dayjs(b.appointment_date).format("YYYY-MM-DD")}T${timeB}`;
+
+        return dayjs(dateStrA).unix() - dayjs(dateStrB).unix();
       });
   }, [filteredByPet, selectedDateKey]);
 
@@ -119,7 +124,7 @@ export default function AppointmentPage({
   // Deep linking for Edit
   useEffect(() => {
     if (appointmentIdParam && openParam === "edit" && !loadingApps && apiAppointments.length > 0) {
-      const target = apiAppointments.find((a) => a._id === appointmentIdParam);
+      const target = apiAppointments.find((a) => String(a.appointment_id) === appointmentIdParam);
       if (target) {
         setEditing(target);
       }
@@ -160,12 +165,12 @@ export default function AppointmentPage({
         await cancelAppointment(token, data.appointment_id);
       } else {
         // Normal edit
-        const dateTime = dayjs(`${data.appointment_date}T${data.appointment_time}`).toISOString();
         const payload = {
           pet_id: data.pet_id,
-          appointment_date: dateTime,
+          appointment_date: data.appointment_date,
           location: data.location,
           status: data.status,
+          note: data.note,
         };
         await editAppointment(token, data.appointment_id, payload);
       }
@@ -174,7 +179,6 @@ export default function AppointmentPage({
       closeEdit();
     } catch (err) {
       console.error("Failed to edit appointment:", err);
-      // alert
     }
   };
 
@@ -202,7 +206,6 @@ export default function AppointmentPage({
       setDetail(null);
     } catch (err) {
       console.error("Failed to delete appointment:", err);
-      // alert
     }
   };
 
@@ -287,7 +290,7 @@ export default function AppointmentPage({
 
               {appointmentsBySelectedDate.map((a) => (
                 <AppointmentCard
-                  key={a._id}
+                  key={a.appointment_id}
                   appointment={a}
                   onClick={() => setDetail(a)}
                 />

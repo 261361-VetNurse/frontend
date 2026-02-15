@@ -14,7 +14,7 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import { NotificationDetail } from '@/types';
+import { NotificationItem } from '@/types/domain/medication';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
@@ -25,7 +25,7 @@ export interface TimeSlot {
 }
 
 type Props = {
-  data: NotificationDetail;
+  data: NotificationItem;
   onOpenDetail: () => void;
 
   // Callback now requires reminderId

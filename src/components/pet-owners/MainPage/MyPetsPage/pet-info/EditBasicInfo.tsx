@@ -62,7 +62,7 @@ export default function EditBasicInfo() {
 
   useMemo(() => {
     if (currentPet) {
-      setAvatarUrl(currentPet.profile_image ?? "/pet-placeholder.svg");
+      setAvatarUrl(currentPet.profile_image ?? "");
       setName(currentPet.name ?? "");
       setSpecies(currentPet.species ?? "");
       setBreed(currentPet.breed ?? "");

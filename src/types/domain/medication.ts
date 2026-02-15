@@ -5,12 +5,12 @@ export interface Medicine {
     user_id?: number;
     pet_id: number;
     name: string;
-    notes: string[]; // Array of notes (max 3 per backend)
-    properties?: string | null;
-    image_urls: string[];
-    dosage?: string | null;
-    frequency?: string | null; // Renamed from medicine_frequency to frequency
-    status: string; // "active", "stopped", "completed"
+    notes?: string[]; // Array of notes (max 3 per backend)
+    properties?: string;
+    image_urls?: string[];
+    dosage?: string;
+    frequency: string; // Renamed from medicine_frequency to frequency
+    status?: string; // "active", "stopped", "completed"
     reminder_time: string[]; // Array of times in HH:MM format
     start_date: string; // ISO date string
     end_date: string; // ISO date string
@@ -20,24 +20,26 @@ export interface Medicine {
 
 export interface NotificationItem {
     notification_id: number;
-    title: string;
-    notification_at: string; // ISO format
-    istaken: boolean;
+    medicine_id: number;
     pet_id: number;
+    pet_name?: string;
+    pet_image?: string;
+    medicine_name?: string;
+    dosage?: string;
+    reminder_time: string[];
+    istaken: boolean;
 }
 
 export interface NotificationDetail extends NotificationItem {
-    taken_at?: string | null;
-    pet_name?: string | null;
-    pet_image?: string | null;
+    taken_at?: string;
+    pet_name?: string;
+    pet_image?: string;
     medicine_id: number;
-    medicine_name?: string | null;
-    dosage?: string | null;
-    medicine_frequency?: string | null;
+    medicine_name?: string;
+    dosage?: string;
+    frequency?: string;
     reminder_time: string[];
     time_per_day: number;
-    user_id?: string;
-    status?: string;
     created_at?: string;
     updated_at?: string;
 }

@@ -33,7 +33,7 @@ export default function NotificationsPage() {
             setLoading(true);
             setError(null);
             const token = authStorage.getToken();
-            if (!token) return;
+            if (!token) throw new Error("No token found");
             const data = await getNotifications(token);
             setNotifications(data);
         } catch (err) {
@@ -48,10 +48,12 @@ export default function NotificationsPage() {
         if (isRead) return;
         try {
             const token = authStorage.getToken();
-            if (!token) return;
-            await markNotificationAsRead(token, id);
-            // Update local state
-            setNotifications(prev => prev.map(n => String(n.notification_id) === id ? { ...n, istaken: true } : n));
+            if (!token) throw new Error("No token found");
+            const success = await markNotificationAsRead(token, id);
+            if (success) {
+                // Update local state
+                setNotifications(prev => prev.map(n => String(n.notification_id) === id ? { ...n, istaken: true } : n));
+            }
         } catch (err) {
             console.error(err);
         }

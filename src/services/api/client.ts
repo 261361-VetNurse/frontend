@@ -117,7 +117,7 @@ export async function getCurrentUser(token: string): Promise<User> {
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`/v1/dashboard/home`, {
         headers: {
-            'Authorization': `Bearer ${token}`
+            'access_token': token
         },
     });
     if (!response.ok) {
@@ -662,9 +662,9 @@ export async function addPetMedicalHistory(token: string, petId: string, data: A
 /**
  * Upload image to R2 storage via backend API
  */
-export async function uploadImage(file: File, token: string): Promise<string> {
+export async function uploadImage(file: File, token: string, folder: string = 'pets'): Promise<string> {
     // 1. Get Presigned URL
-    const response = await loggedFetch(`/v1/upload/presigned-url`, {
+    const response = await loggedFetch(`/api/upload/presigned-url`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -672,7 +672,8 @@ export async function uploadImage(file: File, token: string): Promise<string> {
         },
         body: JSON.stringify({
             filename: file.name,
-            content_type: file.type
+            content_type: file.type,
+            folder: folder
         }),
     });
 
@@ -868,8 +869,8 @@ export async function deleteSymptomRecord(token: string, recordId: number): Prom
 // ---------------- Notification API ----------------
 import { NotificationItem } from "@/types/domain/notification";
 export async function getNotifications(token: string): Promise<NotificationItem[]> {
-    // Use proxyRequest or direct fetch. Proxy handles standard auth.
-    const response = await loggedFetch(`/v1/notifications`, {
+    // Correct endpoint for notification feed is /v1/medications
+    const response = await loggedFetch(`/v1/medications`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -882,8 +883,8 @@ export async function getNotifications(token: string): Promise<NotificationItem[
     return json.data || json;
 }
 export async function markNotificationAsRead(token: string, id: string): Promise<boolean> {
-    const response = await loggedFetch(`/v1/notifications/${id}/read`, {
-        method: 'POST',
+    const response = await loggedFetch(`/v1/medications/${id}/taken`, {
+        method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`,
         },

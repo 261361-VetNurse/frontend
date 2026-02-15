@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const RegisterContainer = styled.div`
-  height: 100vh;
+  height: fit-content;
   width: 100%;
   background-color: #ffffff;
   display: flex;

@@ -105,27 +105,11 @@ export default function PetFilterSelector({
         aria-haspopup="listbox"
       >
         <div className="min-w-0 flex items-center gap-3">
-          {allowAllPets && value === 0 ? (
-            <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
-              <Image
-                src="/pet-paw.svg"
-                alt="All pets"
-                fill
-                className="object-contain p-2"
-              />
-            </div>
-
-          ) : (
-            <div className="relative h-11 w-11 overflow-hidden rounded-full bg-zinc-100">
-              <Image
-                src={selectedPet?.profile_image ?? "/pet-placeholder.svg"}
-                alt={selectedPet?.name ?? "Pet"}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-
+          <Profile
+            imageUrl={selectedPet?.profile_image ?? ""}
+            size="40px"
+            isPet={true}
+          />
           <div className="min-w-0 text-left">
             <div className="truncate text-sm font-semibold text-zinc-900">
               {allowAllPets && value === 0

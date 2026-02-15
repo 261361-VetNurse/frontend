@@ -85,7 +85,7 @@ const OwnerInformationPage = () => {
         </AvatarWrapper>
         <div>
           <OwnerName>{displayName}</OwnerName>
-          <OwnerId>ID: {userId !== 'N/A' ? userId.substring(userId.length - 9) : 'N/A'}</OwnerId>
+          <OwnerId>ID: {userId}</OwnerId>
         </div>
       </Header>
       <Divider />

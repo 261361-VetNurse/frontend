@@ -60,20 +60,20 @@ export function buildOccurrencesForDate(
     // For each time in reminder_time
     reminder.reminder_time.forEach((time, index) => {
       const scheduledAt = `${dateStr}T${time}:00`;
-      const reminderId = `${reminder._id}_${dateStr}_${time}`; // Synthetic ID
+      const reminderId = `${reminder.medicine_id}_${dateStr}_${time}`; // Synthetic ID
 
       result.push({
         reminder_id: reminderId,
         plan_id: reminder.medicine_id,
         pet: {
-          _id: reminder.pet_id,
-          name: reminder.pet_name,
-          profile_image: reminder.pet_image
+          pet_id: reminder.pet_id,
+          name: (reminder as any).pet_name || "", // Medicine type might be missing these, or it's a VM
+          profile_image: (reminder as any).pet_image || ""
         },
         medicine: {
-          _id: reminder.medicine_id,
-          name: reminder.medicine_name,
-          dosage: reminder.medicine_dosage
+          medicine_id: reminder.medicine_id,
+          name: (reminder as any).medicine_name || reminder.name,
+          dosage: (reminder as any).medicine_dosage || reminder.dosage || ""
         },
         time: time,
         scheduled_at: scheduledAt,
@@ -87,11 +87,11 @@ export function buildOccurrencesForDate(
 }
 
 export function updateReminderTakenStatus(
-  reminders: MedicineReminderVM[],
+  reminders: Medicine[],
   planId: string,
   reminderId: string,
   isTaken: boolean
-): MedicineReminderVM[] {
+): Medicine[] {
   // This function seems to update the VM list, but the VM list structure (EachDayMedicine) doesn't hold individual taken status for specific time slots easily unless we mutate it in a way the caller expects. 
   // Usually this updates the override map or local state. 
   // But MedicationV2 expects it to return updated reminders.

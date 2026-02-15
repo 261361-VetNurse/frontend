@@ -14,7 +14,7 @@ import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
+import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail, exchangeLineToken } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 
 export default function HomePage() {
@@ -28,11 +28,79 @@ export default function HomePage() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
 
+  /* Auth Logic: Check for LINE Login Code */
+  useEffect(() => {
+    const handleLineLogin = async () => {
+      // 1. Check for 'code' in URL
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const error = params.get("error");
+
+      if (error) {
+        setError("LINE Login failed. Please try again.");
+        return;
+      }
+
+      if (code) {
+        try {
+          setLoading(true);
+          console.log("🔄 Exchanging LINE code for token...");
+
+          // 2. Exchange code for token
+          const response = await exchangeLineToken(code);
+
+          if (response.access_token) {
+            console.log("✅ Token received!");
+
+            // 3. Store token & user
+            authStorage.setToken(response.access_token);
+            // We can also store the user object if needed, but AuthContext will fetch it
+            // authStorage.setUser(response.user); 
+
+            // 4. Clear URL parameters
+            window.history.replaceState({}, "", window.location.pathname);
+
+            // 5. Handle New User Redirection
+            if (response.is_new_user) {
+              console.log("🆕 New user detected! Redirecting to register...");
+              router.push("/pet-owners/register-page");
+              return;
+            }
+
+            // 6. Existing User -> Load Dashboard
+            // Refresh page/dashboard to use new token
+            fetchDashboard();
+          }
+        } catch (err) {
+          console.error("❌ Token exchange failed:", err);
+          setError("Failed to log in with LINE. Please try again.");
+          alert("Login Failed: " + (err instanceof Error ? err.message : "Unknown error"));
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // No code, just load dashboard if token exists
+        fetchDashboard();
+      }
+    };
+
+    handleLineLogin();
+  }, [router]);
+
   const fetchDashboard = async () => {
     try {
+      const token = authStorage.getToken();
+
+      // If no token (and no code being processed), show loading then redirect or empty state
+      if (!token) {
+        // Optionally redirect to login if this page requires auth
+        // router.push("/pet-owners/login-page");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
-      const token = authStorage.getToken() || "";
       const response = await getDashboardHome(token);
       if (response.success) {
         setData(response.data);

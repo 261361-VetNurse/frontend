@@ -13,7 +13,7 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PetId } from '@/types/domain/pet';
-import { Medicine, NotificationDetail } from '@/types/domain/medication';
+import { Medicine, NotificationDetail, NotificationItem } from '@/types/domain/medication';
 import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
@@ -27,6 +27,7 @@ import { usePets } from '@/hooks';
 import {
   authStorage,
   getMedications,
+  getMedicationNotificationDetail,
   getMedicineDetail,
   createMedicine,
   deleteMedicine,
@@ -40,7 +41,7 @@ export default function MedicationPage() {
   const router = useRouter();
 
   // State
-  const [medicineNoti, setMedicinesNoti] = useState<NotificationDetail[]>([]);
+  const [medicineNoti, setMedicinesNoti] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -88,6 +89,7 @@ export default function MedicationPage() {
       setMedicinesNoti(data);
     } catch (error) {
       console.error('Error fetching medicine notifications:', error);
+      setError('Failed to load medication reminders');
     }
   };
 
@@ -101,7 +103,7 @@ export default function MedicationPage() {
       if (!notificationId || !medicineId) return;
       try {
         const token = authStorage.getToken() || "";
-        const detail = await getMedicineDetail(token, notificationId);
+        const detail = await getMedicationNotificationDetail(token, notificationId);
         if (detail) {
           if (openMode === 'edit') {
             setEditingReminder(detail);
@@ -128,7 +130,7 @@ export default function MedicationPage() {
 
     const date = baseDate.toISOString().split('T')[0];
     fetchMedicineNotiData(token, selectedPetId, date);
-  }, [activeTab, selectedPetId, baseDate]);
+  }, [selectedPetId, baseDate]);
 
   // Client-side filtering as a safety measure
   const filteredMedicines = useMemo(() => {
@@ -156,19 +158,18 @@ export default function MedicationPage() {
     setShowCreatePopup(false);
   };
 
-  const handleReminderClick = async (noti: NotificationDetail) => {
+  const handleReminderClick = async (notiId: number, medId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      // Using notification_id as the identifier
-      const detail = await getMedicineDetail(token, noti.notification_id);
+      const detail = await getMedicationNotificationDetail(token, notiId);
       setSelectedReminder({
         medicineReminder: detail,
         highlightedReminderId: undefined
       });
 
       const params = new URLSearchParams(searchParams.toString());
-      params.set('noti_id', noti.notification_id.toString());
-      params.set('med_id', noti.medicine_id.toString());
+      params.set('noti_id', notiId.toString());
+      params.set('med_id', medId.toString());
       router.push(`?${params.toString()}`, { scroll: false });
 
     } catch (e) {
@@ -176,10 +177,10 @@ export default function MedicationPage() {
     }
   };
 
-  const handleEditFromCard = async (med: NotificationDetail) => {
+  const handleEditFromCard = async (medId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      const detail = await getMedicineDetail(token, med.notification_id);
+      const detail = await getMedicationNotificationDetail(token, medId);
       setEditingReminder(detail);
     } catch (e) {
       console.error(e);
@@ -202,7 +203,6 @@ export default function MedicationPage() {
         fetchMedicineNotiData(token, selectedPetId, date);
       } catch (err) {
         console.error(err);
-        alert("Failed to delete medication");
       }
     }
   };
@@ -290,11 +290,11 @@ export default function MedicationPage() {
             <MedicineCard
               key={`${med.notification_id}_${med.medicine_id}`}
               data={med}
-              onOpenDetail={() => handleReminderClick(med)}
+              onOpenDetail={() => handleReminderClick(med.notification_id, med.medicine_id)}
               onToggleTaken={() =>
                 handleToggleReminder(med.notification_id)
               }
-              onEdit={() => handleEditFromCard(med)}
+              onEdit={() => handleEditFromCard(med.medicine_id)}
               onDelete={() => handleDelete(med.notification_id.toString(), med.medicine_id.toString())}
             />
           ))

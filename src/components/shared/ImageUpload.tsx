@@ -56,7 +56,11 @@ export function ImageUpload({
             const token = authStorage.getToken();
             if (!token) throw new Error('Authentication required');
 
-            const publicUrl = await uploadImage(file, token);
+            // Map internal folder to storage folder
+            const storageFolder = folder === 'pet-owner-profile' ? 'users' :
+                folder === 'symptom-record' ? 'records' : 'pets';
+
+            const publicUrl = await uploadImage(file, token, storageFolder);
 
             // 3. Success - use the returned URL directly
             setPreview(publicUrl);

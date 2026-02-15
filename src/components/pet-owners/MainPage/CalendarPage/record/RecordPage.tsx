@@ -120,7 +120,7 @@ export const RecordPage = ({
   const handleSaveAdd = async (data: AddSymptomPayloadDTO) => {
     try {
       const token = authStorage.getToken();
-      if (!token) return;
+      if (!token) throw new Error("No token found");
 
       await createSymptomRecord(token, data);
 
@@ -128,29 +128,25 @@ export const RecordPage = ({
       setOpenCreate(false);
     } catch (err) {
       console.error("Create failed", err);
-      alert("Failed to create record");
     }
   };
 
   const handleSaveEdit = async (record_id: number, payload: EditRecordFormState) => {
     try {
       const token = authStorage.getToken();
-      if (!token) return;
+      if (!token) throw new Error("No token found");
 
       const finalImages = [...payload.existingImages, ...payload.newImages];
-      const fullDateISO = `${payload.date}T${payload.time}:00.000Z`;
 
       await editSymptomRecord(token, record_id, {
         note: payload.note,
         note_image: finalImages,
-        // symptom: ... // reuse existing or update? API updates partial.
       });
 
       await refetch();
       setEditRecord(null);
     } catch (err) {
       console.error("Edit failed", err);
-      alert("Failed to update record");
     }
   };
 
@@ -158,7 +154,7 @@ export const RecordPage = ({
     try {
       if (!confirm("Are you sure?")) return;
       const token = authStorage.getToken();
-      if (!token) return;
+      if (!token) throw new Error("No token found");
 
       await deleteSymptomRecord(token, id);
       await refetch();
@@ -166,7 +162,6 @@ export const RecordPage = ({
 
     } catch (err) {
       console.error("Delete failed", err);
-      alert("Failed to delete record");
     }
   }
 

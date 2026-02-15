@@ -14,6 +14,8 @@ import {
   Subtitle,
   Form
 } from '@/styles/components/register.styled';
+import { authStorage, registerOwner } from '@/services/api/client';
+import { RegisterOwnerPayload } from '@/types/api/auth.dto';
 
 interface FormData {
   firstName: string;
@@ -21,10 +23,18 @@ interface FormData {
   gender: string;
   phone: string;
   email: string;
+  addressLine1: string;
+  addressLine2: string;
+  subdistrict: string;
+  district: string;
+  province: string;
+  postalCode: string;
 }
 
 export default function RegisterPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
@@ -32,10 +42,26 @@ export default function RegisterPage() {
     gender: '',
     phone: '',
     email: '',
+    addressLine1: '',
+    addressLine2: '',
+    subdistrict: '',
+    district: '',
+    province: '',
+    postalCode: '',
   });
 
-  const isFormComplete = formData.firstName.trim() && formData.lastName.trim() && formData.gender && formData.phone.trim() && formData.email.trim();
-  
+  const isFormComplete =
+    formData.firstName.trim() &&
+    formData.lastName.trim() &&
+    formData.gender &&
+    formData.phone.trim() &&
+    formData.email.trim() &&
+    formData.addressLine1.trim() &&
+    formData.subdistrict.trim() &&
+    formData.district.trim() &&
+    formData.province.trim() &&
+    formData.postalCode.trim();
+
   const [errors, setErrors] = useState<Partial<FormData>>({});
 
   const genderOptions = [
@@ -46,16 +72,16 @@ export default function RegisterPage() {
 
   const handleInputChange =
     (field: keyof FormData) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setFormData(prev => ({
-        ...prev,
-        [field]: e.target.value,
-      }));
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData(prev => ({
+          ...prev,
+          [field]: e.target.value,
+        }));
 
-      if (errors[field]) {
-        setErrors(prev => ({ ...prev, [field]: undefined }));
-      }
-    };
+        if (errors[field]) {
+          setErrors(prev => ({ ...prev, [field]: undefined }));
+        }
+      };
 
   const validateForm = (): boolean => {
     const newErrors: Partial<FormData> = {};
@@ -71,23 +97,66 @@ export default function RegisterPage() {
       newErrors.email = 'Please enter a valid email';
     }
 
+    if (!formData.addressLine1.trim()) newErrors.addressLine1 = 'Address is required';
+    if (!formData.subdistrict.trim()) newErrors.subdistrict = 'Subdistrict is required';
+    if (!formData.district.trim()) newErrors.district = 'District is required';
+    if (!formData.province.trim()) newErrors.province = 'Province is required';
+    if (!formData.postalCode.trim()) newErrors.postalCode = 'Postal code is required';
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const isValid = validateForm();
     if (!isValid) return;
 
-    console.log('Form submitted:', formData);
-    router.push('/pet-owners/home-page');
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const token = authStorage.getToken();
+      if (!token) {
+        throw new Error("Authentication token not found. Please login again.");
+      }
+
+      const payload: RegisterOwnerPayload = {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone: formData.phone,
+        email: formData.email,
+        address_line1: formData.addressLine1,
+        address_line2: formData.addressLine2 || null,
+        subdistrict: formData.subdistrict,
+        district: formData.district,
+        province: formData.province,
+        postal_code: formData.postalCode,
+      };
+
+      await registerOwner(token, payload);
+
+      console.log('Registration successful');
+      // Update local storage user if needed, or just redirect to reload profile
+      router.push('/pet-owners/home-page');
+    } catch (err) {
+      console.error("Registration failed:", err);
+      setErrorMsg(err instanceof Error ? err.message : "Registration failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <RegisterContainer>
       <RegisterCard>
+        {errorMsg && (
+          <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>
+            {errorMsg}
+          </div>
+        )}
+
         <Header>
           <Title>Register</Title>
           <Subtitle>Please fill the form</Subtitle>
@@ -146,10 +215,77 @@ export default function RegisterPage() {
               error={!!errors.email}
             />
           </FormField>
+
+          <div style={{ borderTop: '1px solid #eee', margin: '10px 0', paddingTop: '10px', fontWeight: 'bold' }}>Address</div>
+
+          <FormField label="Address Line 1" htmlFor="addressLine1" error={errors.addressLine1}>
+            <TextInput
+              id="addressLine1"
+              value={formData.addressLine1}
+              onChange={handleInputChange('addressLine1')}
+              placeholder="House number, street, etc."
+              error={!!errors.addressLine1}
+            />
+          </FormField>
+
+          <FormField label="Address Line 2 (Optional)" htmlFor="addressLine2" error={errors.addressLine2}>
+            <TextInput
+              id="addressLine2"
+              value={formData.addressLine2}
+              onChange={handleInputChange('addressLine2')}
+              placeholder="Apartment, suite, etc."
+              error={!!errors.addressLine2}
+            />
+          </FormField>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <FormField label="Subdistrict" htmlFor="subdistrict" error={errors.subdistrict}>
+              <TextInput
+                id="subdistrict"
+                value={formData.subdistrict}
+                onChange={handleInputChange('subdistrict')}
+                placeholder="Subdistrict"
+                error={!!errors.subdistrict}
+              />
+            </FormField>
+
+            <FormField label="District" htmlFor="district" error={errors.district}>
+              <TextInput
+                id="district"
+                value={formData.district}
+                onChange={handleInputChange('district')}
+                placeholder="District"
+                error={!!errors.district}
+              />
+            </FormField>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <FormField label="Province" htmlFor="province" error={errors.province}>
+              <TextInput
+                id="province"
+                value={formData.province}
+                onChange={handleInputChange('province')}
+                placeholder="Province"
+                error={!!errors.province}
+              />
+            </FormField>
+
+            <FormField label="Postal Code" htmlFor="postalCode" error={errors.postalCode}>
+              <TextInput
+                id="postalCode"
+                value={formData.postalCode}
+                onChange={handleInputChange('postalCode')}
+                placeholder="Postal Code"
+                error={!!errors.postalCode}
+              />
+            </FormField>
+          </div>
+
         </Form>
-        
-        <PrimaryButton size="md" type="submit" disabled={!isFormComplete} onClick={handleSubmit}>
-          Register
+
+        <PrimaryButton size="md" type="submit" disabled={loading || !isFormComplete} onClick={handleSubmit}>
+          {loading ? 'Registering...' : 'Register'}
         </PrimaryButton>
       </RegisterCard>
     </RegisterContainer>
