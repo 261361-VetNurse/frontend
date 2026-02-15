@@ -90,4 +90,35 @@ runForMobileViewports("Owner flow", () => {
             );
         });
     });
+
+    describe('TC-OWN-05: Change owner profile image', () => { //เปลี่ยนรูปโปรไฟล์เจ้าของ
+        const imageFiles = [
+            'cypress/img-test/test-1.jpeg',
+            'cypress/img-test/test-2.jpg',
+            'cypress/img-test/test-3.jpeg',
+        ];
+
+        imageFiles.forEach((imagePath) => {
+            it(`uploads profile image: ${imagePath.split('/').pop()}`, () => {
+                cy.intercept('PUT', 'https://mock-r2-upload-url.com*', {
+                    statusCode: 200,
+                    body: {},
+                }).as('mockImageUpload');
+
+                cy.visit('/pet-owners/owner-info-page/edit', {
+                    onBeforeLoad(win) {
+                        win.localStorage.setItem('auth_token', 'mock-auth-token');
+                    },
+                });
+
+                cy.get('input[type="file"]').selectFile(imagePath, { force: true });
+                cy.wait('@mockImageUpload');
+
+                cy.get('img[alt="Profile"]')
+                    .should('be.visible')
+                    .and('have.attr', 'src')
+                    .and('include', 'placehold.co/400x400');
+            });
+        });
+    });
 });

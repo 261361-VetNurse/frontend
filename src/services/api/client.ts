@@ -15,6 +15,9 @@ import { mockDashboardData, mockMedicationNotificationDetail } from '@/mocks/das
 import { mockAppointments } from '@/mocks/appointments.mock';
 import { mockUserProfile } from '@/mocks/owner.mock';
 import { mockEachDayMedicines, mockMedicines } from '@/mocks/medication.mock';
+import { mockSymptomRecords } from '@/mocks/symptom.mock';
+import { Appointment } from '@/types/domain/appointment';
+import { SymptomRecord, CreateSymptomRecordRequest, UpdateSymptomRecordRequest, SymptomCalendarResponse } from '@/types/domain/symptom';
 
 // Mock Helper
 import { fetchWithMock } from '@/utils/mock-helper';
@@ -66,6 +69,18 @@ interface LineExchangeResponse {
 
 import { User, UserProfile } from '@/types/domain/user';
 import { Pet } from '@/types/domain/pet';
+
+const cloneMock = <T,>(data: T): T => JSON.parse(JSON.stringify(data)) as T;
+
+let mockAppointmentsStore: Appointment[] = cloneMock(mockAppointments);
+let mockSymptomRecordsStore: SymptomRecord[] = cloneMock(mockSymptomRecords);
+
+function normalizeAppointmentStatus(status?: string): Appointment["status"] {
+    const lower = (status ?? "").toLowerCase();
+    if (lower === "completed") return "completed";
+    if (lower === "canceled" || lower === "cancelled") return "canceled";
+    return "upcoming";
+}
 
 /**
  * Exchange LINE authorization code for access token
@@ -485,10 +500,11 @@ export async function createMedicine(token: string, medicineData: any): Promise<
 export async function getAppointments(token: string, status?: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
+            const records = cloneMock(mockAppointmentsStore);
             if (status) {
-                return mockAppointments.filter(evt => evt.status?.toLowerCase() === status.toLowerCase());
+                return records.filter(evt => evt.status?.toLowerCase() === status.toLowerCase());
             }
-            return mockAppointments;
+            return records;
         },
         apiCall: async () => {
             let url = `/api/appointments`;
@@ -519,9 +535,9 @@ export async function getAppointmentDetail(token: string, appointmentId: string)
     return fetchWithMock({
         mockData: () => {
             if (appointmentId) {
-                const found = mockAppointments.find(a => a._id === appointmentId);
+                const found = mockAppointmentsStore.find(a => a._id === appointmentId);
                 if (!found) throw new Error("Appointment detail not found in mock");
-                return found;
+                return cloneMock(found);
             }
         },
         apiCall: async () => {
@@ -549,13 +565,22 @@ export async function getAppointmentDetail(token: string, appointmentId: string)
 export async function createAppointment(token: string, appointmentData: any): Promise<any> {
     return fetchWithMock({
         mockData: () => {
+            const pet = mockPets.find((p) => p._id === appointmentData.pet_id);
+            const created: Appointment = {
+                _id: "mock_apt_" + Math.random().toString(36).substring(2, 10),
+                pet_id: appointmentData.pet_id,
+                pet_name: pet?.name || "Unknown Pet",
+                pet_image: pet?.profile_image || "",
+                location: appointmentData.location || "",
+                appointment_date: appointmentData.appointment_date || new Date().toISOString(),
+                status: normalizeAppointmentStatus(appointmentData.status),
+                note: appointmentData.note,
+                created_at: new Date().toISOString(),
+            };
+            mockAppointmentsStore = [created, ...mockAppointmentsStore];
             return {
                 success: true,
-                data: {
-                    ...appointmentData,
-                    _id: "mock_apt_" + Math.random().toString(36).substring(7),
-                    status: "Upcoming"
-                },
+                data: cloneMock(created),
                 message: "Appointment created (mock)"
             };
         },
@@ -590,9 +615,24 @@ export async function editAppointment(
 ): Promise<any> {
     return fetchWithMock({
         mockData: () => {
+            const idx = mockAppointmentsStore.findIndex((a) => a._id === appointmentId);
+            if (idx < 0) throw new Error("Appointment not found in mock");
+            const current = mockAppointmentsStore[idx];
+            const pet = mockPets.find((p) => p._id === (appointmentData.pet_id || current.pet_id));
+            const updated: Appointment = {
+                ...current,
+                pet_id: appointmentData.pet_id || current.pet_id,
+                pet_name: pet?.name || current.pet_name,
+                pet_image: pet?.profile_image || current.pet_image,
+                appointment_date: appointmentData.appointment_date || current.appointment_date,
+                location: appointmentData.location || current.location,
+                status: normalizeAppointmentStatus(appointmentData.status || current.status),
+                updated_at: new Date().toISOString(),
+            };
+            mockAppointmentsStore[idx] = updated;
             return {
                 success: true,
-                data: { ...appointmentData, _id: appointmentId },
+                data: cloneMock(updated),
                 message: "Appointment updated (mock)"
             };
         },
@@ -623,6 +663,14 @@ export async function editAppointment(
 export async function cancelAppointment(token: string, appointmentId: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
+            const idx = mockAppointmentsStore.findIndex((a) => a._id === appointmentId);
+            if (idx >= 0) {
+                mockAppointmentsStore[idx] = {
+                    ...mockAppointmentsStore[idx],
+                    status: "canceled",
+                    updated_at: new Date().toISOString(),
+                };
+            }
             return { success: true, message: "Appointment canceled (mock)" };
         },
         apiCall: async () => {
@@ -650,7 +698,8 @@ export async function cancelAppointment(token: string, appointmentId: string): P
 export async function deleteAppointment(token: string, appointmentId: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
-            return { success: true, message: "Appointment deleted (mock)" };
+            mockAppointmentsStore = mockAppointmentsStore.filter((a) => a._id !== appointmentId);
+            return { success: true, message: "Appointment deleted (mock)", id: appointmentId };
         },
         apiCall: async () => {
             const response = await loggedFetch(`/api/appointments/${appointmentId}`, {
@@ -913,7 +962,7 @@ export async function getPresignedUrl(token: string, fileType: string, folder: s
             return {
                 uploadUrl: "https://mock-r2-upload-url.com",
                 objectKey: `${folder}/mock-key.jpg`,
-                publicUrl: "https://placehold.co/400x400?text=Mock+Image"
+                publicUrl: "/images/home.png"
             };
         },
         apiCall: async () => {
@@ -1029,28 +1078,29 @@ export async function updateUserProfile(token: string, profileData: Partial<User
 // SYMPTOM RECORDS API
 // ============================================================================
 
-import { SymptomRecord, CreateSymptomRecordRequest, UpdateSymptomRecordRequest, SymptomCalendarResponse } from '@/types/domain/symptom';
-import { mockSymptomRecords } from '@/mocks/symptom.mock';
-
 /**
  * Get symptom records calendar
  */
 export async function getSymptomRecordsCalendar(token: string, petId?: string, month?: string): Promise<SymptomCalendarResponse> {
     return fetchWithMock({
         mockData: () => {
-            // Group mock records by date
             const calendar: SymptomCalendarResponse = {};
-            let filtered = mockSymptomRecords;
+            let filtered = [...mockSymptomRecordsStore];
             if (petId) {
                 filtered = filtered.filter(r => r.pet_id === petId);
             }
-            // Simple month filtering simulation if needed, but for now just return all matches
+            if (month) {
+                filtered = filtered.filter((r) => {
+                    const d = r.date.includes("T") ? r.date.slice(0, 10) : r.date;
+                    return d.startsWith(`${month}-`);
+                });
+            }
             filtered.forEach(record => {
-                const date = record.date; // YYYY-MM-DD
+                const date = record.date.includes("T") ? record.date.slice(0, 10) : record.date;
                 if (!calendar[date]) {
                     calendar[date] = [];
                 }
-                calendar[date].push(record);
+                calendar[date].push(cloneMock(record));
             });
             return calendar;
         },
@@ -1086,12 +1136,13 @@ export async function createSymptomRecord(token: string, data: CreateSymptomReco
     return fetchWithMock({
         mockData: () => {
             const newRecord: SymptomRecord = {
-                _id: "mock_sym_" + Math.random().toString(36).substring(7),
+                _id: "mock_sym_" + Math.random().toString(36).substring(2, 10),
                 ...data,
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString()
             };
-            return newRecord;
+            mockSymptomRecordsStore = [newRecord, ...mockSymptomRecordsStore];
+            return cloneMock(newRecord);
         },
         apiCall: async () => {
             const response = await loggedFetch(`/api/symptom-records`, {
@@ -1121,9 +1172,9 @@ export async function createSymptomRecord(token: string, data: CreateSymptomReco
 export async function getSymptomRecordDetail(token: string, recordId: string): Promise<SymptomRecord> {
     return fetchWithMock({
         mockData: () => {
-            const found = mockSymptomRecords.find(r => r._id === recordId);
+            const found = mockSymptomRecordsStore.find(r => r._id === recordId);
             if (!found) throw new Error("Symptom record not found in mock");
-            return found;
+            return cloneMock(found);
         },
         apiCall: async () => {
             const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
@@ -1150,10 +1201,12 @@ export async function getSymptomRecordDetail(token: string, recordId: string): P
 export async function editSymptomRecord(token: string, recordId: string, data: UpdateSymptomRecordRequest): Promise<SymptomRecord> {
     return fetchWithMock({
         mockData: () => {
-            const found = mockSymptomRecords.find(r => r._id === recordId);
-            if (!found) throw new Error("Symptom record not found in mock");
-            const updated = { ...found, ...data, updated_at: new Date().toISOString() };
-            return updated;
+            const idx = mockSymptomRecordsStore.findIndex(r => r._id === recordId);
+            if (idx < 0) throw new Error("Symptom record not found in mock");
+            const current = mockSymptomRecordsStore[idx];
+            const updated = { ...current, ...data, updated_at: new Date().toISOString() };
+            mockSymptomRecordsStore[idx] = updated;
+            return cloneMock(updated);
         },
         apiCall: async () => {
             const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
@@ -1183,7 +1236,8 @@ export async function editSymptomRecord(token: string, recordId: string, data: U
 export async function deleteSymptomRecord(token: string, recordId: string): Promise<any> {
     return fetchWithMock({
         mockData: () => {
-            return { success: true, message: "Symptom record deleted (mock)" };
+            mockSymptomRecordsStore = mockSymptomRecordsStore.filter((r) => r._id !== recordId);
+            return { success: true, message: "Symptom record deleted (mock)", id: recordId };
         },
         apiCall: async () => {
             const response = await loggedFetch(`/api/symptom-records/${recordId}/delete`, {

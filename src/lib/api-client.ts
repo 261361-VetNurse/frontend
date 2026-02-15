@@ -86,7 +86,7 @@ export async function getCurrentUser(token: string): Promise<UserResponse> {
 /**
  * Get dashboard home data
  */
-export async function getDashboardHome(token: string): Promise<import('../types/dashboard').DashboardResponse> {
+export async function getDashboardHome(token: string): Promise<import('../types/domain/dashboard').DashboardResponse> {
     if (USE_MOCK_DATA) {
         const { getMockDashboardHome } = await import('@/mocks/dashboard.mock');
         return getMockDashboardHome();
