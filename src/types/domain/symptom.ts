@@ -18,6 +18,8 @@ export interface SymptomRecordCreate {
 export interface SymptomRecordUpdate {
     note?: string;
     note_image?: string[]; // Max 4 images
+    date_added?: string;
+    time_added?: string;
 }
 
 export type SymptomCalendarResponse = SymptomRecord[];

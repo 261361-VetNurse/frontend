@@ -19,9 +19,13 @@ export interface AddSymptomPayload {
     pet_id: number;
     note: string;
     note_image?: string[];
+    date_added?: string; // YYYY-MM-DD
+    time_added?: string; // HH:MM
 }
 
 export interface EditSymptomPayload {
     note?: string;
     note_image?: string[];
+    date_added?: string; // YYYY-MM-DD
+    time_added?: string; // HH:MM
 }

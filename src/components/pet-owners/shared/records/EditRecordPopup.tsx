@@ -4,7 +4,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadImage, authStorage } from "@/services/api/client";
 import { SymptomRecord } from "@/types/domain/symptom";
-import { EditSymptomPayload } from "@/types/api/record.dto";
 
 export type EditRecordFormState = {
   id: string;
@@ -126,6 +125,11 @@ export default function EditRecordPopup({
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
+      // Create date as UTC to prevent timezone shifting
+      const [y, m, d] = date.split("-").map(Number);
+      const [h, min] = time.split(":").map(Number);
+      const dateObj = new Date(Date.UTC(y, m - 1, d, h, min));
+
       // Upload new images
       const newImageUrls: string[] = [];
       if (newFiles.length > 0) {
@@ -140,7 +144,7 @@ export default function EditRecordPopup({
       onSave?.(Number(r.record_id), {
         id: String(r.record_id),
         petId: String(r.pet_id),
-        date,
+        date: dateObj.toISOString().split("T")[0],
         time,
         note: note.trim(),
         existingImages,
