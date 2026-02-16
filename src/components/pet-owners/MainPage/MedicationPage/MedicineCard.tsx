@@ -14,8 +14,9 @@ import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import { NotificationItem } from '@/types/domain/medication';
 
-export type OccurrenceStatus = 'pending' | 'taken' | 'missed';
+export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 export interface TimeSlot {
   id: string; // reminder_id
@@ -24,15 +25,7 @@ export interface TimeSlot {
 }
 
 type Props = {
-  petName: string;
-  petImageUrl?: string;
-  medicineName: string;
-  dosage?: string;
-
-  // New prop: list of times
-  times: TimeSlot[];
-
-  isStopped?: boolean;
+  data: NotificationItem;
   onOpenDetail: () => void;
 
   // Callback now requires reminderId
@@ -44,6 +37,7 @@ type Props = {
 
 function getStatusMeta(status: OccurrenceStatus) {
   switch (status) {
+    case 'sent':
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon, color: theme.colors.primary };
     case 'missed':
@@ -55,12 +49,7 @@ function getStatusMeta(status: OccurrenceStatus) {
 }
 
 export default function MedicineCard({
-  petName,
-  petImageUrl,
-  medicineName,
-  dosage,
-  times,
-  isStopped,
+  data,
   onOpenDetail,
   onToggleTaken,
   onEdit,
@@ -90,9 +79,21 @@ export default function MedicineCard({
     onDelete?.();
   };
 
+  // Extract data fields from NotificationDetail
+  const petName = data.pet_name || 'Unknown Pet';
+  const petImageUrl = data.pet_image || undefined;
+  const medicineName = data.medicine_name || 'Unknown Medicine';
+  const dosage = data.dosage || '';
+  const isStopped = false; // NotificationDetail doesn't have a status field for stopped
+  const times: TimeSlot[] = (data.reminder_time || []).map((t) => ({
+    id: `${data.notification_id}_${t}`,
+    timeLabel: t,
+    status: (data.istaken || (data as any).status === 'sent') ? 'taken' : 'pending'
+  }));
+
   return (
     <Card
-      $disabled={!!isStopped}
+      $disabled={isStopped}
       onClick={onOpenDetail}
       role="button"
       tabIndex={0}
@@ -163,7 +164,6 @@ export default function MedicineCard({
 
       <TimesGrid>
         {times.map((slot) => {
-          const isTaken = slot.status === 'taken';
           const { label, Icon, color } = getStatusMeta(slot.status);
 
           return (
@@ -172,7 +172,11 @@ export default function MedicineCard({
               $status={slot.status}
               onClick={(e) => {
                 e.stopPropagation();
+                if (slot.status === 'pending') {
+                  onToggleTaken(String(data.notification_id), true);
+                }
               }}
+              style={{ cursor: slot.status === 'pending' ? 'pointer' : 'default' }}
             >
               <Icon style={{ fontSize: 16 }} />
               <div className="time">{slot.timeLabel}</div>

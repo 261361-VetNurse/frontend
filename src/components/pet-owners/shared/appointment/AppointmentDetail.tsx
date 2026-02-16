@@ -1,16 +1,19 @@
 "use client";
 
-import Image from "next/image";
 import dayjs from "dayjs";
-import { LocationOn, AccessTime, CalendarToday } from "@mui/icons-material";
+import { LocationOn, AccessTime, CalendarToday, Note } from "@mui/icons-material";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import type { Appointment } from "@/types/domain/appointment";
+import Profile from "../Profile";
 
 type Props = {
-  open: boolean;
+  open?: boolean;
   appointment: Appointment | null;
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
+  onDelete?: (id: number) => void;
+  triggerParam?: string;
+  triggerValue?: string;
   onDelete?: (id: string) => void;
   onAddToCalendar?: (appt: AppointmentDetailItem) => void;
   formatTime?: (t: string) => string;
@@ -22,6 +25,8 @@ export default function AppointmentDetail({
   onClose,
   onEdit,
   onDelete,
+  triggerParam,
+  triggerValue,
   onAddToCalendar,
   formatTime,
 }: Props) {
@@ -29,31 +34,32 @@ export default function AppointmentDetail({
 
   const dateObj = dayjs(appointment.appointment_date);
   const dateText = dateObj.format("DD/MM/YYYY");
-  const timeText = dateObj.format("HH:mm");
+  const timeText = appointment.appointment_time
+    ? appointment.appointment_time.slice(0, 5)
+    : dateObj.format("HH:mm");
 
   return (
     <FormDialog
       open={open}
       onClose={onClose}
+      triggerParam={triggerParam}
+      triggerValue={triggerValue}
       title="Appointment"
       layout="singleColumn"
       density="compact"
       primaryLabel="Edit"
       onPrimary={() => onEdit?.(appointment)}
       secondaryLabel="Delete"
-      onSecondary={() => onDelete?.(appointment._id)}
+      onSecondary={() => onDelete?.(appointment.appointment_id)}
     >
       {/* Pet row */}
       <div className="flex items-center gap-3 pb-4 border-b border-zinc-100">
         <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-          {appointment.pet_image ? (
-            <Image
-              src={appointment.pet_image}
-              alt={appointment.pet_name}
-              fill
-              className="object-cover"
-            />
-          ) : null}
+          <Profile
+            imageUrl={appointment.pet_image}
+            alt={appointment.pet_name}
+            size="small"
+          />
         </div>
 
         <div className="min-w-0">
@@ -97,6 +103,19 @@ export default function AppointmentDetail({
             {appointment.location}
           </div>
         </div>
+
+        {/* Note */}
+        {appointment.note ? (
+          <div>
+            <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
+              <Note fontSize="small" />
+              Note
+            </div>
+            <div className="mt-1 text-sm text-zinc-700">
+              {appointment.note}
+            </div>
+          </div>
+        ) : null}
 
         {/* Status */}
         {appointment.status ? (

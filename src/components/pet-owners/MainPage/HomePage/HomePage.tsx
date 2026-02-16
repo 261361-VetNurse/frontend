@@ -10,11 +10,11 @@ import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { theme } from "@/styles/tokens/theme";
 import ReminderCard from "./ReminderCard";
-import { DashboardData, DashboardMedicineDetail } from "@/types/domain/dashboard";
+import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
+import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail, exchangeLineToken } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 
 export default function HomePage() {
@@ -24,15 +24,142 @@ export default function HomePage() {
   const [data, setData] = useState<DashboardData | null>(null);
 
   /* New State for Popup */
-  const [selectedNotification, setSelectedNotification] = useState<DashboardMedicineDetail | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<DashboardNotification | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
 
+  /* Auth Logic: Check for LINE Login Code */
+  useEffect(() => {
+    const handleLineLogin = async () => {
+      // 1. Check for 'code' in URL
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get("code");
+      const error = params.get("error");
+
+      if (error) {
+        setError("LINE Login failed. Please try again.");
+        return;
+      }
+
+      if (code) {
+        try {
+          setLoading(true);
+          console.log("🔄 Exchanging LINE code for token...");
+
+          // 2. Exchange code for token
+          const response = await exchangeLineToken(code);
+
+          if (response.access_token) {
+            console.log("✅ Token received!");
+
+            // 3. Store token & user
+            authStorage.setToken(response.access_token);
+            // We can also store the user object if needed, but AuthContext will fetch it
+            // authStorage.setUser(response.user); 
+
+            // 4. Clear URL parameters
+            window.history.replaceState({}, "", window.location.pathname);
+
+            // 5. Handle New User Redirection
+            if (response.is_new_user) {
+              console.log("🆕 New user detected! Redirecting to register...");
+              router.push("/pet-owners/register-page");
+              return;
+            }
+
+            // 6. Existing User -> Load Dashboard
+            // Refresh page/dashboard to use new token
+            fetchDashboard();
+          }
+        } catch (err) {
+          console.error("❌ Token exchange failed:", err);
+          setError("Failed to log in with LINE. Please try again.");
+          alert("Login Failed: " + (err instanceof Error ? err.message : "Unknown error"));
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        // No code, just load dashboard if token exists
+        fetchDashboard();
+      }
+    };
+
+    handleLineLogin();
+  }, [router]);
+
+  // Deep linking for Home Page
+  useEffect(() => {
+    // We use window.location.search to avoid router dependency loop, 
+    // but we need to be careful about when this runs.
+    const params = new URLSearchParams(window.location.search);
+    const popupParam = params.get('popup');
+    const notiId = Number(params.get('noti_id'));
+    const appointmentId = Number(params.get('appointment_id'));
+
+    const handleDeepLink = async () => {
+      if (popupParam === 'view-medication' && notiId) {
+        setPopupLoading(true);
+        try {
+          const token = authStorage.getToken() || "";
+          const notiDetail = await getMedicationNotificationDetail(token, notiId);
+          setSelectedNotification(notiDetail);
+        } catch (e) {
+          console.error(e);
+          // If failed, maybe clear params?
+        } finally { setPopupLoading(false); }
+      } else if (popupParam === 'view-appointment' && appointmentId) {
+        setPopupLoading(true);
+        try {
+          const token = authStorage.getToken() || "";
+          const aptDetail = await getAppointmentDetail(token, appointmentId);
+          setSelectedAppointment(aptDetail);
+        } catch (e) { console.error(e); } finally { setPopupLoading(false); }
+      }
+    };
+
+    // Only run if we actually have params to process
+    if (popupParam) {
+      handleDeepLink();
+    }
+  }, []);
+
+  const openMedicationPopup = (noti: number) => {
+    // Optimistic or just fetch? original logic fetches first.
+    handleReminderClick(noti);
+  };
+
+  const openAppointmentPopup = (apt: number) => {
+    handleAppointmentClick(apt);
+  };
+
+  const closePopup = () => {
+    setSelectedNotification(null);
+    setSelectedAppointment(null);
+
+    // Clear params
+    const params = new URLSearchParams(window.location.search);
+    params.delete('popup');
+    params.delete('noti_id');
+    params.delete('appointment_id');
+
+    // Use replace to avoid building up history
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
+
   const fetchDashboard = async () => {
     try {
+      const token = authStorage.getToken();
+
+      // If no token (and no code being processed), show loading then redirect or empty state
+      if (!token) {
+        // Optionally redirect to login if this page requires auth
+        // router.push("/pet-owners/login-page");
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setError(null);
-      const token = authStorage.getToken() || "";
       const response = await getDashboardHome(token);
       if (response.success) {
         setData(response.data);
@@ -47,7 +174,7 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchDashboard();
-  }, [router]);
+  }, []);
 
   // Removed blocking error return
   // if (error) return ...
@@ -55,12 +182,18 @@ export default function HomePage() {
   if (loading && !data && !error) return <div style={{ padding: 20, textAlign: "center" }}>Loading...</div>;
 
   /* Handler: Click on Reminder Card -> Fetch Detail & Open Popup */
-  const handleReminderClick = async (noti: string) => {
+  const handleReminderClick = async (noti: number) => {
     try {
       setPopupLoading(true);
       const token = authStorage.getToken() || "";
       const notiDetail = await getMedicationNotificationDetail(token, noti);
       setSelectedNotification(notiDetail);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('popup', 'view-medication');
+      params.set('noti_id', noti.toString());
+      router.push(`?${params.toString()}`, { scroll: false });
+
     } catch (err) {
       console.error("Failed to load medication detail:", err);
       alert("Failed to load medication details.");
@@ -69,15 +202,23 @@ export default function HomePage() {
     }
   };
 
-  const handleAppointmentClick = async (apt: string) => {
+  const handleAppointmentClick = async (apt: number) => {
     try {
       setPopupLoading(true);
       const token = authStorage.getToken() || "";
       const aptDetail = await getAppointmentDetail(token, apt);
       setSelectedAppointment(aptDetail);
+
+      const params = new URLSearchParams(window.location.search);
+      params.set('popup', 'view-appointment');
+      params.set('appointment_id', apt.toString());
+      router.push(`?${params.toString()}`, { scroll: false });
+
     } catch (err) {
       console.error("Failed to load appointment detail:", err);
-      alert("Failed to load appointment details.");
+      // More detailed error message with stringify
+      const msg = err instanceof Error ? err.message : JSON.stringify(err);
+      alert(`Failed to load appointment details: ${msg} (ID: ${apt})`);
     } finally {
       setPopupLoading(false);
     }
@@ -90,7 +231,7 @@ export default function HomePage() {
       if (reminderId) {
         const token = authStorage.getToken() || "";
         // 1. Send API Request
-        await markMedicationTaken(token, reminderId, isTaken);
+        await markMedicationTaken(token, Number(reminderId));
         console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
 
         // 2. Update local state ONLY after successful API response
@@ -113,10 +254,7 @@ export default function HomePage() {
     }
   };
 
-  const handleClosePopup = () => {
-    setSelectedNotification(null);
-    setSelectedAppointment(null);
-  };
+
 
   return (
     <HomePageStyled>
@@ -162,7 +300,7 @@ export default function HomePage() {
         ) : (
           <>
             <div className="pet-list">
-              {data?.pets?.map((pet) => (
+              {data?.pets?.slice(-4).map((pet) => (
                 <Profile
                   key={pet.pet_id}
                   imageUrl={pet.profile_image}
@@ -170,6 +308,7 @@ export default function HomePage() {
                   label={pet.name}
                   showLabel={true}
                   onClick={() => router.push(`/pet-owners/my-pets-page/${pet.pet_id}`)}
+                  isPet={true}
                 />
               ))}
             </div>
@@ -207,7 +346,7 @@ export default function HomePage() {
                   <ReminderCard
                     datas={med_noti}
                     petImageSize={40}
-                    onClick={() => handleReminderClick(med_noti._id)}
+                    onClick={() => openMedicationPopup(med_noti.notification_id)}
                   />
                 </div>
               );
@@ -232,11 +371,11 @@ export default function HomePage() {
         <MedicationDetailPopup
           page="home-page"
           noti={selectedNotification}
-          onClose={handleClosePopup}
+          onClose={closePopup}
           onToggleReminder={handleToggleReminder}
           onEdit={() => {
             // Optional: Handle edit if needed
-            router.push(`/pet-owners/medication-page?noti_id=${selectedNotification._id}&med_id=${selectedNotification.medicine_id}&open=edit`);
+            router.push(`/pet-owners/medication-page?popup=edit-medication&med_id=${selectedNotification.medicine_id}`);
           }}
         />
       )}
@@ -275,16 +414,19 @@ export default function HomePage() {
           <SectionError message="Could not load appointments" onRetry={fetchDashboard} />
         ) : (
           data?.appointments && data.appointments.length > 0 ? (
-            data.appointments.slice(0, 3).map((apt) => {
-              return (
-                <AppointmentCard
-                  key={apt._id}
-                  datas={apt}
-                  petImageSize={40}
-                  onClick={() => handleAppointmentClick(apt._id)}
-                />
-              );
-            })
+            data.appointments
+              .filter((apt) => apt.status === "Upcoming")
+              .slice(0, 3)
+              .map((apt) => {
+                return (
+                  <AppointmentCard
+                    key={apt._id}
+                    datas={apt}
+                    petImageSize={40}
+                    onClick={() => openAppointmentPopup(Number(apt.appointment_id || apt._id))}
+                  />
+                );
+              })
           ) : (
             <div
               style={{
@@ -304,9 +446,9 @@ export default function HomePage() {
       {selectedAppointment && (
         <AppointmentDetailPopup
           appointment={selectedAppointment}
-          onClose={() => setSelectedAppointment(null)}
+          onClose={closePopup}
           onEdit={() => {
-            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment._id}&open=edit`);
+            router.push(`/pet-owners/calendar-page?tab=appointment&appointment_id=${selectedAppointment.appointment_id}&popup=edit-appointment`);
           }}
         />
       )}

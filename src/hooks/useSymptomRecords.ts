@@ -2,16 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { authStorage, getSymptomRecordsCalendar } from "@/services/api/client";
-import { PetSelectorValue } from "@/components/pet-owners/shared/PetFilterSelector";
-
-export type RecordEntry = {
-    id: string;
-    dateKey: string;
-    petId: string;
-    time: string;
-    note: string;
-    images?: string[];
-};
+import { SymptomRecord } from "@/types/domain/symptom";
 
 function pad2(n: number) { return String(n).padStart(2, "0"); }
 
@@ -20,8 +11,8 @@ function extractTimeFromISO(iso: string) {
     return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
 }
 
-export function useSymptomRecords(selectedPetId: PetSelectorValue = "all") {
-    const [records, setRecords] = useState<RecordEntry[]>([]);
+export function useSymptomRecords(selectedPetId: number | null = null) {
+    const [records, setRecords] = useState<SymptomRecord[]>([]);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -32,32 +23,32 @@ export function useSymptomRecords(selectedPetId: PetSelectorValue = "all") {
             const token = authStorage.getToken();
             if (!token) return;
 
-            const pId = selectedPetId === "all" ? undefined : String(selectedPetId);
+            const pId = selectedPetId === 0 ? undefined : String(selectedPetId);
 
             const response = await getSymptomRecordsCalendar(token, pId);
 
-            // Flatten the response
-            const allRecords = Object.values(response).flat();
+            // Transform SymptomRecord[] to RecordEntry[] for component compatibility
+            const allRecords: SymptomRecord[] = Array.isArray(response)
+                ? response.map(record => {
+                    // Extract date (YYYY-MM-DD) and time (HH:MM) from time_added ISO datetime
+                    const timeAdded = record.time_added || "";
+                    const dateKey = timeAdded.includes('T') ? timeAdded.split('T')[0] : timeAdded;
+                    const time = timeAdded.includes('T') ? extractTimeFromISO(timeAdded) : "00:00";
 
-            // Map to RecordEntry
-            const mapped: RecordEntry[] = allRecords.map(r => {
-                // Handle different date formats or ensure consistency
-                const dateKey = r.date.includes('T') ? r.date.split('T')[0] : r.date;
-                // If the date string itself contains time info, extract it, otherwise default "00:00"
-                // Note: The API likely returns full ISO strings for 'date' based on previous context, but we handle fallback
-                const time = r.date.includes('T') ? extractTimeFromISO(r.date) : "00:00";
+                    return {
+                        record_id: record.record_id,
+                        pet_id: record.pet_id,
+                        pet_name: record.pet_name,
+                        pet_image: record.pet_image,
+                        date_added: dateKey,
+                        time_added: time,
+                        note: record.note,
+                        note_image: record.note_image,
+                    };
+                })
+                : [];
 
-                return {
-                    id: r._id,
-                    dateKey: dateKey,
-                    petId: r.pet_id,
-                    time: time,
-                    note: r.note || "",
-                    images: r.images
-                };
-            });
-
-            setRecords(mapped);
+            setRecords(allRecords);
 
         } catch (err) {
             console.error("Failed to fetch records", err);

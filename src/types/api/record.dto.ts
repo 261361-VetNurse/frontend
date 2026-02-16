@@ -1,17 +1,27 @@
 // API DTO Types for Medical Records/Symptoms
 
-export type AddSymptomPayload = {
-    pets_id: string;
-    symptom_date: string;
-    symptoms: string[];
-    description?: string;
-    images?: string[];
-};
+export interface PetRecordItem {
+    record_id: number;
+    pet_id: number;
+    pet_name: string;
+    pet_image: string;
+    note: string;
+    note_image: string[];
+    time_added: string; // ISO string for calendar
+}
 
-export type EditSymptomPayload = {
-    pets_id: string;
-    symptom_date: string;
-    symptoms: string[];
-    description?: string;
-    images?: string[];
-};
+export interface PetRecordDetail extends PetRecordItem {
+    date_added: string;
+    time_added_only: string; // HH:MM
+}
+
+export interface AddSymptomPayload {
+    pet_id: number;
+    note: string;
+    note_image?: string[];
+}
+
+export interface EditSymptomPayload {
+    note?: string;
+    note_image?: string[];
+}

@@ -1,78 +1,88 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import { LocationOn, KeyboardArrowDown, Check } from "@mui/icons-material";
-import { usePets } from "@/hooks/usePets";
-
-export type AddAppointmentPayload = {
-  petId: string;
-  date: string;
-  time: string;
-  location: string;
-};
+import { LocationOn, Note as NoteIcon } from "@mui/icons-material";
+import PetFilterSelector from "../PetFilterSelector";
+import { PetLite } from "@/types/domain/pet";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 type AddCalendarAppointmentPopupProps = {
-  open: boolean;
+  open?: boolean;
   onClose: () => void;
-  initialPetId?: string;
+  allPets: PetLite[];
+  initialPetId?: number | null;
   initialDate?: string;
   onSubmit?: (data: AddAppointmentPayload) => void;
+  triggerParam?: string;
+  triggerValue?: string;
 };
 
 export default function AddAppointmentPopup({
+  allPets,
   open,
   onClose,
   initialPetId,
   initialDate,
   onSubmit,
+  triggerParam,
+  triggerValue,
 }: AddCalendarAppointmentPopupProps) {
-  const { pets, loading: loadingPets } = usePets();
-
-  const [selectedPetId, setSelectedPetId] = useState("");
+  const [selectedPetId, setSelectedPetId] = useState<number | null>(null);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-
-  // สถานะการเปิด/ปิด Dropdown สัตว์เลี้ยง
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
-
-  // หาข้อมูลสัตว์เลี้ยงที่เลือกจาก ID
-  const selectedPet = useMemo(() =>
-    pets.find(p => p._id === selectedPetId),
-    [pets, selectedPetId]);
 
   /** Reset ข้อมูลเมื่อเปิด Popup */
   useEffect(() => {
     if (open) {
-      setSelectedPetId(initialPetId || "");
+      setSelectedPetId(initialPetId || 0);
       setDate(initialDate || "");
       setTime("");
       setLocation("");
-      setIsSelectorOpen(false);
+      setNote("");
     }
   }, [open, initialPetId, initialDate]);
 
-  const canSubmit = useMemo(() => {
-    return Boolean(selectedPetId && date && time && location.trim());
-  }, [selectedPetId, date, time, location]);
+  const pet = useMemo(() => {
+    return allPets.find((p) => p.pet_id === selectedPetId);
+  }, [allPets, selectedPetId]);
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return;
-    setIsSubmitting(true);
-    try {
-      await onSubmit?.({
-        petId: selectedPetId,
-        date,
-        time,
-        location: location.trim(),
-      });
-      onClose();
-    } finally {
-      setIsSubmitting(false);
+  const canSubmit = useMemo(() => {
+    return Boolean(pet && date && time && location.trim());
+  }, [pet, date, time, location]);
+
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      console.warn("Validation failed: All fields are required.");
+      alert("Please fill in all fields (Date, Time, Location).");
+      return;
+    }
+
+    if (onSubmit && pet) {
+      setIsSubmitting(true);
+      try {
+        // Create date as UTC to prevent timezone shifting
+        const [y, m, d] = date.split("-").map(Number);
+        const [h, min] = time.split(":").map(Number);
+
+        const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
+
+        onSubmit({
+          pet_id: Number(pet.pet_id),
+          appointment_date: appointmentDate.toISOString(),
+          location: location.trim(),
+          note: note.trim(),
+          status: "Upcoming"
+        });
+        onClose();
+      } catch (error) {
+        console.error("Failed to submit appointment:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -80,6 +90,8 @@ export default function AddAppointmentPopup({
     <FormDialog
       open={open}
       onClose={onClose}
+      triggerParam={triggerParam}
+      triggerValue={triggerValue}
       title="Create Appointment"
       layout="singleColumn"
       density="compact"
@@ -95,74 +107,13 @@ export default function AddAppointmentPopup({
         <label className="block text-sm font-medium text-zinc-800">
           Select Pet
         </label>
-        <div className="relative">
-          {/* Trigger Button */}
-          <button
-            type="button"
-            onClick={() => setIsSelectorOpen(!isSelectorOpen)}
-            className="w-full flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-3 text-sm outline-none focus:ring-2 focus:ring-sky-200 transition-all"
-          >
-            <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-              {selectedPet?.profile_image ? (
-                <Image
-                  src={selectedPet.profile_image}
-                  alt={selectedPet.name}
-                  width={40}
-                  height={40}
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-zinc-200 flex items-center justify-center text-[10px] text-zinc-400">
-                  No Pic
-                </div>
-              )}
-            </div>
-            <div className="flex-1 text-left min-w-0">
-              {selectedPet ? (
-                <>
-                  <div className="font-semibold text-zinc-900 truncate">{selectedPet.name}</div>
-                  <div className="text-xs text-zinc-500 truncate">PID: {selectedPet._id}</div>
-                </>
-              ) : (
-                <div className="text-zinc-400">Choose your pet</div>
-              )}
-            </div>
-            <KeyboardArrowDown
-              className={`text-zinc-400 transition-transform duration-200 ${isSelectorOpen ? 'rotate-180' : ''}`}
-              fontSize="small"
-            />
-          </button>
-
-          {/* Dropdown Menu */}
-          {isSelectorOpen && (
-            <div className="absolute z-[100] mt-2 w-full max-h-[240px] overflow-auto rounded-2xl border border-zinc-200 bg-white shadow-xl py-1">
-              {pets.map((p) => (
-                <button
-                  key={p._id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedPetId(p._id);
-                    setIsSelectorOpen(false);
-                  }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-sky-50 transition-colors"
-                >
-                  <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-                    {p.profile_image && (
-                      <Image src={p.profile_image} alt="" width={40} height={40} className="object-cover" />
-                    )}
-                  </div>
-                  <div className="flex-1 text-left min-w-0">
-                    <div className="font-semibold text-zinc-900 truncate">{p.name}</div>
-                    <div className="text-xs text-zinc-500 truncate">PID: {p._id}</div>
-                  </div>
-                  {selectedPetId === p._id && (
-                    <Check className="text-sky-500" fontSize="small" />
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <PetFilterSelector
+          value={selectedPetId}
+          pets={allPets}
+          onChange={setSelectedPetId}
+          allowAllPets={true}
+          size="md"
+        />
       </div>
 
       {/* 2. Appointment Time */}
@@ -205,6 +156,23 @@ export default function AddAppointmentPopup({
             className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* 4. Note */}
+      <div className="pt-2">
+        <label className="block text-sm font-medium text-zinc-800 mb-1">
+          Note
+        </label>
+        <div className="relative">
+          <NoteIcon className="absolute left-3 top-2.5 text-zinc-400" fontSize="small" />
+          <input
+            type="text"
+            placeholder="e.g. Any additional notes or instructions"
+            className="w-full rounded-xl border border-zinc-200 bg-white pl-9 pr-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
       </div>

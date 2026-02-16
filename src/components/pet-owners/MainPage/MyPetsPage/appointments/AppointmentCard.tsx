@@ -10,7 +10,6 @@ export type Appointment = {
   date: string; // 17/12/2025
   time: string; // 11:00 A.M.
   location: string;
-  status: AppointmentStatus;
 };
 
 type AppointmentCardProps = {
@@ -28,7 +27,7 @@ export default function AppointmentCard({
   appointment,
   onOpenDetail,
 }: AppointmentCardProps) {
-  const { id, petName, date, time, location, status } = appointment;
+  const { id, petName, date, time, location } = appointment;
 
   return (
     <div className="relative rounded-2xl bg-white border border-zinc-100 shadow-sm p-4">
@@ -59,12 +58,12 @@ export default function AppointmentCard({
           className="absolute right-4 top-1/2 -translate-y-1/2"
           aria-label="Open appointment detail"
         >
-          <Image
+          {/* <Image
             src={statusIconMap[status]}
             alt={status}
             width={22}
             height={22}
-          />
+          /> */}
         </button>
       )}
     </div>

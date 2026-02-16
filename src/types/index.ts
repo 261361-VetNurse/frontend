@@ -11,7 +11,7 @@ export * from './domain/medical';
 
 // API DTOs
 export * from './api/auth.dto';
-export * from './api/medication.dto';
+export { type MedicineItem, type AddMedicationPayload, type EditMedicationPayload } from './api/medication.dto';
 export * from './api/appointment.dto';
 export * from './api/pet.dto';
 export * from './api/record.dto';

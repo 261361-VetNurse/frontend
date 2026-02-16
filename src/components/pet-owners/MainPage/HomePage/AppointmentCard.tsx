@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import Profile from "@/components/pet-owners/shared/Profile";
-import { DashboardAppointmentNotification } from "@/types";
+import { DashboardAppointment } from "@/types";
 
 const CardContainer = styled.div`
     width: 100%;
@@ -56,7 +56,7 @@ const CardContainer = styled.div`
 `;
 
 type AppointmentCardProps = {
-    datas: DashboardAppointmentNotification;
+    datas: DashboardAppointment;
     petImageSize?: number;
     onClick?: () => void;
 };
@@ -73,7 +73,7 @@ export default function AppointmentCard({
 
     return (
         <CardContainer onClick={onClick}>
-            <Profile imageUrl={datas.pet_image} size={petImageSize} />
+            <Profile imageUrl={datas.pet_image ?? undefined} size={petImageSize} isPet={true} />
             <div className="name-location">
                 <div className="name">{datas.pet_name}</div>
                 <div className="data-row">

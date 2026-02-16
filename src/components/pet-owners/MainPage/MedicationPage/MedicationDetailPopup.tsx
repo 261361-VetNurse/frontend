@@ -9,37 +9,58 @@ import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
 
 interface MedicationDetailPopupProps {
-  medicineReminder: any; // Accepting any to be flexible with Medicine vs Notification
-  highlightedReminderId?: string;
+  medicineReminder: any;
+  occurrences?: any[]; // For MedicationPage to match statuses for specific day
+  highlightedReminderId?: number;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
-  onToggleReminder: (reminderId: string, isTaken: boolean) => void;
+  onToggleReminder: (reminderId: number) => void;
   onEdit: () => void;
 }
 
-type OccurrenceStatus = 'pending' | 'taken' | 'missed';
+type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 const getStatus = (reminder: any): OccurrenceStatus => {
-  if (typeof reminder === 'object' && reminder.status) return reminder.status;
-  if (typeof reminder === 'object' && reminder.is_taken) return 'taken';
+  if (typeof reminder === 'object' && reminder.status) {
+    if (reminder.status === 'sent') return 'taken';
+    return reminder.status;
+  }
+  if (typeof reminder === 'object' && reminder.istaken) return 'taken';
   return 'pending';
 };
 
 const getStatusMeta = (status: OccurrenceStatus) => {
   switch (status) {
+    case 'sent':
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon };
     case 'missed':
       return { label: 'Missed', Icon: ErrorOutlineIcon };
     case 'pending':
     default:
-      return { label: 'Taken', Icon: RadioButtonUncheckedIcon };
+      return { label: 'Take', Icon: RadioButtonUncheckedIcon };
+  }
+};
+const getFrequencyLabel = (freq: string | number): string => {
+  const f = String(freq).toLowerCase();
+  switch (f) {
+    case '-1':
+    case 'everyday':
+      return 'Everyday';
+    case '0': return 'Monday';
+    case '1': return 'Tuesday';
+    case '2': return 'Wednesday';
+    case '3': return 'Thursday';
+    case '4': return 'Friday';
+    case '5': return 'Saturday';
+    case '6': return 'Sunday';
+    default: return String(freq);
   }
 };
 
-
 export default function MedicationDetailPopup({
   medicineReminder,
+  occurrences,
   highlightedReminderId,
   onClose,
   onToggleReminder,
@@ -57,10 +78,19 @@ export default function MedicationDetailPopup({
   const remindersList = Array.isArray(medicineReminder.reminder_time)
     ? medicineReminder.reminder_time.map((t: string | any, idx: number) => {
       if (typeof t === 'string') {
+        const planId = medicineReminder._id || medicineReminder.medicine_id;
+        // Try to find matching occurrence from passed occurrences list
+        const occ = occurrences?.find(o =>
+          (o.plan_id === String(planId) || o.plan_id === planId) &&
+          o.time === t
+        );
+
+        const status = occ ? getStatus(occ) : getStatus(medicineReminder);
         return {
-          id: `${medicineReminder._id}_${t}`,
+          id: occ?.reminder_id || `${planId}_${t}`,
           time: t,
-          status: 'pending' // Default for simple string list
+          status: status,
+          taken_at: occ?.taken_at || medicineReminder.taken_at
         };
       }
       return t;
@@ -80,7 +110,7 @@ export default function MedicationDetailPopup({
       <div className='flex flex-col gap-4'>
         <PetSection>
           {/* Handle cases where pet data might be flat or nested */}
-          <Profile imageUrl={medicineReminder.pet_image || medicineReminder.pet?.profile_image} size={50} />
+          <Profile imageUrl={medicineReminder.pet_image || medicineReminder.pet?.profile_image} size={50} isPet={true} />
           <div className='pet-info'>
             <div className="pet-name">{medicineReminder.pet_name || medicineReminder.pet?.name}</div>
             <div className="pet-id">id: {medicineReminder.pet_id || medicineReminder.pet?._id}</div>
@@ -99,7 +129,7 @@ export default function MedicationDetailPopup({
             <div className='schedule-info'>
               <div className='info-row'>
                 <div className='info-label'>Frequency:</div>
-                <div className='info-value'>{medicineReminder.frequency}</div>
+                <div className='info-value'>{getFrequencyLabel(medicineReminder.frequency || medicineReminder.medicine_frequency || '')}</div>
               </div>
               <div className='info-row'>
                 <div className='info-label'>Times per day:</div>
@@ -130,7 +160,7 @@ export default function MedicationDetailPopup({
                 <div className='reminder-status'>
                   <StatusButton
                     $status={status}
-                    onClick={() => onToggleReminder(reminder.id, !isTaken)}
+                    onClick={() => !isTaken && onToggleReminder(medicineReminder.notification_id)}
                     title={label}
                   >
                     <Icon style={{ width: 16, height: 16 }} />

@@ -65,7 +65,7 @@ export default function AppointmentDetailPopup({
             <div className='flex flex-col gap-4'>
                 {/* Pet Section reusing styled component from medication */}
                 <PetSection>
-                    <Profile imageUrl={appointment.pet_image || "/pets-example/pet-ex1.svg"} size={50} />
+                    <Profile imageUrl={appointment.pet_image} size={50} isPet={true} />
                     <div className='pet-info'>
                         <div className="pet-name">{appointment.pet_name || "-"}</div>
                         <div className="pet-id">id: {appointment.pet_id}</div>
@@ -103,7 +103,7 @@ export default function AppointmentDetailPopup({
                                 width: 12,
                                 height: 12,
                                 borderRadius: '50%',
-                                backgroundColor: appointment.status === 'upcoming' ? '#4CAF50' : '#9E9E9E'
+                                backgroundColor: appointment.status === 'Upcoming' ? '#4CAF50' : '#9E9E9E'
                             }} />
                         </div>
                         <InfoText>

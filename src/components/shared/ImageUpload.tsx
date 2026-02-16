@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { getPresignedUrl } from '@/services/api/client';
+import { uploadImage } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
@@ -52,26 +52,17 @@ export function ImageUpload({
                 throw new Error('File too large. Maximum size is 10MB.');
             }
 
-            // 2. Get Presigned URL
+            // 2. Upload to R2 via backend
             const token = authStorage.getToken();
             if (!token) throw new Error('Authentication required');
 
-            const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, folder);
+            // Map internal folder to storage folder
+            const storageFolder = folder === 'pet-owner-profile' ? 'users' :
+                folder === 'symptom-record' ? 'records' : 'pets';
 
-            // 3. Upload to R2
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
-            });
+            const publicUrl = await uploadImage(file, token, storageFolder);
 
-            if (!uploadResponse.ok) {
-                throw new Error('Failed to upload image to storage');
-            }
-
-            // 4. Success
+            // 3. Success - use the returned URL directly
             setPreview(publicUrl);
             onUploadComplete(publicUrl);
 

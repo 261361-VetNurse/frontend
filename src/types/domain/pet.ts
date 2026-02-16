@@ -1,26 +1,27 @@
 export type Pet = {
-  _id: string;    // เลข 6 หลัก
-  user_id: string;
+  pet_id: number;
+  user_id?: number;
   name: string;
-  species: string;
-  breed: string;
-  color: string | null;
-  gender: string;
-  birth_date: string;
-  weight_kg: number | null;
-  allergies: string[];
-  infecund: boolean;
-  profile_image: string;
-  in_medical: boolean;
-  created_at: string;
+  species?: string | null;
+  breed?: string | null;
+  birth_date?: string | null;
+  weight_kg?: number | null;
+  color?: string | null;
+  gender?: string | null;
+  note?: string[] | string | null;
+  in_medical?: boolean | null;
+  infecund?: boolean | null;
+  profile_image?: string | null;
+  is_verified?: boolean;
+  is_deleted?: boolean;
+  created_at?: string;
   updated_at?: string;
 };
 
-export type PetId = Pet['_id'];
+export type PetId = Pet['pet_id'];
 
 export type PetLite = {
-  _id: string;
+  pet_id: number;
   name: string;
-  profile_image?: string;
+  profile_image?: string | null;
 };
-

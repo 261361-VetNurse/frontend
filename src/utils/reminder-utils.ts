@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { MedicineReminderVM } from "@/types/domain/medication";
+
 import { ReminderOccurrence, OccurrenceStatus } from "@/types/domain/medication-occurrence";
+import { Medicine } from "@/types";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -25,14 +26,6 @@ export function getTodayInLocalTimezone(): Date {
 }
 
 /**
- * Get current datetime in user's local timezone
- */
-export function getNowInLocalTimezone(): Date {
-  const userTz = getUserTimezone();
-  return dayjs().tz(userTz).toDate();
-}
-
-/**
  * Format time for display (HH:mm -> 12-hour)
  */
 export function formatTimeForDisplay(timeStr: string): string {
@@ -43,7 +36,7 @@ export function formatTimeForDisplay(timeStr: string): string {
 }
 
 export function buildOccurrencesForDate(
-  reminders: MedicineReminderVM[],
+  reminders: Medicine[],
   date: Date,
   overrides: Record<string, { status: OccurrenceStatus; taken_at?: string | null }>
 ): ReminderOccurrence[] {
@@ -67,20 +60,20 @@ export function buildOccurrencesForDate(
     // For each time in reminder_time
     reminder.reminder_time.forEach((time, index) => {
       const scheduledAt = `${dateStr}T${time}:00`;
-      const reminderId = `${reminder._id}_${dateStr}_${time}`; // Synthetic ID
+      const reminderId = `${reminder.medicine_id}_${dateStr}_${time}`; // Synthetic ID
 
       result.push({
         reminder_id: reminderId,
-        plan_id: reminder._id,
+        plan_id: reminder.medicine_id,
         pet: {
-          _id: reminder.pet_id,
-          name: reminder.pet_name,
-          profile_image: reminder.pet_image
+          pet_id: reminder.pet_id,
+          name: (reminder as any).pet_name || "", // Medicine type might be missing these, or it's a VM
+          profile_image: (reminder as any).pet_image || ""
         },
         medicine: {
-          _id: reminder.medicine_id,
-          name: reminder.medicine_name,
-          dosage: reminder.medicine_dosage
+          medicine_id: reminder.medicine_id,
+          name: (reminder as any).medicine_name || reminder.name,
+          dosage: (reminder as any).medicine_dosage || reminder.dosage || ""
         },
         time: time,
         scheduled_at: scheduledAt,
@@ -94,11 +87,11 @@ export function buildOccurrencesForDate(
 }
 
 export function updateReminderTakenStatus(
-  reminders: MedicineReminderVM[],
+  reminders: Medicine[],
   planId: string,
   reminderId: string,
   isTaken: boolean
-): MedicineReminderVM[] {
+): Medicine[] {
   // This function seems to update the VM list, but the VM list structure (EachDayMedicine) doesn't hold individual taken status for specific time slots easily unless we mutate it in a way the caller expects. 
   // Usually this updates the override map or local state. 
   // But MedicationV2 expects it to return updated reminders.

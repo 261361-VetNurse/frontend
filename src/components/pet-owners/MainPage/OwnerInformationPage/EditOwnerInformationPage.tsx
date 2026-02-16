@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import EditIcon from '@mui/icons-material/Edit';
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -10,13 +9,12 @@ import {
   BackButton,
   PageTitle,
 } from '@/styles/components/owner-information.styled';
-import { theme } from '@/styles/tokens/theme';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
 import { SelectInput } from '../../shared/form/SelectInput';
 import { PrimaryButton } from '../../shared/form/PrimaryButton';
 import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/client';
-import { UserProfile } from '@/types/domain/user';
+import { UserProfileUpdatePayload } from '@/types/api/auth.dto';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 
 const EditOwnerInformationPage = () => {
@@ -25,15 +23,13 @@ const EditOwnerInformationPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string>("/images/profile-test.png");
-
-  const [originalUser, setOriginalUser] = useState<UserProfile | null>(null);
-
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     gender: 'male',
     phone: '',
-    email: ''
+    email: '',
+    line_id: ''
   });
 
   const genderOptions = [
@@ -47,14 +43,13 @@ const EditOwnerInformationPage = () => {
       try {
         const token = authStorage.getToken() || "";
         const user = await getUserProfile(token);
-        setOriginalUser(user);
-
         setFormData({
           firstName: user.fname || '',
           lastName: user.lname || '',
-          gender: user.contact?.gender || 'male',
-          phone: user.contact?.phone || '',
-          email: user.contact?.email || ''
+          gender: user.gender || 'male',
+          phone: user.phone || '',
+          email: user.email || '',
+          line_id: user.line_id || ''
         });
         if (user.picture_url) {
           setProfilePicture(user.picture_url);
@@ -86,17 +81,15 @@ const EditOwnerInformationPage = () => {
     try {
       const token = authStorage.getToken() || "";
 
-      // Prepare partial update object with safe merge for contact
-      const currentContact = originalUser?.contact || {};
-      const updateData: Partial<UserProfile> = {
+      // Prepare payload aligned with backend UserProfileUpdate schema
+      const updateData: UserProfileUpdatePayload = {
         fname: formData.firstName,
         lname: formData.lastName,
-        contact: {
-          ...currentContact,
-          gender: formData.gender,
-          phone: formData.phone,
-          email: formData.email,
-        }
+        gender: formData.gender,
+        phone: formData.phone,
+        email: formData.email,
+        line_id: formData.line_id,
+        picture_url: profilePicture
       };
 
       await updateUserProfile(token, updateData);
@@ -175,6 +168,14 @@ const EditOwnerInformationPage = () => {
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
+          />
+        </FormField>
+
+        <FormField label="Line ID" htmlFor="line_id">
+          <TextInput
+            id="line_id"
+            value={formData.line_id}
+            onChange={(e) => handleInputChange('line_id', e.target.value)}
           />
         </FormField>
 

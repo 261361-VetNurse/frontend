@@ -1,15 +1,20 @@
-export type NotificationType = "Appointment" | "Medicine" | "System" | "Record";
-
+// Medicine notification types (matching backend NotificationItem)
 export interface NotificationItem {
-    _id: string;
-    user_id: string;
+    notification_id: number;
     title: string;
-    message: string;
-    type: NotificationType;
-    is_read: boolean;
-    created_at: string; // ISO string
+    notification_at: string; // ISO format
+    istaken: boolean;
+    pet_id: number;
+}
 
-    // Optional UI helpers
-    image_url?: string;
-    link_url?: string; // Deep link if needed
+export interface NotificationDetail extends NotificationItem {
+    taken_at?: string | null;
+    pet_name?: string | null;
+    pet_image?: string | null;
+    medicine_id: number;
+    medicine_name?: string | null;
+    dosage?: string | null;
+    frequency?: string | null; // Match backend frequency field
+    reminder_time: string[];
+    time_per_day: number;
 }

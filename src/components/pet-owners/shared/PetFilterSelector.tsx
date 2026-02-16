@@ -3,12 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { PetLite } from "@/types/domain/pet";
+import Profile from "@/components/pet-owners/shared/Profile";
 
 type Mode = "filter" | "formField";
 type Size = "sm" | "md";
 type VisualState = "default" | "disabled" | "error";
-
-export type PetSelectorValue = string | "all";
 
 type Props = {
   mode?: Mode;
@@ -21,8 +20,8 @@ type Props = {
   state?: VisualState;
 
   pets: PetLite[];
-  value: PetSelectorValue;
-  onChange: (value: PetSelectorValue) => void;
+  value: number | null;
+  onChange: (value: number | null) => void;
 
   // formField extras
   label?: string;
@@ -61,8 +60,8 @@ export default function PetFilterSelector({
   }, []);
 
   const selectedPet = useMemo(() => {
-    if (value === "all") return null;
-    return pets.find((p) => p._id === value) ?? null;
+    if (value === 0) return null;
+    return pets.find((p) => p.pet_id === value) ?? null;
   }, [pets, value]);
 
   const ui = useMemo(() => {
@@ -75,7 +74,7 @@ export default function PetFilterSelector({
     return { pad, round, border, dis };
   }, [size, disabled, isError]);
 
-  function pick(v: PetSelectorValue) {
+  function pick(v: number) {
     if (disabled) return;
     onChange(v);
     setOpen(false);
@@ -106,39 +105,23 @@ export default function PetFilterSelector({
         aria-haspopup="listbox"
       >
         <div className="min-w-0 flex items-center gap-3">
-          {allowAllPets && value === "all" ? (
-            <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
-              <Image
-                src="/pet-paw.svg"
-                alt="All pets"
-                fill
-                className="object-contain p-2"
-              />
-            </div>
-
-          ) : (
-            <div className="relative h-11 w-11 overflow-hidden rounded-full bg-zinc-100">
-              <Image
-                src={selectedPet?.profile_image ?? "/pet-placeholder.svg"}
-                alt={selectedPet?.name ?? "Pet"}
-                fill
-                className="object-cover"
-              />
-            </div>
-          )}
-
+          <Profile
+            imageUrl={selectedPet?.profile_image ?? ""}
+            size="40px"
+            isPet={true}
+          />
           <div className="min-w-0 text-left">
             <div className="truncate text-sm font-semibold text-zinc-900">
-              {allowAllPets && value === "all"
+              {allowAllPets && value === 0
                 ? "All Pets"
                 : selectedPet?.name ?? placeholder}
             </div>
 
-            {allowAllPets && value === "all" ? (
+            {allowAllPets && value === 0 ? (
               <div className="text-xs text-zinc-500"> </div>
             ) : (
               <div className="truncate text-xs text-zinc-500">
-                {selectedPet?._id ? `PID: ${selectedPet._id}` : " "}
+                {selectedPet?.pet_id ? `PID: ${selectedPet.pet_id}` : " "}
               </div>
             )}
           </div>
@@ -186,8 +169,8 @@ export default function PetFilterSelector({
             {allowAllPets ? (
               <PetRow
                 key="all"
-                active={value === "all"}
-                onClick={() => pick("all")}
+                active={value === 0}
+                onClick={() => pick(0)}
                 size={size}
                 name="All Pets"
                 isAll
@@ -199,13 +182,13 @@ export default function PetFilterSelector({
             ) : (
               pets.map((p) => (
                 <PetRow
-                  key={p._id}
-                  active={value === p._id}
-                  onClick={() => pick(p._id)}
+                  key={p.pet_id}
+                  active={value === p.pet_id}
+                  onClick={() => pick(p.pet_id)}
                   size={size}
                   name={p.name}
-                  pid={p._id}
-                  avatarUrl={p.profile_image}
+                  pid={p.pet_id}
+                  profile_image={p.profile_image}
                 />
               ))
             )}
@@ -222,15 +205,15 @@ function PetRow({
   size,
   name,
   pid,
-  avatarUrl,
+  profile_image,
   isAll,
 }: {
   active?: boolean;
   onClick: () => void;
   size: "sm" | "md";
   name: string;
-  pid?: string;
-  avatarUrl?: string;
+  pid?: number;
+  profile_image?: string | null;
   isAll?: boolean;
 }) {
   const pad = size === "sm" ? "px-3 py-2" : "px-4 py-3";
@@ -257,14 +240,11 @@ function PetRow({
           </div>
 
         ) : (
-          <div className="relative h-10 w-10 overflow-hidden rounded-full bg-zinc-100">
-            <Image
-              src={avatarUrl ?? "/pet-placeholder.svg"}
-              alt={name}
-              fill
-              className="object-cover"
-            />
-          </div>
+          <Profile
+            imageUrl={profile_image}
+            alt={name}
+            size="44px"
+          />
         )}
 
         <div className="min-w-0">

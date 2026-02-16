@@ -221,7 +221,7 @@ export default function EditMedicationPopup({
   pets,
   onSuccess
 }: EditMedicationPopupProps) {
-  const [petId, setPetId] = useState('');
+  const [petId, setPetId] = useState<number | null>(null);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
 
@@ -236,7 +236,7 @@ export default function EditMedicationPopup({
 
   useEffect(() => {
     if (medicineReminder) {
-      setPetId(medicineReminder.pet_id || '');
+      setPetId(medicineReminder.pet_id || null);
       setMedicineName(medicineReminder.name || medicineReminder.medicine_name || '');
       setDosage(medicineReminder.dosage || medicineReminder.medicine_dosage || '');
 
@@ -263,7 +263,7 @@ export default function EditMedicationPopup({
 
       // Reminders
       const currentReminders = (medicineReminder.reminder_time || []).map((t: string, idx: number) => ({
-        id: `${medicineReminder._id}_${t}_${idx}`, // Unique ID
+        id: `${medicineReminder.notification_id || medicineReminder.medicine_id}_${t}_${idx}`, // Unique ID
         time: t,
         is_taken: false,
         taken_at: undefined,
@@ -341,7 +341,7 @@ export default function EditMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => p._id === petId);
+    const selectedPet = pets.find(p => (p.pet_id) === petId);
     if (!selectedPet) {
       alert('Please select a valid pet');
       return;
@@ -362,7 +362,7 @@ export default function EditMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload = {
-        pet_id: selectedPet._id,
+        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -374,10 +374,7 @@ export default function EditMedicationPopup({
 
       // Use medicine_id if available (EachDayMedicine), else _id (Medicine) for the medicine ID argument
       const targetMedicineId = medicineReminder.medicine_id || medicineReminder._id;
-      // editMedicine signature: (token, notificationId, medicineId, data)
-      // Assuming medicineReminder._id is the plan/notification ID for EachDayMedicine, and targetMedicineId is the medicine ID.
-      // If Medicine object, usage might be different but current mocks suggest consistency around IDs.
-      await editMedicine(token, medicineReminder._id, targetMedicineId, payload);
+      await editMedicine(token, String(targetMedicineId), payload);
       // Note: usage of (token, notificationId, medicineId, data). 
       // Using _id for both notification and medicine ID as per prior assumption. However, for Edit, usually we edit the Medicine definition.
 
@@ -405,7 +402,7 @@ export default function EditMedicationPopup({
           allowAllPets={false}
           pets={pets}
           value={petId}
-          onChange={(id) => setPetId(String(id))}
+          onChange={(id) => setPetId(id)}
         />
 
         <FormField label="Medicine Name" htmlFor="medication-name">

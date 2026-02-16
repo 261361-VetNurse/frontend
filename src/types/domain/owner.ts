@@ -1,5 +1,7 @@
 export type Owner = {
-  id: string;
+  id: number;
   name: string;
   avatarUrl?: string;
+  phone?: string;
+  email?: string;
 };

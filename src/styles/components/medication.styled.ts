@@ -264,12 +264,12 @@ export const StatusButton = styled.button<{ $status: string }>`
   cursor: pointer;
 
   background-color: ${({ $status }) =>
-    $status === "taken" ? "#C8E6C9" :
+    ($status === "taken" || $status === "sent") ? "#C8E6C9" :
       $status === "missed" ? "#FFCDD2" :
         "#BBDEFB"};
 
   color: ${({ $status }) =>
-    $status === "taken" ? "#256029" :
+    ($status === "taken" || $status === "sent") ? "#256029" :
       $status === "missed" ? "#C62828" :
         "#1565C0"};
 

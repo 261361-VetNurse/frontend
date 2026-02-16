@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { Card } from "@/components/ui/card";
 import { LocationOn, AccessTime } from "@mui/icons-material";
 import type { Appointment } from "@/types/domain/appointment";
+import Profile from "@/components/pet-owners/shared/Profile";
 
 export type AppointmentCardProps = {
   appointment: Appointment;
@@ -18,7 +19,7 @@ export default function AppointmentCard({
   className,
 }: AppointmentCardProps) {
   const dateObj = dayjs(appointment.appointment_date);
-  const timeStr = dateObj.format("HH:mm");
+  const timeStr = appointment.appointment_time || dateObj.format("HH:mm");
 
   return (
     <Card
@@ -31,16 +32,12 @@ export default function AppointmentCard({
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
-        <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full bg-zinc-100">
-          {appointment.pet_image ? (
-            <Image
-              src={appointment.pet_image}
-              alt={appointment.pet_name}
-              fill
-              className="object-cover"
-            />
-          ) : null}
-        </div>
+        <Profile
+          imageUrl={appointment.pet_image}
+          alt={appointment.pet_name || "Pet"}
+          size={"40px"}
+          isPet={true}
+        />
 
         {/* Content */}
         <div className="min-w-0 flex-1 space-y-1">

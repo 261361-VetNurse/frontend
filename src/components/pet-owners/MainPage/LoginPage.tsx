@@ -12,14 +12,13 @@ import {
 } from '@/styles/components/register.styled';
 
 import { useAuth } from '@/contexts/AuthContext';
+import { redirectToLineLogin } from '@/services/line-liff';
 
 export default function LoginPage() {
     const { login, user, isLoading: authLoading } = useAuth();
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [pageLoading, setPageLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [isProcessing, setIsProcessing] = useState(false);
 
     // Combined loading state
     const loading = pageLoading || authLoading;
@@ -58,21 +57,17 @@ export default function LoginPage() {
             return;
         }
 
-        if (token && !isProcessing) {
-            setIsProcessing(true);
-            handleTokenCallback(token, isNew, userId, displayName);
+        if (token) {
+            handleTokenCallback(token, isNew);
         }
-        if (token && !isProcessing && !authLoading) {
-            setIsProcessing(true);
-            handleTokenCallback(token, isNew, userId, displayName);
+        if (token && !authLoading) {
+            handleTokenCallback(token, isNew);
         }
-    }, [router, isProcessing, user, authLoading]);
+    }, [router, user, authLoading]);
 
     const handleTokenCallback = async (
         token: string,
-        isNew: boolean,
-        userId: string | null,
-        displayName: string | null
+        isNew: boolean
     ) => {
         setPageLoading(true);
         try {
@@ -82,33 +77,27 @@ export default function LoginPage() {
             window.history.replaceState({}, '', window.location.pathname);
 
             // Redirect based on user registration status
-            if (isNew) {
-                router.push('/pet-owners/register-page');
-            } else {
-                router.push('/pet-owners/home-page');
-            }
+            router.push(`/pet-owners/home-page?code=${token}`);
         } catch (err) {
             console.error('Token handling error:', err);
             setError('Failed to process login. Please try again.');
-            setIsProcessing(false);
         } finally {
             setPageLoading(false);
         }
     };
 
-    const handleLoginClick = async () => {
+    const handleLoginClick = () => {
         setError(null);
         setPageLoading(true);
+        redirectToLineLogin();
+    };
 
-        // Mock Login
-        try {
-            await login("mock_token_user_1_long_live");
-            router.push('/pet-owners/home-page');
-        } catch (e) {
-            setError("Mock login failed");
-        } finally {
-            setPageLoading(false);
-        }
+    const [devCode, setDevCode] = useState('');
+
+    const handleDevLogin = () => {
+        if (!devCode) return;
+        // Redirect to home page with code, letting HomePage handle the exchange
+        router.push(`/pet-owners/home-page?code=${encodeURIComponent(devCode)}`);
     };
 
     return (
@@ -144,17 +133,35 @@ export default function LoginPage() {
                     {loading ? 'Loading...' : 'Login With Line'}
                 </PrimaryButton>
 
-                {loading && (
-                    <div style={{
-                        marginTop: '16px',
-                        textAlign: 'center',
-                        color: '#6b7280',
-                        fontSize: '14px'
-                    }}>
-                        Please wait while we log you in...
+                {/* --- Dev Login Section --- */}
+                <div className="mt-6 pt-6 border-t border-zinc-100">
+                    <div className="text-xs text-center text-zinc-400 mb-3 uppercase tracking-wider font-medium">
+                        Developer Access
                     </div>
-                )}
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            placeholder="Enter Code / Token ex.DEV_TEST_CODE"
+                            className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 text-sm outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+                            value={devCode}
+                            onChange={(e) => setDevCode(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && devCode) {
+                                    handleDevLogin();
+                                }
+                            }}
+                        />
+                        <button
+                            type="button"
+                            onClick={handleDevLogin}
+                            disabled={loading || !devCode}
+                            className="h-10 px-4 rounded-lg bg-zinc-800 text-white text-sm font-medium hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        >
+                            Enter
+                        </button>
+                    </div>
+                </div>
             </RegisterCard>
-        </RegisterContainer>
+        </RegisterContainer >
     );
 }

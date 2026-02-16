@@ -2,32 +2,40 @@ import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
-const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
-const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
-const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
-const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
-const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
-
 export async function POST(request: NextRequest) {
     try {
-        if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
-            console.error("Missing R2 configuration");
-            return NextResponse.json(
-                { success: false, detail: "Server misconfiguration: R2 credentials missing" },
-                { status: 500 }
-            );
-        }
+        const body = await request.json();
+        const { filename, content_type, folder = 'pets' } = body;
 
-        const { fileType, folder } = await request.json();
-
-        if (!fileType) {
+        // Validation
+        if (!filename || !content_type) {
             return NextResponse.json(
-                { success: false, detail: "File type is required" },
+                { detail: 'Filename and content_type are required' },
                 { status: 400 }
             );
         }
 
-        const S3 = new S3Client({
+        // Validate folder to prevent path traversal or messy storage
+        const allowedFolders = ['pets', 'users', 'records'];
+        const targetFolder = allowedFolders.includes(folder) ? folder : 'pets';
+
+        // R2 Configuration
+        const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+        const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+        const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+        const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
+        const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
+
+        if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
+            console.error('Missing R2 environment variables');
+            return NextResponse.json(
+                { detail: 'Server configuration error' },
+                { status: 500 }
+            );
+        }
+
+        // Initialize S3 Client
+        const s3Client = new S3Client({
             region: 'auto',
             endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
             credentials: {
@@ -36,33 +44,32 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        // Generate unique filename
-        const uniqueId = Math.random().toString(36).substring(2, 15);
-        const extension = fileType.split('/')[1] || 'bin';
-        const objectKey = `${folder ? folder + '/' : ''}${Date.now()}-${uniqueId}.${extension}`;
+        // Generate Unique Filename
+        const fileExt = filename.split('.').pop() || 'jpg';
+        const uniqueFilename = `${targetFolder}/${crypto.randomUUID()}.${fileExt}`;
 
+        // Generate Presigned URL
         const command = new PutObjectCommand({
             Bucket: R2_BUCKET_NAME,
-            Key: objectKey,
-            ContentType: fileType,
+            Key: uniqueFilename,
+            ContentType: content_type,
         });
 
-        const uploadUrl = await getSignedUrl(S3, command, { expiresIn: 3600 });
-        const publicUrl = R2_PUBLIC_URL ? `${R2_PUBLIC_URL}/${objectKey}` : uploadUrl.split('?')[0];
+        // Sign the URL (expires in 1 hour)
+        const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+        const publicUrl = `${R2_PUBLIC_URL}/${uniqueFilename}`;
 
         return NextResponse.json({
             success: true,
-            data: {
-                uploadUrl,
-                publicUrl,
-                objectKey
-            }
+            upload_url: uploadUrl,
+            public_url: publicUrl,
+            filename: uniqueFilename,
         });
 
     } catch (error) {
-        console.error("Error generating presigned URL:", error);
+        console.error('Presigned URL generation failed:', error);
         return NextResponse.json(
-            { success: false, detail: "Failed to generate upload URL" },
+            { detail: 'Failed to generate upload URL' },
             { status: 500 }
         );
     }

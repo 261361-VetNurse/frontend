@@ -6,9 +6,7 @@ import "react-day-picker/dist/style.css";
 import AppointmentPage from "@/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPage";
 import { RecordPage } from "@/components/pet-owners/MainPage/CalendarPage/record/RecordPage";
 import { Tabs } from "@/components/pet-owners/shared/Tabs";
-import PetFilterSelector, {
-    type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 import type { Pet, PetLite } from "@/types/domain/pet";
 import { usePets } from "@/hooks/usePets";
 
@@ -23,7 +21,7 @@ function CalendarPageContent() {
     const petOptions: PetLite[] = useMemo(
         () =>
             pets.map((p: Pet) => ({
-                _id: String(p._id),
+                pet_id: p.pet_id,
                 name: p.name,
                 profile_image: p.profile_image,
             })),
@@ -31,7 +29,7 @@ function CalendarPageContent() {
     );
 
     const [selectedPetId, setSelectedPetId] =
-        useState<PetSelectorValue>("all");
+        useState<number>(0);
 
     const recordTabs = [
         { name: "Appointment", path: "/appointment", params: "appointment" },
@@ -48,14 +46,14 @@ function CalendarPageContent() {
                         allowAllPets
                         pets={petOptions}
                         value={selectedPetId}
-                        onChange={setSelectedPetId}
+                        onChange={(id) => setSelectedPetId(id || 0)}
                     />
                 </div>
             </div>
             {showRecord ? (
-                <RecordPage selectedPetId={selectedPetId} />
+                <RecordPage selectedPetId={selectedPetId} allPets={pets} />
             ) : (
-                <AppointmentPage selectedPetId={selectedPetId} />
+                <AppointmentPage selectedPetId={selectedPetId} allPets={pets} />
             )}
         </div>
     );

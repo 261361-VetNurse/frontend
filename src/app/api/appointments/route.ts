@@ -9,5 +9,5 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-    return proxyRequest(request, '/v1/appointments', { method: 'POST' });
+    return proxyRequest(request, '/v1/appointments');
 }

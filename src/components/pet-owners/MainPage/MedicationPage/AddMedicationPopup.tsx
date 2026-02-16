@@ -8,7 +8,9 @@ import { theme } from '@/styles/tokens/theme';
 
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
-import type { Pet } from '@/types/domain/pet';
+import { PetLite } from '@/types/domain/pet';
+import { createMedicine, authStorage } from '@/services/api/client';
+import { AddMedicationPayload } from '@/types/api/medication.dto';
 
 
 
@@ -146,8 +148,8 @@ type CreateMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
-  pets: Pet[];
-  initialPetId?: string;
+  pets: PetLite[];
+  initialPetId?: number;
 };
 
 export default function CreateMedicationPopup({
@@ -157,7 +159,7 @@ export default function CreateMedicationPopup({
   pets,
   initialPetId
 }: CreateMedicationPopupProps) {
-  const [petId, setPetId] = useState(initialPetId || '');
+  const [petId, setPetId] = useState<number | null>(null);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
 
@@ -240,7 +242,7 @@ export default function CreateMedicationPopup({
       return;
     }
 
-    const selectedPet = pets.find(p => p._id === petId);
+    const selectedPet = pets.find(p => String(p.pet_id) === String(petId));
     if (!selectedPet) {
       alert('Please select a pet');
       return;
@@ -255,22 +257,26 @@ export default function CreateMedicationPopup({
     }
 
     try {
-      // Simulate API call with console.log instead of actual API request
-      console.log('[MOCK] Creating medication with payload:', {
-        pet_id: selectedPet._id,
+      const token = authStorage.getToken() || "";
+
+      const payload: AddMedicationPayload = {
+        pet_id: Number(selectedPet.pet_id),
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
-        starting_date: startDate,
-        reminders: reminders.map(r => r.time),
-      });
+        start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
+        reminder_time: reminders.map(r => r.time),
+        status: 'TAKE',
+        end_date: new Date(new Date(startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week if not specified
+      };
 
-      // Simulate success
+      await createMedicine(token, payload);
+
       alert('Medication created successfully!');
       onSuccess?.();
 
       // Reset form
-      setPetId('');
+      setPetId(0);
       setMedicineName('');
       setDosage('');
       setIsEveryday(true);
@@ -284,8 +290,6 @@ export default function CreateMedicationPopup({
       alert(`Failed to create medication: ${err.message}`);
     }
   };
-
-  const selectedPet = pets.find(p => p._id === petId);
 
   return (
     <FormDialog
@@ -302,8 +306,8 @@ export default function CreateMedicationPopup({
           mode="filter"
           allowAllPets={false}
           pets={pets}
-          value={petId}
-          onChange={(id) => setPetId(String(id))}
+          value={petId || 0}
+          onChange={(id) => setPetId(id)}
         />
 
         <Row>

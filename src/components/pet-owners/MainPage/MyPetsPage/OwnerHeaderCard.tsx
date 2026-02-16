@@ -1,37 +1,30 @@
 "use client";
 
-import Image from "next/image";
+import Profile from "@/components/pet-owners/shared/Profile";
+
 import { useRouter } from "next/navigation";
 
 type OwnerHeaderCardProps = {
   name: string;
   ownerId: string;
-  avatarUrl?: string;
-  OwnerPageUrl?: string;
+  avatarUrl?: string | null;
+  OwnerPageUrl?: string | null;
 };
 
 export default function OwnerHeaderCard({
   name,
   ownerId,
-  avatarUrl = "/Ava.svg",
+  avatarUrl,
   OwnerPageUrl
 }: OwnerHeaderCardProps) {
   const router = useRouter();
 
   return (
-    <div 
+    <div
       className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-3 flex items-center gap-3"
       onClick={() => { if (OwnerPageUrl) router.push(OwnerPageUrl) }}>
       {/* Avatar */}
-      <div className="h-12 w-12 rounded-full overflow-hidden bg-zinc-100 shrink-0">
-        <Image
-          src={avatarUrl}
-          alt="Owner Avatar"
-          width={48}
-          height={48}
-          className="h-full w-full object-cover"
-        />
-      </div>
+      <Profile imageUrl={avatarUrl} size={48} />
 
       {/* Owner Info */}
       <div className="min-w-0">

@@ -64,7 +64,7 @@ const OwnerInformationPage = () => {
   // if (error || !userData) return ...
 
   const displayName = userData ? `${userData.fname || ''} ${userData.lname || ''}`.trim() : 'Unknown User';
-  const userId = userData?.id || 'N/A';
+  const userId = userData?.user_id || 'N/A';
 
   return (
     <Container>
@@ -85,7 +85,7 @@ const OwnerInformationPage = () => {
         </AvatarWrapper>
         <div>
           <OwnerName>{displayName}</OwnerName>
-          <OwnerId>ID: {userId !== 'N/A' ? userId.substring(userId.length - 9) : 'N/A'}</OwnerId>
+          <OwnerId>ID: {userId}</OwnerId>
         </div>
       </Header>
       <Divider />
@@ -114,19 +114,19 @@ const OwnerInformationPage = () => {
             </InfoItem>
             <InfoItem>
               <InfoLabel>Gender</InfoLabel>
-              <InfoValue>{userData?.contact?.gender || 'N/A'}</InfoValue>
+              <InfoValue>{userData?.gender || 'N/A'}</InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>Phone</InfoLabel>
-              <InfoValue>{userData?.contact?.phone || 'N/A'}</InfoValue>
+              <InfoValue>{userData?.phone || 'N/A'}</InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>Email</InfoLabel>
-              <InfoValue>{userData?.contact?.email || 'N/A'}</InfoValue>
+              <InfoValue>{userData?.email || 'N/A'}</InfoValue>
             </InfoItem>
             <InfoItem>
               <InfoLabel>Line ID</InfoLabel>
-              <InfoValue>{userData?.contact?.line_id || 'N/A'}</InfoValue>
+              <InfoValue>{userData?.line_id || 'N/A'}</InfoValue>
             </InfoItem>
           </InfoList>
         </Section>

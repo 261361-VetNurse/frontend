@@ -8,5 +8,5 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    return proxyRequest(request, `/v1/appointments/${id}`, { method: 'DELETE' });
+    return proxyRequest(request, `/v1/appointments/${id}`);
 }

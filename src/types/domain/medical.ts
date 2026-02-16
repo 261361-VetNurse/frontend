@@ -1,10 +1,13 @@
-// Domain Type for Medical Records
+// Medical History Record (based on backend MedicalHistoryCreate)
 
-export type MedicalRecord = {
-    _id: string; // Typically Mongo returns _id
-    pet_id: string;
+export interface MedicalHistory {
+    date: string; // YYYY-MM-DD format
+    time: string; // HH:MM format
     note: string;
-    images: string[];
-    created_at: string;
-    updated_at: string;
-};
+}
+
+export interface MedicalHistoryCreate {
+    date: string;
+    time: string;
+    note: string;
+}

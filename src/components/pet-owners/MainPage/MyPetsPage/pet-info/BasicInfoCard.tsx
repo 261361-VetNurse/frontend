@@ -2,40 +2,23 @@
 
 import dayjs from "dayjs";
 import InfoRow from "./InfoRow";
+import { Pet } from "@/types/domain/pet";
+import { formatAge } from "@/lib/pets/age";
 
 export default function BasicInfoCard({
-  name,
-  species,
-  breed,
-  birthDate,
-  ageText,
-  sex,
-  weightKg,
-  infecund,
-  allergies,
-  inMedical,
+  petInfo,
   onEdit,
 }: {
-  name: string;
-  species?: string;
-  breed?: string;
-  birthDate: string;
-  ageText: string;
-  sex: string;
-  weightKg?: string | null;
-  infecund?: boolean;
-  allergies?: string[];
-  inMedical?: boolean;
+  petInfo: Pet;
   onEdit?: () => void;
 }) {
-  const sterileText = infecund ? "Yes" : "No";
+  const sterileText = petInfo.infecund ? "Yes" : "No";
 
-  const allergiesText =
-    allergies && allergies.length > 0 ? allergies.join(", ") : "-";
-
-  const formattedBirthDate = birthDate
-    ? dayjs(birthDate).format("DD/MM/YYYY")
+  const formattedBirthDate = petInfo.birth_date
+    ? dayjs(petInfo.birth_date).format("DD/MM/YYYY")
     : "-";
+
+  const ageText = formatAge(petInfo.birth_date || "");
 
   return (
     <div className="rounded-2xl bg-white shadow-sm border border-zinc-100 p-4">
@@ -70,18 +53,18 @@ export default function BasicInfoCard({
       {/* Grid Section */}
       <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-4">
         <div className="col-span-2">
-          <InfoRow label="Name" value={name} />
+          <InfoRow label="Name" value={petInfo.name} />
         </div>
-        <InfoRow label="Species" value={species} />
-        <InfoRow label="Breed" value={breed} />
+        <InfoRow label="Species" value={petInfo.species} />
+        <InfoRow label="Breed" value={petInfo.breed} />
         <InfoRow label="Infecund" value={sterileText} />
         <InfoRow label="Date of birth" value={formattedBirthDate} />
         <InfoRow label="Age" value={ageText} />
-        <InfoRow label="Gender" value={sex} />
-        <InfoRow label="Weight (kg)" value={weightKg ?? "-"} />
-        <InfoRow label="In Medical" value={inMedical ? "Yes" : "No"} />
+        <InfoRow label="Gender" value={petInfo.gender} />
+        <InfoRow label="Weight (kg)" value={petInfo.weight_kg ?? "-"} />
+        <InfoRow label="In Medical" value={petInfo.in_medical ? "Yes" : "No"} />
         <div className="col-span-2">
-          <InfoRow label="Allergies" value={allergiesText} />
+          <InfoRow label="Note" value={petInfo.note} />
         </div>
       </div>
     </div>

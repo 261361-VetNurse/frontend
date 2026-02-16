@@ -3,7 +3,7 @@ export default function InfoRow({
   value,
 }: {
   label: string;
-  value?: string;
+  value?: string[] | string | number | boolean | null | undefined;
 }) {
   return (
     <div>

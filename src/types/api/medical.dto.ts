@@ -1,14 +1,8 @@
 // API DTO Types for Medical Records
 
-export type AddMedicalPayload = {
-    pets_id: string;
-    medical_date: string;
-    medical_type: string;
-    clinic_name?: string;
-    vet_name?: string;
-    diagnosis?: string;
-    treatment?: string;
-    prescription?: string;
-    note?: string;
-    images?: string[];
-};
+export interface AddMedicalPayload {
+    date: string; // YYYY-MM-DD
+    time: string; // HH:MM
+    note: string;
+    images?: string[]; // Optional in backend record service
+}

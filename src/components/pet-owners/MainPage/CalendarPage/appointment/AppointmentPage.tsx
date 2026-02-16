@@ -2,23 +2,20 @@
 
 import { useMemo, useState, useEffect } from "react";
 import dayjs from "dayjs";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 import { Page } from "@/styles/components/calendar.styled";
-
-import {
-  type PetSelectorValue,
-} from "@/components/pet-owners/shared/PetFilterSelector";
 
 import CalendarModule, {
   type CalendarDayMeta,
   type DayMarker,
 } from "@/components/pet-owners/shared/CalendarModule";
 
-import AddAppointmentPopup, { AddAppointmentPayload } from "../../../shared/appointment/AddAppointmentPopup";
+import AddAppointmentPopup from "../../../shared/appointment/AddAppointmentPopup";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 import AppointmentCard from "./AppointmentCard";
 import AppointmentDetail from "../../../shared/appointment/AppointmentDetail";
-import EditAppointment, { EditAppointmentPayload } from "../../../shared/appointment/EditAppointment";
+import EditAppointment from "../../../shared/appointment/EditAppointment";
 
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
@@ -36,9 +33,12 @@ import {
   cancelAppointment,
   deleteAppointment,
   authStorage,
+  getPets,
+  getAppointmentDetail,
 } from "@/services/api/client";
 
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { Pet } from "@/types";
 
 /* ---------------- tabs ---------------- */
 
@@ -50,17 +50,20 @@ const appointmentTabs = [
 /* ================= page ================= */
 
 export default function AppointmentPage({
-  selectedPetId = "all",
+  selectedPetId = 0,
+  allPets
 }: {
-  selectedPetId?: PetSelectorValue;
+  selectedPetId?: number | null;
+  allPets: Pet[];
 }) {
   /* -------- pets -------- */
   // Removed local petOptions and selectedPetId state
 
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
   const appointmentIdParam = searchParams.get("appointment_id");
-  const openParam = searchParams.get("open");
+  const popupParam = searchParams.get("popup"); // "view-appointment", "edit-appointment", "add-appointment"
 
   /* -------- calendar -------- */
 
@@ -75,21 +78,26 @@ export default function AppointmentPage({
   const { appointments: apiAppointments, loading: loadingApps, error, refetch } = useAppointments();
 
   const filteredByPet = useMemo(() => {
-    if (selectedPetId === "all") return apiAppointments;
+    if (selectedPetId === 0) return apiAppointments;
     return apiAppointments.filter((a) => a.pet_id === selectedPetId);
   }, [apiAppointments, selectedPetId]);
 
   const appointmentsBySelectedDate = useMemo(() => {
     return filteredByPet
       .filter((a) => {
+        // Handle both ISO string and date string formats
         const d = dayjs(a.appointment_date).format("YYYY-MM-DD");
         return d === selectedDateKey;
       })
       .sort((a, b) => {
-        // compare time
-        const tA = dayjs(a.appointment_date).unix();
-        const tB = dayjs(b.appointment_date).unix();
-        return tA - tB;
+        // Sort by date and time
+        const timeA = a.appointment_time || dayjs(a.appointment_date).format("HH:mm");
+        const timeB = b.appointment_time || dayjs(b.appointment_date).format("HH:mm");
+
+        const dateStrA = `${dayjs(a.appointment_date).format("YYYY-MM-DD")}T${timeA}`;
+        const dateStrB = `${dayjs(b.appointment_date).format("YYYY-MM-DD")}T${timeB}`;
+
+        return dayjs(dateStrA).unix() - dayjs(dateStrB).unix();
       });
   }, [filteredByPet, selectedDateKey]);
 
@@ -114,28 +122,72 @@ export default function AppointmentPage({
   /* -------- popups -------- */
 
   const [openCreate, setOpenCreate] = useState(false);
-  const [detail, setDetail] =
-    useState<Appointment | null>(null);
-  const [editing, setEditing] =
-    useState<Appointment | null>(null);
+  const [detail, setDetail] = useState<Appointment | null>(null);
+  const [editing, setEditing] = useState<Appointment | null>(null);
 
-  // Deep linking for Edit
+  // Deep linking for View & Edit
+  // Deep linking for View & Edit
   useEffect(() => {
-    if (appointmentIdParam && openParam === "edit" && !loadingApps && apiAppointments.length > 0) {
-      const target = apiAppointments.find((a) => a._id === appointmentIdParam);
-      if (target) {
-        setEditing(target);
+    const fetchPopupData = async () => {
+      const token = authStorage.getToken() || "";
+      if (popupParam === "view-appointment" && appointmentIdParam) {
+        try {
+          // Fetch fresh detail from API
+          const data = await getAppointmentDetail(token, Number(appointmentIdParam));
+          setDetail(data);
+        } catch (err) {
+          console.error("Failed to fetch appointment detail:", err);
+        }
+      } else if (popupParam === "edit-appointment" && appointmentIdParam) {
+        try {
+          const data = await getAppointmentDetail(token, Number(appointmentIdParam));
+          setEditing(data);
+        } catch (err) {
+          console.error("Failed to fetch appointment for edit:", err);
+        }
+      } else if (popupParam === "add-appointment") {
+        setOpenCreate(true);
       }
-    }
-  }, [appointmentIdParam, openParam, loadingApps, apiAppointments]);
+    };
 
-  const closeEdit = () => {
-    setEditing(null);
-    // Clear query params
+    if (popupParam) {
+      fetchPopupData();
+    }
+  }, [appointmentIdParam, popupParam]);
+
+  const openViewPopup = (appt: Appointment) => {
+    // setDetail(appt); // Removed: Fetch from API via URL param
     const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "view-appointment");
+    newParams.set("appointment_id", String(appt.appointment_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openEditPopup = (appt: Appointment) => {
+    // setEditing(appt); // Removed: Fetch from API via URL param
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "edit-appointment");
+    newParams.set("appointment_id", String(appt.appointment_id));
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const openCreatePopup = () => {
+    setOpenCreate(true);
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.set("popup", "add-appointment");
+    router.push(`${pathname}?${newParams.toString()}`);
+  };
+
+  const closePopup = () => {
+    setDetail(null);
+    setEditing(null);
+    setOpenCreate(false);
+
+    const newParams = new URLSearchParams(searchParams.toString());
+    newParams.delete("popup");
     newParams.delete("appointment_id");
-    newParams.delete("open");
-    router.replace(`?${newParams.toString()}`);
+    // Also specific params if any
+    router.replace(`${pathname}?${newParams.toString()}`);
   };
 
   /* -------- handlers -------- */
@@ -145,68 +197,55 @@ export default function AppointmentPage({
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      // Construct payload
-      // Backend expects: { pet_id, appointment_date (ISO), location, status? }
-      const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
-
-      const payload = {
-        pet_id: data.petId,
-        appointment_date: dateTime,
-        location: data.location,
-        status: "Upcoming", // default
-      };
-
-      await createAppointment(token, payload);
+      await createAppointment(token, data);
       await refetch();
-      setOpenCreate(false);
+      closePopup();
     } catch (err) {
       console.error("Failed to create appointment:", err);
-      // You might want to show a toast/alert here
     }
   };
 
-  const handleEdit = async (data: EditAppointmentPayload) => {
+  const handleEdit = async (data: Appointment) => {
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
       // Canceled check
       if (data.status === "Canceled") {
-        await cancelAppointment(token, data.id);
+        await cancelAppointment(token, data.appointment_id);
       } else {
         // Normal edit
-        const dateTime = dayjs(`${data.date}T${data.time}`).toISOString();
         const payload = {
-          pet_id: data.petId,
-          appointment_date: dateTime,
+          pet_id: data.pet_id,
+          appointment_date: data.appointment_date,
           location: data.location,
           status: data.status,
+          note: data.note,
         };
-        await editAppointment(token, data.id, payload);
+        await editAppointment(token, data.appointment_id, payload);
       }
 
       await refetch();
-      closeEdit();
+      closePopup();
     } catch (err) {
       console.error("Failed to edit appointment:", err);
-      // alert
     }
   };
 
-  const handleCancelAppointment = async (id: string) => {
+  const handleCancelAppointment = async (id: number) => {
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
       await cancelAppointment(token, id);
       await refetch();
-      closeEdit();
+      closePopup();
     } catch (err) {
       console.error("Failed to cancel appointment:", err);
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this appointment?")) return;
     try {
       const token = authStorage.getToken();
@@ -217,18 +256,18 @@ export default function AppointmentPage({
       setDetail(null);
     } catch (err) {
       console.error("Failed to delete appointment:", err);
-      // alert
     }
   };
 
   return (
     <Page>
       <AddAppointmentPopup
+        allPets={allPets}
         open={openCreate}
-        onClose={() => setOpenCreate(false)}
+        onClose={closePopup}
         initialDate={selectedDateKey}
         initialPetId={
-          selectedPetId !== "all" ? selectedPetId : undefined
+          selectedPetId !== 0 ? selectedPetId : undefined
         }
         onSubmit={handleCreate}
       />
@@ -237,10 +276,10 @@ export default function AppointmentPage({
       <AppointmentDetail
         open={!!detail}
         appointment={detail}
-        onClose={() => setDetail(null)}
+        onClose={closePopup}
         onEdit={(a) => {
           setDetail(null);
-          setEditing(a);
+          openEditPopup(a);
         }}
         onDelete={handleDelete}
         onDelete={() => setDetail(null)}
@@ -262,7 +301,7 @@ export default function AppointmentPage({
       <EditAppointment
         open={!!editing}
         appointment={editing}
-        onClose={closeEdit}
+        onClose={closePopup}
         onSave={handleEdit}
         onCancelAppointment={handleCancelAppointment}
       />
@@ -273,7 +312,7 @@ export default function AppointmentPage({
         position="bottom-right"
         icon={<AddRoundedIcon />}
         color="#09BFF8"
-        onClickAction={() => setOpenCreate(true)}
+        onClickAction={openCreatePopup}
       />
 
       <div className="scroll-area">
@@ -314,9 +353,9 @@ export default function AppointmentPage({
 
               {appointmentsBySelectedDate.map((a) => (
                 <AppointmentCard
-                  key={a._id}
+                  key={a.appointment_id}
                   appointment={a}
-                  onClick={() => setDetail(a)}
+                  onClick={() => openViewPopup(a)}
                 />
               ))}
             </>

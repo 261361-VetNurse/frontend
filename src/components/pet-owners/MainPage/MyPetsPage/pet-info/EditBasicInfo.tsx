@@ -16,13 +16,13 @@ type Sex = "Male" | "Female" | "Unknown";
 
 export default function EditBasicInfo() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
   const { pets } = usePets();
 
   const pet: Pet | undefined = useMemo(
-    () => pets.find((p) => String(p._id) === String(petId)),
-    [pets, petId]
+    () => pets.find((p) => String(p.pet_id) === String(pet_id)),
+    [pets, pet_id]
   );
 
   const currentPet = pet;
@@ -35,7 +35,7 @@ export default function EditBasicInfo() {
 
   // Safe defaults
   const [avatarUrl, setAvatarUrl] = useState(
-    currentPet?.profile_image ?? "/pet-placeholder.svg"
+    currentPet?.profile_image || undefined
   );
   const [name, setName] = useState(currentPet?.name ?? "");
   const [species, setSpecies] = useState(currentPet?.species ?? "");
@@ -45,13 +45,11 @@ export default function EditBasicInfo() {
       ? dayjs(currentPet.birth_date).format("YYYY-MM-DD")
       : ""
   );
-
   const [sex, setSex] = useState<Sex>((currentPet?.gender as Sex) ?? "Unknown");
   const [weight, setWeight] = useState(currentPet?.weight_kg ?? "");
   const [infecund, setInfecund] = useState<boolean>(currentPet?.infecund ?? false);
-  const [allergiesInput, setAllergiesInput] = useState(
-    currentPet?.allergies ? currentPet.allergies.join(", ") : ""
-  );
+  const [inMedical, setInMedical] = useState<boolean>(currentPet?.in_medical ?? false);
+  const [note, setNote] = useState(currentPet?.note ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // If initially undefined, we might want to sync when it becomes defined.
@@ -64,7 +62,7 @@ export default function EditBasicInfo() {
 
   useMemo(() => {
     if (currentPet) {
-      setAvatarUrl(currentPet.profile_image ?? "/pet-placeholder.svg");
+      setAvatarUrl(currentPet.profile_image ?? "");
       setName(currentPet.name ?? "");
       setSpecies(currentPet.species ?? "");
       setBreed(currentPet.breed ?? "");
@@ -72,20 +70,10 @@ export default function EditBasicInfo() {
       setSex((currentPet.gender as Sex) ?? "Unknown");
       setWeight(currentPet.weight_kg ?? "");
       setInfecund(currentPet.infecund ?? false);
-      setAllergiesInput(currentPet.allergies ? currentPet.allergies.join(", ") : "");
+      setInMedical(currentPet.in_medical ?? false);
+      setNote(currentPet.note ?? "");
     }
   }, [currentPet]);
-
-
-  if (!currentPet) {
-    // If usePets is loading (not exposed directly by hook here but inferred), we could show loading.
-    // For now, if not found and check length or some delay?
-    // Existing code returned "Pet not found" immediately which might flash if loading.
-    // Let's keep it simply "Pet not found" if truly missing, but maybe check if pets length > 0
-
-    // Returning here breaks hook rules if we put hooks above? 
-    // No, I moved hooks up.
-  }
 
   const computedAge = useMemo(() => (dob ? formatAge(dob) : "-"), [dob]);
 
@@ -101,11 +89,6 @@ export default function EditBasicInfo() {
     if (!canSubmit || !currentPet) return;
     setIsSubmitting(true);
 
-    const allergiesArray = allergiesInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter((s) => s !== "");
-
     const payload: Partial<Pet> = {
       name: name.trim(),
       species: species.trim(),
@@ -114,7 +97,8 @@ export default function EditBasicInfo() {
       gender: sex,
       weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : Number(weight)) : weight,
       infecund: infecund,
-      allergies: allergiesArray,
+      in_medical: inMedical,
+      note: note,
       profile_image: avatarUrl,
     };
 
@@ -122,8 +106,8 @@ export default function EditBasicInfo() {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      await updatePet(token, currentPet._id, payload);
-      router.push(`/pet-owners/my-pets-page/${currentPet._id}`);
+      await updatePet(token, String(currentPet.pet_id), payload);
+      router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}`);
     } catch (err) {
       console.error("Failed to update pet:", err);
       alert("Failed to update pet. Please try again.");
@@ -138,7 +122,7 @@ export default function EditBasicInfo() {
         <button onClick={() => router.back()} className="underline">
           ← Back
         </button>
-        <div className="mt-4 text-zinc-700">Pet not found: {String(petId)}</div>
+        <div className="mt-4 text-zinc-700">Pet not found: {String(pet_id)}</div>
       </div>
     );
   }
@@ -147,7 +131,7 @@ export default function EditBasicInfo() {
     <div>
       <TopBar
         title="Edit Basic Information"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet._id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${currentPet.pet_id}`)}
       />
 
       <div className="pt-4 pb-28">
@@ -278,16 +262,43 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
+          {/* In Medical */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-800 mb-2">
+              In Medical
+            </label>
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={inMedical === true}
+                  onChange={() => setInMedical(true)}
+                  className="accent-sky-500 w-4 h-4"
+                />
+                Yes
+              </label>
+              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={inMedical === false}
+                  onChange={() => setInMedical(false)}
+                  className="accent-sky-500 w-4 h-4"
+                />
+                No
+              </label>
+            </div>
+          </div>
+
           {/* Allergies */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
-              Allergies
+              Note
             </label>
             <input
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-              value={allergiesInput}
-              onChange={(e) => setAllergiesInput(e.target.value)}
-              placeholder="e.g. Chicken, Beef, Dust (comma separated)"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. allergies, medical conditions, notes"
             />
           </div>
 

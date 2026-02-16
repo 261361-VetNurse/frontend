@@ -1,47 +1,63 @@
 // API DTO Types for Medication
 
-export type AddMedicationPayloadV2 = {
-    pets_id: string;
+export interface MedicineItem {
+    medicine_id: number;
+    name: string;
+    dosage: string | null;
+    frequency: string;
+    status: string;
+    start_date: string; // ISO string
+    end_date: string; // ISO string
+    reminder_time: string[];
+    notes: string[];
+    properties: string | null;
+    image_urls: string[];
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NotificationItem {
+    _id: string; // Frontend often uses this as unique key
+    notification_id: number;
+    title: string;
+    notification_at: string;
+    istaken: boolean;
+    pet_id: number;
+    user_id: string;
+    medicine_id: number;
+    pet_name: string;
+    pet_image: string;
     medicine_name: string;
     dosage: string;
-    frequency_type: "everyday" | "interval_hours" | "custom";
-    interval_hours?: number;
-    days_of_week?: string[];
-    measurement_times_per_day: number;
-    times: string[];
-    starting_date: string;
-};
+    medicine_frequency: string;
+    reminder_time: string[];
+    status: string;
+    created_at: string;
+    updated_at: string;
+}
 
-export type EditMedicationPayload = {
-    pets_id: string;
-    medicine_name: string;
-    dosage: string;
-    frequency_type: "everyday" | "interval_hours" | "custom";
-    interval_hours?: number;
-    days_of_week?: string[];
-    measurement_times_per_day: number;
-    times: string[];
-    starting_date: string;
-};
+export interface AddMedicationPayload {
+    pet_id: number;
+    name: string;
+    dosage?: string;
+    frequency: string; // "-1" for daily, or comma separated days
+    reminder_time: string[];
+    start_date: string; // ISO 8601 string
+    end_date: string; // ISO 8601 string
+    status?: string;
+    properties?: string;
+    image_urls?: string[];
+}
 
-export type MedicationEditRecord = {
-    notification_id: string;
-    medicine_id: string;
-    pet: {
-        _id: string;
-        name: string;
-        profile_image?: string;
-    };
-    medicine: {
-        name: string;
-        dosage: string;
-    };
-    schedule: {
-        frequency_type: "everyday" | "interval_hours" | "custom";
-        interval_hours?: number;
-        days_of_week?: string[];
-        measurement_times_per_day: number;
-        times: string[];
-        starting_date: string;
-    };
-};
+export interface EditMedicationPayload {
+    name?: string;
+    note?: string; // New note to add
+    properties?: string;
+    image_urls?: string[];
+    dosage?: string;
+    frequency?: string;
+    status?: string;
+    reminder_time?: string[];
+    start_date?: string;
+    end_date?: string;
+}

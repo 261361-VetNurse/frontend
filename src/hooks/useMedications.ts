@@ -12,7 +12,7 @@ interface UseMedicationsReturn {
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD)
  */
-export function useMedications(petId?: string, date?: string): UseMedicationsReturn {
+export function useMedications(petId?: number, date?: string): UseMedicationsReturn {
     const [medications, setMedications] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,13 +22,11 @@ export function useMedications(petId?: string, date?: string): UseMedicationsRet
             setLoading(true);
             setError(null);
 
-            const currentToken = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-
             // Dynamic import to avoid circular dep if any (though client shouldn't)
-            const { getMedications } = await import('@/services/api/client');
-            const { USE_MOCK_DATA } = await import('@/utils/mock-helper');
+            const { getMedications, authStorage } = await import('@/services/api/client');
 
-            const tokenToUse = currentToken || (USE_MOCK_DATA ? 'mock_token' : '');
+            const currentToken = authStorage.getToken();
+            const tokenToUse = currentToken || '';
 
             if (!tokenToUse) {
                 // optionally handle no token

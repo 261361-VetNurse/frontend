@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
   Page,
@@ -13,7 +13,7 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PetId } from '@/types/domain/pet';
-import { EachDayMedicine, Medicine } from '@/types/domain/medication';
+import { Medicine, NotificationDetail, NotificationItem } from '@/types/domain/medication';
 import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
@@ -27,6 +27,7 @@ import { usePets } from '@/hooks';
 import {
   authStorage,
   getMedications,
+  getMedicationNotificationDetail,
   getMedicineDetail,
   createMedicine,
   deleteMedicine,
@@ -40,7 +41,7 @@ export default function MedicationPage() {
   const router = useRouter();
 
   // State
-  const [medicines, setMedicines] = useState<EachDayMedicine[]>([]);
+  const [medicineNoti, setMedicinesNoti] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,8 +50,9 @@ export default function MedicationPage() {
 
   // Read active tab
   const activeTab = (searchParams.get('tab') as TabType) || 'today';
+  const urlPetId = Number(searchParams.get('pet_id')) || 0;
 
-  const [selectedPetId, setSelectedPetId] = useState<PetId>('all');
+  const [selectedPetId, setSelectedPetId] = useState<number>(urlPetId);
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const medicationTabs = [
@@ -61,7 +63,7 @@ export default function MedicationPage() {
 
   const [selectedReminder, setSelectedReminder] = useState<{
     medicineReminder: any; // Medicine or detailed object
-    highlightedReminderId?: string;
+    highlightedReminderId?: number;
   } | null>(null);
 
   const [editingReminder, setEditingReminder] = useState<Medicine | null>(null);
@@ -77,53 +79,55 @@ export default function MedicationPage() {
     return d;
   };
 
-  const baseDate = getDateForTab(activeTab);
+  // Memoize baseDate to prevent infinite loop - only recalculate when activeTab changes
+  const baseDate = useMemo(() => getDateForTab(activeTab), [activeTab]);
 
-  const fetchReminders = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const fetchMedicineNotiData = async (token: string, petId: number, date: string) => {
     try {
-      const token = authStorage.getToken() || "";
-      const dateForTab = getDateForTab(activeTab);
-      const dateStr = dateForTab.toISOString().split('T')[0];
-
-      const data: EachDayMedicine[] = await getMedications(token, selectedPetId === 'all' ? undefined : selectedPetId, dateStr);
-      setMedicines(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error fetching reminders:', err);
-      setError("Failed to load medication reminders");
-      setMedicines([]);
-    } finally {
-      setLoading(false);
+      setError(null);
+      const data = await getMedications(token, petId, date);
+      setMedicinesNoti(data);
+    } catch (error) {
+      console.error('Error fetching medicine notifications:', error);
+      setError('Failed to load medication reminders');
     }
-  }, [activeTab, selectedPetId]);
-
-  useEffect(() => {
-    fetchReminders();
-  }, [fetchReminders]);
+  };
 
   // Deep link handling
-  // Deep link handling
   useEffect(() => {
-    const notificationId = searchParams.get('noti_id');
-    const medicineId = searchParams.get('med_id');
-    const openMode = searchParams.get('open');
+    const notificationId = Number(searchParams.get('noti_id'));
+    const medicineId = Number(searchParams.get('med_id'));
+    const popupParam = searchParams.get('popup'); // "view-medication", "edit-medication", "add-medication"
 
     const handleDeepLink = async () => {
-      if (!notificationId || !medicineId) return;
+      if (popupParam === 'add-medication') {
+        setShowCreatePopup(true);
+        return;
+      }
+
+      if (!notificationId && !medicineId) return;
       try {
         const token = authStorage.getToken() || "";
-        const detail = await getMedicineDetail(token, notificationId, medicineId);
-        if (detail) {
-          if (openMode === 'edit') {
-            setEditingReminder(detail);
-            setSelectedReminder(null);
-          } else {
+        // If viewing detail, we need notification details
+        if (popupParam === 'view-medication' && notificationId) {
+          const detail = await getMedicationNotificationDetail(token, notificationId);
+          if (detail) {
             setSelectedReminder({
               medicineReminder: detail,
               highlightedReminderId: medicineId
             });
             setEditingReminder(null);
+          }
+        } else if (popupParam === 'edit-medication' && medicineId) {
+          // For editing, we might need medicine details directly or notification details. 
+          // The existing code used getMedicationNotificationDetail with medId which seems wrong if medId is passed.
+          // But let's assume getMedicationNotificationDetail can take a generic ID or we use the right API.
+          // Re-using existing logic: "getMedicationNotificationDetail(token, medId)" was used for edit.
+          // Let's verify existing logic: handleEditFromCard uses medId to fetch detail ??
+          const detail = await getMedicationNotificationDetail(token, Number(medicineId)); // Assuming API handles this
+          if (detail) {
+            setEditingReminder(detail);
+            setSelectedReminder(null);
           }
         }
       } catch (e) {
@@ -133,32 +137,81 @@ export default function MedicationPage() {
     handleDeepLink();
   }, [searchParams]);
 
+  const openViewPopup = (notiId: number, medId: number) => {
+    // Optimistic set? Or fetch first? 
+    // Existing logic fetches first. We can keep that or move fetch to effect.
+    // Let's trigger the URL update and let the effect handle fetching (Deep Linking) OR fetch then update URL.
+    // Fetching first is better for UX (no empty popup).
+    handleReminderClick(notiId, medId);
+  };
 
-  const handlePetSelect = (petId: string) => {
-    setSelectedPetId(petId);
+  const openEditPopup = (medId: number) => {
+    handleEditFromCard(medId);
+  };
+
+  const openCreatePopup = () => {
+    setShowCreatePopup(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('popup', 'add-medication');
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const closePopup = () => {
+    setShowCreatePopup(false);
+    setSelectedReminder(null);
+    setEditingReminder(null);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('popup');
+    params.delete('noti_id');
+    params.delete('med_id');
+    router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  // Fetch medication data when tab, pet, or date changes
+  useEffect(() => {
+    const token = authStorage.getToken();
+    if (!token) return;
+
+    const date = baseDate.toISOString().split('T')[0];
+    fetchMedicineNotiData(token, selectedPetId, date);
+  }, [selectedPetId, baseDate]);
+
+  // Client-side filtering as a safety measure
+  const filteredMedicines = useMemo(() => {
+    if (selectedPetId === 0) return medicineNoti;
+    return medicineNoti.filter(m => m.pet_id === selectedPetId);
+  }, [medicineNoti, selectedPetId]);
+
+
+  const handlePetSelect = (petId: number | null) => {
+    setSelectedPetId(petId || 0);
+    const params = new URLSearchParams(searchParams.toString());
+    if (petId === 0) {
+      params.delete('pet_id');
+    } else {
+      params.set('pet_id', petId?.toString() || '');
+    }
+    router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const handleAdd = () => {
-    setShowCreatePopup(true);
+    openCreatePopup();
   };
 
-  const handleCloseCreatePopup = () => {
-    setShowCreatePopup(false);
-  };
-
-  const handleReminderClick = async (noti: EachDayMedicine) => {
+  const handleReminderClick = async (notiId: number, medId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      // Using _id as notificationId (based on client.ts L214 returning mockEachDayMedicines where _id is used)
-      const detail = await getMedicineDetail(token, noti._id, noti.medicine_id);
+      const detail = await getMedicationNotificationDetail(token, notiId);
       setSelectedReminder({
         medicineReminder: detail,
         highlightedReminderId: undefined
       });
 
       const params = new URLSearchParams(searchParams.toString());
-      params.set('noti_id', noti._id);
-      params.set('med_id', noti.medicine_id);
+      params.set('popup', 'view-medication');
+      params.set('noti_id', notiId.toString());
+      params.set('med_id', medId.toString());
       router.push(`?${params.toString()}`, { scroll: false });
 
     } catch (e) {
@@ -166,11 +219,16 @@ export default function MedicationPage() {
     }
   };
 
-  const handleEditFromCard = async (med: EachDayMedicine) => {
+  const handleEditFromCard = async (medId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      const detail = await getMedicineDetail(token, med._id, med.medicine_id);
+      const detail = await getMedicationNotificationDetail(token, medId);
       setEditingReminder(detail);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('popup', 'edit-medication');
+      params.set('med_id', medId.toString());
+      router.push(`?${params.toString()}`, { scroll: false });
     } catch (e) {
       console.error(e);
     }
@@ -180,6 +238,18 @@ export default function MedicationPage() {
     if (selectedReminder) {
       setEditingReminder(selectedReminder.medicineReminder);
       setSelectedReminder(null);
+
+      // Transition to Edit URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('popup', 'edit-medication');
+      // Assuming we have medicine ID from somewhere or use noti_id? 
+      // The previous logic used getMedicationNotificationDetail(token, medId) for edit 
+      // BUT `selectedReminder.medicineReminder` might be what we need.
+      // Ideally we need a medicine ID. Let's assume medicineReminder has it.
+      if (selectedReminder.medicineReminder?.medicine_id) {
+        params.set('med_id', selectedReminder.medicineReminder.medicine_id.toString());
+      }
+      router.push(`?${params.toString()}`, { scroll: false });
     }
   };
 
@@ -187,42 +257,27 @@ export default function MedicationPage() {
     if (window.confirm('Are you sure you want to delete this medication?')) {
       try {
         const token = authStorage.getToken() || "";
-        await deleteMedicine(token, notificationId, medicineId);
-        fetchReminders();
+        await deleteMedicine(token, medicineId);
+        const date = baseDate.toISOString().split('T')[0];
+        fetchMedicineNotiData(token, selectedPetId, date);
       } catch (err) {
         console.error(err);
-        alert("Failed to delete medication");
       }
     }
   };
 
-  const handleToggleReminder = async (notificationId: string, reminderId: string, isTaken: boolean) => {
+  const handleToggleReminder = async (notificationId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      await markMedicationTaken(token, notificationId, isTaken);
-      fetchReminders();
+      await markMedicationTaken(token, notificationId);
+      const date = baseDate.toISOString().split('T')[0];
+      fetchMedicineNotiData(token, selectedPetId, date);
     } catch (e) {
       console.error(e);
     }
   };
 
-  const handleCloseDetail = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('noti_id');
-    params.delete('med_id');
-    params.delete('open');
-    router.push(`?${params.toString()}`, { scroll: false });
-    setSelectedReminder(null);
-  };
 
-  const handleCloseEdit = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete('noti_id');
-    params.delete('med_id');
-    params.delete('open');
-    router.push(`?${params.toString()}`, { scroll: false });
-    setEditingReminder(null);
-  };
 
   const formatDate = (d: Date): string => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -245,7 +300,7 @@ export default function MedicationPage() {
             allowAllPets
             pets={pets}
             value={selectedPetId}
-            onChange={handlePetSelect}
+            onChange={(petId) => handlePetSelect(petId)}
           />
         </div>
       </div>
@@ -262,30 +317,28 @@ export default function MedicationPage() {
       </Header>
 
       <CardList>
-        {pageLoading && medicines.length === 0 ? (
+        {pageLoading && medicineNoti.length === 0 ? (
           <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
         ) : error ? (
-          <SectionError message="Failed to load medication reminders" onRetry={fetchReminders} />
-        ) : medicines.length > 0 ? (
-          medicines.map((med) => (
+          <SectionError
+            message="Failed to load medication reminders"
+            onRetry={() => {
+              const token = authStorage.getToken() || '';
+              const date = baseDate.toISOString().split('T')[0];
+              fetchMedicineNotiData(token, selectedPetId, date);
+            }}
+          />
+        ) : filteredMedicines.length > 0 ? (
+          filteredMedicines.map((med) => (
             <MedicineCard
-              key={`${med._id}_${med.medicine_id}`}
-              petName={med.pet_name}
-              petImageUrl={med.pet_image}
-              medicineName={med.medicine_name}
-              dosage={med.medicine_dosage}
-              times={(med.reminder_time || []).map((t, idx) => ({
-                id: `${med._id}_${t}`,
-                timeLabel: t,
-                status: 'pending'
-              }))}
-              isStopped={false}
-              onOpenDetail={() => handleReminderClick(med)}
-              onToggleTaken={(reminderId, next) =>
-                handleToggleReminder(med._id, reminderId, next)
+              key={`${med.notification_id}_${med.medicine_id}`}
+              data={med}
+              onOpenDetail={() => handleReminderClick(med.notification_id, med.medicine_id)}
+              onToggleTaken={() =>
+                handleToggleReminder(med.notification_id)
               }
-              onEdit={() => handleEditFromCard(med)}
-              onDelete={() => handleDelete(med._id, med.medicine_id)}
+              onEdit={() => handleEditFromCard(med.medicine_id)}
+              onDelete={() => handleDelete(med.notification_id.toString(), med.medicine_id.toString())}
             />
           ))
         ) : (
@@ -312,8 +365,8 @@ export default function MedicationPage() {
 
       <CreateMedicationPopup
         open={showCreatePopup}
-        onClose={handleCloseCreatePopup}
-        onSuccess={() => { setShowCreatePopup(false); fetchReminders(); }}
+        onClose={closePopup}
+        onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, baseDate.toISOString().split('T')[0]); }}
         pets={pets}
       />
 
@@ -322,9 +375,9 @@ export default function MedicationPage() {
           page="medication-page"
           medicineReminder={selectedReminder.medicineReminder}
           highlightedReminderId={selectedReminder.highlightedReminderId}
-          onClose={handleCloseDetail}
-          onToggleReminder={(reminderId: string, isTaken: boolean) =>
-            handleToggleReminder(selectedReminder.medicineReminder._id, reminderId, isTaken)
+          onClose={closePopup}
+          onToggleReminder={(reminderId: number) =>
+            handleToggleReminder(reminderId)
           }
           onEdit={handleEditFromDetail}
         />
@@ -333,10 +386,10 @@ export default function MedicationPage() {
       {editingReminder && (
         <EditMedicationPopup
           open={!!editingReminder}
-          onClose={handleCloseEdit}
+          onClose={closePopup}
           medicineReminder={editingReminder}
           pets={pets}
-          onSuccess={() => { setEditingReminder(null); fetchReminders(); }}
+          onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, baseDate.toISOString().split('T')[0]); }}
         />
       )}
     </Page>

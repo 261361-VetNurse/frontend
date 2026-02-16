@@ -13,16 +13,13 @@ type PetLite = {
   pid: string;
   avatarUrl?: string;
 };
+import { PetLite } from "@/types/domain/pet";
+import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 type AddAppointmentPopupProps = {
   open: boolean;
   onClose: () => void;
-  onSubmit?: (data: {
-    petId: string;
-    date: string;
-    time: string;
-    location: string;
-  }) => void;
+  onSubmit?: (data: AddAppointmentPayload) => void;
   pet: PetLite;
 };
 
@@ -35,31 +32,47 @@ export default function AddAppointmentPopup({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (open) {
       setDate("");
       setTime("");
       setLocation("");
+      setNote("");
     }
   }, [open]);
 
   const canSubmit = useMemo(() => {
-    return Boolean(pet?.id && date && time && location.trim());
-  }, [pet?.id, date, time, location]);
+    return Boolean(pet?.pet_id && date && time && location.trim());
+  }, [pet?.pet_id, date, time, location]);
 
-  function handleSubmit() {
-    if (!canSubmit) return;
+  /* Added logging for debugging */
+  const handleSubmit = () => {
+    if (!canSubmit) {
+      console.warn("Validation failed: All fields are required.");
+      alert("Please fill in all fields (Date, Time, Location).");
+      return;
+    }
 
-    onSubmit?.({
-      petId: pet.id,
-      date,
-      time,
-      location: location.trim(),
-    });
+    if (onSubmit) {
+      // Create date as UTC to prevent timezone shifting
+      const [y, m, d] = date.split("-").map(Number);
+      const [h, min] = time.split(":").map(Number);
+
+      const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
+
+      onSubmit({
+        pet_id: Number(pet.pet_id),
+        appointment_date: appointmentDate.toISOString(),
+        location: location.trim(),
+        note: note.trim(),
+        status: "Upcoming"
+      });
+    }
 
     onClose();
-  }
+  };
 
     setIsSubmitting(true);
     try {
@@ -105,9 +118,9 @@ export default function AddAppointmentPopup({
       {/* Pet info */}
       <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
         <div className="h-10 w-10 rounded-full bg-zinc-100 overflow-hidden shrink-0">
-          {pet.avatarUrl ? (
+          {pet.profile_image ? (
             <Image
-              src={pet.avatarUrl}
+              src={pet.profile_image}
               alt={pet.name}
               width={40}
               height={40}
@@ -121,7 +134,7 @@ export default function AddAppointmentPopup({
             {pet.name}
           </div>
           <div className="text-xs text-zinc-500 truncate">
-            PID: {pet.pid}
+            PID: {pet.pet_id}
           </div>
         </div>
       </div>
@@ -170,6 +183,20 @@ export default function AddAppointmentPopup({
           value={location}
           onChange={(e) => setLocation(e.target.value)}
           placeholder="e.g. Examination Room 1"
+        />
+      </div>
+
+      {/* Note */}
+      <div>
+        <label className="block text-sm font-medium text-zinc-800 mb-1">
+          Note
+        </label>
+        <input
+          type="text"
+          className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="e.g. Note"
         />
       </div>
     </FormDialog>

@@ -3,13 +3,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
-import PetFilterSelector, { PetSelectorValue, PetSelectorValue as SharedPetLite } from '@/components/pet-owners/shared/PetFilterSelector';
+import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import { MedicineReminderVM } from '@/types/domain/medication';
+import { Medicine, NotificationDetail } from '@/types/domain/medication';
 import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
 import {
   formatTimeForDisplay,
@@ -58,9 +58,9 @@ function getDateForTab(tab: TabType): Date {
 
 export default function MedicationPageV2() {
   const router = useRouter();
-  const { petId } = useParams<{ petId: string }>();
+  const { pet_id } = useParams<{ pet_id: string }>();
 
-  const [medicineReminders, setMedicineReminders] = useState<MedicineReminderVM[]>([]);
+  const [medicineReminders, setMedicineReminders] = useState<Medicine[]>([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,23 +68,23 @@ export default function MedicationPageV2() {
   const { pets: apiPets, loading: petsLoading } = usePets();
 
   // Selected Pet Logic
-  const [selectedPetId, setSelectedPetId] = useState<string>(petId ? String(petId) : '');
+  const [selectedPetId, setSelectedPetId] = useState<number>(pet_id ? Number(pet_id) : 0);
 
   // Sync state with URL param
   useEffect(() => {
-    if (petId) {
-      setSelectedPetId(String(petId));
+    if (pet_id) {
+      setSelectedPetId(Number(pet_id));
     } else if (apiPets.length > 0 && !selectedPetId) {
       // If no petId in URL but we have pets, default to first or stay empty?
       // MyPetsPage usually requires a pet context, but let's handle if URL changes.
       // Actually, normally MyPetsPage requires selection.
     }
-  }, [petId, apiPets, selectedPetId]);
+  }, [pet_id, apiPets, selectedPetId]);
 
 
   const selectedPet = useMemo(() => {
     // If selectedPetId matches a pet, use it
-    return apiPets.find(p => p._id === selectedPetId);
+    return apiPets.find(p => p.pet_id === selectedPetId);
   }, [apiPets, selectedPetId]);
 
   // Tabs
@@ -92,11 +92,11 @@ export default function MedicationPageV2() {
   const [showCreatePopup, setShowCreatePopup] = useState(false);
 
   const [selectedReminder, setSelectedReminder] = useState<{
-    medicineReminder: MedicineReminderVM;
+    medicineReminder: Medicine;
     highlightedReminderId?: string;
   } | null>(null);
 
-  const [editingReminder, setEditingReminder] = useState<MedicineReminderVM | null>(null);
+  const [editingReminder, setEditingReminder] = useState<Medicine | null>(null);
   const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, OccurrenceOverride>>({});
 
   const fetchReminders = useCallback(async () => {
@@ -163,15 +163,14 @@ export default function MedicationPageV2() {
 
   const filteredOccurrences = useMemo(() => {
     // Already filtered by API for selectedPetId, but double check
-    return occurrences.filter(o => o.pet._id === selectedPetId);
+    return occurrences.filter(o => o.pet.pet_id === selectedPetId);
   }, [occurrences, selectedPetId]);
 
 
   // Handlers
-  const handlePetSelect = (id: PetSelectorValue) => {
-    const nextId = String(id);
-    setSelectedPetId(nextId);
-    router.push(`/pet-owners/my-pets-page/${nextId}/medications`);
+  const handlePetSelect = (id: number | null) => {
+    setSelectedPetId(id || 0);
+    router.push(`/pet-owners/my-pets-page/${id}/medications`);
   };
 
   const handleAdd = () => setShowCreatePopup(true);
@@ -183,7 +182,7 @@ export default function MedicationPageV2() {
   };
 
   const handleReminderClick = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr.medicine_id === occ.plan_id);
     if (!plan) return;
     setSelectedReminder({
       medicineReminder: plan,
@@ -192,7 +191,7 @@ export default function MedicationPageV2() {
   };
 
   const handleEditFromCard = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr._id === occ.plan_id);
+    const plan = medicineReminders.find(mr => mr.medicine_id === occ.plan_id);
     if (!plan) return;
     setEditingReminder(plan);
     setSelectedReminder(null);
@@ -203,10 +202,10 @@ export default function MedicationPageV2() {
       try {
         const token = authStorage.getToken();
         if (token) {
-          const reminder = medicineReminders.find(mr => mr._id === planId);
+          const reminder = medicineReminders.find(mr => mr.medicine_id === Number(planId));
           if (reminder) {
-            await deleteMedicine(token, planId, reminder.medicine_id);
-            setMedicineReminders(prev => prev.filter(mr => mr._id !== planId));
+            await deleteMedicine(token, reminder.medicine_id.toString());
+            setMedicineReminders(prev => prev.filter(mr => mr.medicine_id !== reminder.medicine_id));
           }
         }
       } catch (err) {
@@ -215,18 +214,12 @@ export default function MedicationPageV2() {
     }
   };
 
-  const handleToggleReminder = async (planId: string, reminderId: string, isTaken: boolean) => {
-    const updated = updateReminderTakenStatus(medicineReminders, planId, reminderId, isTaken);
-    setMedicineReminders(updated);
-    if (selectedReminder?.medicineReminder._id === planId) {
-      const updatedPlan = updated.find(mr => mr._id === planId);
-      if (updatedPlan) {
-        setSelectedReminder(prev => prev ? { ...prev, medicineReminder: updatedPlan } : prev);
-      }
-    }
+  const handleToggleReminder = async (planId: number, reminderId: string, isTaken: boolean) => {
+    // Simplified update logic for V2 as we rely on re-fetching or state management that matches MedicationPage
     try {
       const token = authStorage.getToken();
-      if (token) await markMedicationTaken(token, reminderId, isTaken);
+      if (token) await markMedicationTaken(token, Number(reminderId));
+      fetchReminders(); // Refresh after toggle
     } catch (err) {
       console.error(err);
       fetchReminders();
@@ -260,15 +253,15 @@ export default function MedicationPageV2() {
     <div className="flex flex-col gap-4">
       <TopBar
         title="Medication"
-        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?._id}`)}
+        onBack={() => router.push(`/pet-owners/my-pets-page/${selectedPet?.pet_id}`)}
       />
 
       <PetFilterSelector
         mode="filter"
         allowAllPets={false}
         pets={apiPets}
-        value={selectedPetId as PetSelectorValue}
-        onChange={handlePetSelect}
+        value={selectedPetId}
+        onChange={(petId) => handlePetSelect(petId)}
       />
 
       <div style={{ marginTop: 8 }}>
@@ -305,8 +298,8 @@ export default function MedicationPageV2() {
           <CardList>
             {(() => {
               // Group occurrences by plan_id similar to MedicationPage
-              const groupedMap = new Map<string, {
-                planId: string;
+              const groupedMap = new Map<number, {
+                planId: number;
                 pet: typeof filteredOccurrences[0]['pet'];
                 medicine: typeof filteredOccurrences[0]['medicine'];
                 isStopped: boolean;
@@ -314,7 +307,7 @@ export default function MedicationPageV2() {
               }>();
 
               filteredOccurrences.forEach(occ => {
-                const plan = medicineReminders.find(p => p._id === occ.plan_id);
+                const plan = medicineReminders.find(p => p.medicine_id === occ.plan_id);
                 // Check if medication is stopped. Since EachDayMedicine doesn't have status, we assume TAKE unless otherwise specifying (or add it to type)
                 // For now, let's assume false or check if we added status to the type.
                 const isStopped = false; // Placeholder until we add status to EachDayMedicine
@@ -347,12 +340,20 @@ export default function MedicationPageV2() {
               return groupedList.map(group => (
                 <MedicineCard
                   key={group.planId}
-                  petName={group.pet.name}
-                  petImageUrl={group.pet.profile_image}
-                  medicineName={group.medicine.name}
-                  dosage={group.medicine.dosage}
-                  times={group.slots}
-                  isStopped={group.isStopped}
+                  data={{
+                    notification_id: group.planId,
+                    medicine_id: group.medicine.medicine_id,
+                    pet_id: group.pet.pet_id,
+                    pet_name: group.pet.name,
+                    pet_image: group.pet.profile_image,
+                    medicine_name: group.medicine.name,
+                    dosage: group.medicine.dosage,
+                    reminder_time: group.slots.map(s => s.timeLabel),
+                    istaken: group.slots.every(s => s.status === 'taken' || s.status === 'sent'),
+                    time_per_day: group.slots.length,
+                    notification_at: '', // Placeholder
+                    title: `Medication for ${group.pet.name}`,
+                  }}
                   onOpenDetail={() => {
                     // Find generic occurrence to trigger click
                     const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
@@ -365,8 +366,7 @@ export default function MedicationPageV2() {
                     const firstOcc = filteredOccurrences.find(o => o.plan_id === group.planId);
                     if (firstOcc) handleEditFromCard(firstOcc);
                   }}
-                  onDelete={() => handleDeleteFromCard(group.planId)}
-
+                  onDelete={() => handleDeleteFromCard(String(group.planId))}
                 />
               ));
             })()}
@@ -398,10 +398,11 @@ export default function MedicationPageV2() {
         <MedicationDetailPopup
           page="medication-page"
           medicineReminder={selectedReminder.medicineReminder}
-          highlightedReminderId={selectedReminder.highlightedReminderId}
+          occurrences={filteredOccurrences.filter(o => o.plan_id === selectedReminder.medicineReminder.medicine_id)}
+          highlightedReminderId={selectedReminder.highlightedReminderId ? Number(selectedReminder.highlightedReminderId) : undefined}
           onClose={() => setSelectedReminder(null)}
-          onToggleReminder={(reminderId: string, isTaken: boolean) =>
-            handleToggleReminder(selectedReminder.medicineReminder._id, reminderId, isTaken)
+          onToggleReminder={(reminderId: number) =>
+            handleToggleReminder(selectedReminder.medicineReminder.medicine_id, reminderId.toString(), true)
           }
           onEdit={handleEditFromDetail}
         />
