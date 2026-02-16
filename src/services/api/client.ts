@@ -4,15 +4,8 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
 
 
-// Mock Data Imports (Lazy load where possible or just direct if simple)
-import { mockPets } from '@/mocks/pets.mock';
-import { mockDashboardData, mockMedicationNotificationDetail } from '@/mocks/dashboard.mock';
-import { mockAppointments } from '@/mocks/appointments.mock';
-import { mockUserProfile } from '@/mocks/owner.mock';
-import { mockEachDayMedicines, mockMedicines } from '@/mocks/medication.mock';
-import { mockSymptomRecords } from '@/mocks/symptom.mock';
 import { Appointment } from '@/types/domain/appointment';
-import { SymptomRecord, CreateSymptomRecordRequest, UpdateSymptomRecordRequest, SymptomCalendarResponse } from '@/types/domain/symptom';
+import { SymptomRecord, SymptomCalendarResponse } from '@/types/domain/symptom';
 
 // Mock Helper
 /**
@@ -45,16 +38,11 @@ interface LineExchangeResponse {
 import { User, UserProfile } from '@/types/domain/user';
 import { Pet } from '@/types/domain/pet';
 
-const cloneMock = <T,>(data: T): T => JSON.parse(JSON.stringify(data)) as T;
-
-let mockAppointmentsStore: Appointment[] = cloneMock(mockAppointments);
-let mockSymptomRecordsStore: SymptomRecord[] = cloneMock(mockSymptomRecords);
-
 function normalizeAppointmentStatus(status?: string): Appointment["status"] {
     const lower = (status ?? "").toLowerCase();
-    if (lower === "completed") return "completed";
-    if (lower === "canceled" || lower === "cancelled") return "canceled";
-    return "upcoming";
+    if (lower === "completed") return "Completed";
+    if (lower === "canceled" || lower === "cancelled") return "Canceled";
+    return "Upcoming";
 }
 
 import {
@@ -396,34 +384,6 @@ export async function filterMedicines(token: string, params: Record<string, any>
  * @param status - Optional status filter ("Upcoming", "Completed", "Canceled")
  */
 export async function getAppointments(token: string, status?: string): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            const records = cloneMock(mockAppointmentsStore);
-            if (status) {
-                return records.filter(evt => evt.status?.toLowerCase() === status.toLowerCase());
-            }
-            return records;
-        },
-        apiCall: async () => {
-            let url = `/api/appointments`;
-            if (status) url += `?status=${encodeURIComponent(status)}`;
-
-            const response = await loggedFetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to get appointments');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: 'getAppointments'
-    });
     let url = `/v1/appointments`;
     if (status) url += `?status=${encodeURIComponent(status)}`;
     const response = await loggedFetch(url, {
@@ -455,32 +415,6 @@ export async function getAppointmentDetail(token: string, appointmentId: number)
     }
     const json = await response.json();
     return json.data || json;
-export async function getAppointmentDetail(token: string, appointmentId: string): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            if (appointmentId) {
-                const found = mockAppointmentsStore.find(a => a._id === appointmentId);
-                if (!found) throw new Error("Appointment detail not found in mock");
-                return cloneMock(found);
-            }
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/appointments/${appointmentId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to get appointment detail');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: `getAppointmentDetail(${appointmentId})`
-    });
 }
 /**
  * Create new appointment
@@ -499,47 +433,6 @@ export async function createAppointment(token: string, appointmentData: AddAppoi
         throw new Error(error.detail || 'Failed to create appointment');
     }
     return response.json();
-export async function createAppointment(token: string, appointmentData: any): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            const pet = mockPets.find((p) => p._id === appointmentData.pet_id);
-            const created: Appointment = {
-                _id: "mock_apt_" + Math.random().toString(36).substring(2, 10),
-                pet_id: appointmentData.pet_id,
-                pet_name: pet?.name || "Unknown Pet",
-                pet_image: pet?.profile_image || "",
-                location: appointmentData.location || "",
-                appointment_date: appointmentData.appointment_date || new Date().toISOString(),
-                status: normalizeAppointmentStatus(appointmentData.status),
-                note: appointmentData.note,
-                created_at: new Date().toISOString(),
-            };
-            mockAppointmentsStore = [created, ...mockAppointmentsStore];
-            return {
-                success: true,
-                data: cloneMock(created),
-                message: "Appointment created (mock)"
-            };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/appointments`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(appointmentData),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to create appointment');
-            }
-
-            return response.json();
-        },
-        mockLabel: 'createAppointment'
-    });
 }
 /**
  * Edit appointment
@@ -562,48 +455,6 @@ export async function editAppointment(
         throw new Error(error.detail || 'Failed to edit appointment');
     }
     return response.json();
-    return fetchWithMock({
-        mockData: () => {
-            const idx = mockAppointmentsStore.findIndex((a) => a._id === appointmentId);
-            if (idx < 0) throw new Error("Appointment not found in mock");
-            const current = mockAppointmentsStore[idx];
-            const pet = mockPets.find((p) => p._id === (appointmentData.pet_id || current.pet_id));
-            const updated: Appointment = {
-                ...current,
-                pet_id: appointmentData.pet_id || current.pet_id,
-                pet_name: pet?.name || current.pet_name,
-                pet_image: pet?.profile_image || current.pet_image,
-                appointment_date: appointmentData.appointment_date || current.appointment_date,
-                location: appointmentData.location || current.location,
-                status: normalizeAppointmentStatus(appointmentData.status || current.status),
-                updated_at: new Date().toISOString(),
-            };
-            mockAppointmentsStore[idx] = updated;
-            return {
-                success: true,
-                data: cloneMock(updated),
-                message: "Appointment updated (mock)"
-            };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/appointments/${appointmentId}/edit`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(appointmentData),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to edit appointment');
-            }
-
-            return response.json();
-        },
-        mockLabel: `editAppointment(${appointmentId})`
-    });
 }
 /**
  * Cancel appointment
@@ -620,36 +471,6 @@ export async function cancelAppointment(token: string, appointmentId: number): P
         throw new Error(error.detail || 'Failed to cancel appointment');
     }
     return response.json();
-export async function cancelAppointment(token: string, appointmentId: string): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            const idx = mockAppointmentsStore.findIndex((a) => a._id === appointmentId);
-            if (idx >= 0) {
-                mockAppointmentsStore[idx] = {
-                    ...mockAppointmentsStore[idx],
-                    status: "canceled",
-                    updated_at: new Date().toISOString(),
-                };
-            }
-            return { success: true, message: "Appointment canceled (mock)" };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/appointments/${appointmentId}/cancel`, {
-                method: 'PATCH',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to cancel appointment');
-            }
-
-            return response.json();
-        },
-        mockLabel: `cancelAppointment(${appointmentId})`
-    });
 }
 /**
  * Delete appointment
@@ -666,29 +487,6 @@ export async function deleteAppointment(token: string, appointmentId: number): P
         throw new Error(error.detail || 'Failed to delete appointment');
     }
     return response.json();
-export async function deleteAppointment(token: string, appointmentId: string): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            mockAppointmentsStore = mockAppointmentsStore.filter((a) => a._id !== appointmentId);
-            return { success: true, message: "Appointment deleted (mock)", id: appointmentId };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/appointments/${appointmentId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to delete appointment');
-            }
-
-            return response.json();
-        },
-        mockLabel: `deleteAppointment(${appointmentId})`
-    });
 }
 // ============================================================================
 // PETS API
@@ -869,57 +667,10 @@ export async function addPetMedicalHistory(token: string, petId: string, data: A
 /**
  * Upload image to R2 storage via backend API
  */
-/**
- * Get presigned URL for direct R2 upload
- */
-/**
- * Get presigned URL for direct R2 upload
- */
-/**
- * Upload image to R2 storage via backend API
- */
 export async function uploadImage(file: File, token: string, folder: string = 'pets'): Promise<string> {
-    // 1. Get Presigned URL
-    const response = await loggedFetch(`/api/upload/presigned-url`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-            filename: file.name,
-            content_type: file.type,
-            folder: folder
-        }),
-    });
-export async function getPresignedUrl(token: string, fileType: string, folder: string): Promise<{ uploadUrl: string, objectKey: string, publicUrl: string }> {
-    return fetchWithMock({
-        mockData: () => {
-            return {
-                uploadUrl: "https://mock-r2-upload-url.com",
-                objectKey: `${folder}/mock-key.jpg`,
-                publicUrl: "/images/home.png"
-            };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`${API_BASE_URL}/v1/upload/presigned-url`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'access_token': token,
-                },
-                body: JSON.stringify({ fileType, folder }),
-            });
+    const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, folder);
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Failed to get upload URL');
-    }
-
-    const { upload_url, public_url } = await response.json();
-
-    // 2. Upload directly to R2
-    const uploadResponse = await fetch(upload_url, {
+    const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
             'Content-Type': file.type,
@@ -931,7 +682,40 @@ export async function getPresignedUrl(token: string, fileType: string, folder: s
         throw new Error('Failed to upload image to storage');
     }
 
-    return public_url;
+    return publicUrl;
+}
+
+/**
+ * Get presigned URL for direct R2 upload
+ */
+export async function getPresignedUrl(
+    token: string,
+    fileType: string,
+    folder: string
+): Promise<{ uploadUrl: string; objectKey: string; publicUrl: string }> {
+    const response = await loggedFetch(`/api/upload/presigned-url`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            fileType,
+            folder,
+        }),
+    });
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to get upload URL');
+    }
+
+    const data = await response.json();
+    return {
+        uploadUrl: data.upload_url ?? data.uploadUrl,
+        objectKey: data.object_key ?? data.objectKey ?? '',
+        publicUrl: data.public_url ?? data.publicUrl,
+    };
 }
 /**
  * Delete image from R2 storage
@@ -1007,8 +791,6 @@ export async function registerOwner(token: string, ownerData: RegisterOwnerPaylo
 // ============================================================================
 // SYMPTOM RECORDS API
 // ============================================================================
-
-import { SymptomRecord, SymptomCalendarResponse, SymptomRecordCreate, SymptomRecordUpdate } from '@/types/domain/symptom';
 /**
  * Get symptom records calendar
  */
@@ -1030,51 +812,6 @@ export async function getSymptomRecordsCalendar(token: string, petId?: string, m
     const json = await response.json();
     console.log(json);
     return json.data;
-    return fetchWithMock({
-        mockData: () => {
-            const calendar: SymptomCalendarResponse = {};
-            let filtered = [...mockSymptomRecordsStore];
-            if (petId) {
-                filtered = filtered.filter(r => r.pet_id === petId);
-            }
-            if (month) {
-                filtered = filtered.filter((r) => {
-                    const d = r.date.includes("T") ? r.date.slice(0, 10) : r.date;
-                    return d.startsWith(`${month}-`);
-                });
-            }
-            filtered.forEach(record => {
-                const date = record.date.includes("T") ? record.date.slice(0, 10) : record.date;
-                if (!calendar[date]) {
-                    calendar[date] = [];
-                }
-                calendar[date].push(cloneMock(record));
-            });
-            return calendar;
-        },
-        apiCall: async () => {
-            let url = `/api/symptom-records/calendar`;
-            const params = new URLSearchParams();
-            if (petId) params.append('pet_id', petId);
-            if (month) params.append('month', month);
-            if (params.toString()) url += `?${params.toString()}`;
-
-            const response = await loggedFetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to get symptom calendar');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: 'getSymptomRecordsCalendar'
-    });
 }
 /**
  * Create symptom record
@@ -1094,38 +831,6 @@ export async function createSymptomRecord(token: string, data: AddSymptomPayload
     }
     const json = await response.json();
     return json.data || json;
-export async function createSymptomRecord(token: string, data: CreateSymptomRecordRequest): Promise<SymptomRecord> {
-    return fetchWithMock({
-        mockData: () => {
-            const newRecord: SymptomRecord = {
-                _id: "mock_sym_" + Math.random().toString(36).substring(2, 10),
-                ...data,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-            };
-            mockSymptomRecordsStore = [newRecord, ...mockSymptomRecordsStore];
-            return cloneMock(newRecord);
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/symptom-records`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to create symptom record');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: 'createSymptomRecord'
-    });
 }
 /**
  * Get symptom record detail
@@ -1142,29 +847,6 @@ export async function getSymptomRecordDetail(token: string, recordId: string): P
     }
     const json = await response.json();
     return json.data || json;
-    return fetchWithMock({
-        mockData: () => {
-            const found = mockSymptomRecordsStore.find(r => r._id === recordId);
-            if (!found) throw new Error("Symptom record not found in mock");
-            return cloneMock(found);
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to get symptom record detail');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: `getSymptomRecordDetail(${recordId})`
-    });
 }
 /**
  * Edit symptom record
@@ -1184,36 +866,6 @@ export async function editSymptomRecord(token: string, recordId: number, data: E
     }
     const json = await response.json();
     return json.data || json;
-export async function editSymptomRecord(token: string, recordId: string, data: UpdateSymptomRecordRequest): Promise<SymptomRecord> {
-    return fetchWithMock({
-        mockData: () => {
-            const idx = mockSymptomRecordsStore.findIndex(r => r._id === recordId);
-            if (idx < 0) throw new Error("Symptom record not found in mock");
-            const current = mockSymptomRecordsStore[idx];
-            const updated = { ...current, ...data, updated_at: new Date().toISOString() };
-            mockSymptomRecordsStore[idx] = updated;
-            return cloneMock(updated);
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/symptom-records/${recordId}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                },
-                body: JSON.stringify(data),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to edit symptom record');
-            }
-
-            const json = await response.json();
-            return json.data || json;
-        },
-        mockLabel: `editSymptomRecord(${recordId})`
-    });
 }
 /**
  * Delete symptom record
@@ -1230,29 +882,6 @@ export async function deleteSymptomRecord(token: string, recordId: number): Prom
         throw new Error(error.detail || 'Failed to delete symptom record');
     }
     return response.json();
-export async function deleteSymptomRecord(token: string, recordId: string): Promise<any> {
-    return fetchWithMock({
-        mockData: () => {
-            mockSymptomRecordsStore = mockSymptomRecordsStore.filter((r) => r._id !== recordId);
-            return { success: true, message: "Symptom record deleted (mock)", id: recordId };
-        },
-        apiCall: async () => {
-            const response = await loggedFetch(`/api/symptom-records/${recordId}/delete`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.detail || 'Failed to delete symptom record');
-            }
-
-            return response.json();
-        },
-        mockLabel: `deleteSymptomRecord(${recordId})`
-    });
 }
 // ---------------- Notification API ----------------
 import { NotificationItem } from "@/types/domain/notification";

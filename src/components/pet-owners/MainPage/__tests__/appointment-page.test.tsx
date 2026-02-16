@@ -26,6 +26,7 @@ vi.mock('@/services/api/client', () => ({
   editAppointment: vi.fn(),
   cancelAppointment: vi.fn(),
   deleteAppointment: vi.fn(),
+  getAppointmentDetail: vi.fn(async () => null),
 }));
 
 vi.mock('@/components/pet-owners/shared/CalendarModule', () => ({
@@ -55,19 +56,19 @@ describe('AppointmentPage', () => {
     vi.clearAllMocks();
     appointmentsData = [
       {
-        _id: 'apt-001',
-        pet_id: '430242',
+        appointment_id: 1,
+        pet_id: 430242,
         pet_name: 'Mochi',
         pet_image: '',
         appointment_date: '2026-02-10T10:00:00.000Z',
         location: 'Novel CMU',
-        status: 'upcoming',
+        status: 'Upcoming',
       },
     ];
   });
 
   it('opens edit dialog when deep-link params are present', async () => {
-    render(<AppointmentPage selectedPetId="all" />);
+    render(<AppointmentPage selectedPetId={0} allPets={[]} />);
 
     await waitFor(() => {
       expect(screen.getByText('Edit Appointment')).toBeInTheDocument();
@@ -76,7 +77,7 @@ describe('AppointmentPage', () => {
 
   it('shows empty-state text for selected date with no cards', async () => {
     appointmentsData = [];
-    render(<AppointmentPage selectedPetId="all" />);
+    render(<AppointmentPage selectedPetId={0} allPets={[]} />);
     expect(await screen.findByText('No appointments on this date')).toBeInTheDocument();
   });
 });

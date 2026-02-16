@@ -350,9 +350,6 @@ export default function MedicationPageV2() {
                     dosage: group.medicine.dosage,
                     reminder_time: group.slots.map(s => s.timeLabel),
                     istaken: group.slots.every(s => s.status === 'taken' || s.status === 'sent'),
-                    time_per_day: group.slots.length,
-                    notification_at: '', // Placeholder
-                    title: `Medication for ${group.pet.name}`,
                   }}
                   onOpenDetail={() => {
                     // Find generic occurrence to trigger click

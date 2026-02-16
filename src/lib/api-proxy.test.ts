@@ -1,4 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
+import type { NextRequest } from 'next/server';
 import { proxyRequest } from './api-proxy';
 
 describe('api-proxy', () => {
@@ -17,7 +18,7 @@ describe('api-proxy', () => {
       },
     });
 
-    const response = await proxyRequest(request, '/v1/pets');
+    const response = await proxyRequest(request as unknown as NextRequest, '/v1/pets');
     const body = await response.json();
 
     expect(body.ok).toBe(true);
@@ -37,7 +38,7 @@ describe('api-proxy', () => {
       method: 'GET',
     });
 
-    const response = await proxyRequest(request, '/v1/pets?status=upcoming');
+    const response = await proxyRequest(request as unknown as NextRequest, '/v1/pets?status=upcoming');
     const body = await response.json();
 
     expect(response.status).toBe(403);
@@ -48,7 +49,7 @@ describe('api-proxy', () => {
     vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('network down'));
 
     const request = new Request('http://localhost/api/pets');
-    const response = await proxyRequest(request, '/v1/pets');
+    const response = await proxyRequest(request as unknown as NextRequest, '/v1/pets');
     const body = await response.json();
 
     expect(response.status).toBe(500);

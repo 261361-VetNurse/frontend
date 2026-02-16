@@ -20,8 +20,6 @@ import EditAppointment from "../../../shared/appointment/EditAppointment";
 import { QuickDialButton } from "@/components/pet-owners/shared/QuickDialButton";
 import AddRoundedIcon from "@mui/icons-material/AddRounded";
 
-import { mockPets } from "@/mocks/pets.mock";
-import { mockAppointmentsByPetId } from "@/mocks/appointments";
 import { exportICS } from "@/utils/exportICS";
 
 import { useAppointments } from "@/hooks/useAppointments";
@@ -33,7 +31,6 @@ import {
   cancelAppointment,
   deleteAppointment,
   authStorage,
-  getPets,
   getAppointmentDetail,
 } from "@/services/api/client";
 
@@ -282,14 +279,15 @@ export default function AppointmentPage({
           openEditPopup(a);
         }}
         onDelete={handleDelete}
-        onDelete={() => setDetail(null)}
         onAddToCalendar={(a) => {
-          const start = dayjs(`${a.date} ${a.time}`).toDate();
+          const appointmentTime = a.appointment_time ?? dayjs(a.appointment_date).format("HH:mm");
+          const dateKey = dayjs(a.appointment_date).format("YYYY-MM-DD");
+          const start = dayjs(`${dateKey} ${appointmentTime}`).toDate();
           const end = dayjs(start).add(1, "hour").toDate();
 
           exportICS({
-            title: `${a.petName} Appointment`,
-            description: `Pet ID: ${a.petPid}`,
+            title: `${a.pet_name ?? "Pet"} Appointment`,
+            description: `Pet ID: ${a.pet_id}`,
             location: a.location,
             start,
             end,

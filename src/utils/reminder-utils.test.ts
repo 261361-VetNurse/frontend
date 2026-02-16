@@ -6,7 +6,7 @@ import {
   getUserTimezone,
   updateReminderTakenStatus,
 } from './reminder-utils';
-import type { MedicineReminderVM } from '@/types/domain/medication';
+import type { Medicine } from '@/types/domain/medication';
 
 describe('reminder-utils', () => {
   beforeEach(() => {
@@ -29,32 +29,28 @@ describe('reminder-utils', () => {
   });
 
   it('builds medication occurrences and applies override status', () => {
-    const reminders: MedicineReminderVM[] = [
+    const reminders: Medicine[] = [
       {
-        _id: 'noti_001',
-        user_id: 'user_1',
-        pet_id: '430242',
-        medicine_id: 'med_001',
-        medicine_name: 'Amoxicillin',
-        medicine_dosage: '5ml',
-        medicine_frequency: '-1',
-        pet_name: 'Mochi',
-        pet_image: '/pets-example/pet-ex1.svg',
+        medicine_id: 1001,
+        pet_id: 430242,
+        name: 'Amoxicillin',
+        frequency: '-1',
+        start_date: '2026-02-01',
+        end_date: '2026-02-28',
         reminder_time: ['08:00', '20:00'],
-        created_at: '2026-02-01T00:00:00.000Z',
-        updated_at: '2026-02-01T00:00:00.000Z',
+        dosage: '5ml',
       },
     ];
 
     const date = new Date('2026-02-10T00:00:00.000Z');
-    const overrideId = 'noti_001_2026-02-10_20:00';
+    const overrideId = '1001_2026-02-10_20:00';
 
     const occurrences = buildOccurrencesForDate(reminders, date, {
       [overrideId]: { status: 'taken', taken_at: '2026-02-10T20:00:00.000Z' },
     });
 
     expect(occurrences).toHaveLength(2);
-    expect(occurrences[0]?.plan_id).toBe('noti_001');
+    expect(occurrences[0]?.plan_id).toBe(1001);
     expect(occurrences[1]?.reminder_id).toBe(overrideId);
     expect(occurrences[1]?.status).toBe('taken');
   });
@@ -66,23 +62,19 @@ describe('reminder-utils', () => {
   });
 
   it('keeps reminder list unchanged when updating taken status helper', () => {
-    const reminders: MedicineReminderVM[] = [
+    const reminders: Medicine[] = [
       {
-        _id: 'noti_001',
-        user_id: 'user_1',
-        pet_id: '430242',
-        medicine_id: 'med_001',
-        medicine_name: 'Amoxicillin',
-        medicine_dosage: '5ml',
-        medicine_frequency: '-1',
-        pet_name: 'Mochi',
-        pet_image: '/pets-example/pet-ex1.svg',
+        medicine_id: 1001,
+        pet_id: 430242,
+        name: 'Amoxicillin',
+        frequency: '-1',
+        start_date: '2026-02-01',
+        end_date: '2026-02-28',
         reminder_time: ['08:00'],
-        created_at: '2026-02-01T00:00:00.000Z',
-        updated_at: '2026-02-01T00:00:00.000Z',
+        dosage: '5ml',
       },
     ];
 
-    expect(updateReminderTakenStatus(reminders, 'noti_001', 'rid', true)).toBe(reminders);
+    expect(updateReminderTakenStatus(reminders, '1001', 'rid', true)).toBe(reminders);
   });
 });

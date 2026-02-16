@@ -71,37 +71,37 @@ describe('hooks', () => {
   it('useMedications loads medication list with pet/date filters', async () => {
     mocks.getMedications.mockResolvedValue([{ _id: 'noti_001' }]);
 
-    const { result } = renderHook(() => useMedications('430242', '2026-02-10'));
+    const { result } = renderHook(() => useMedications(430242, '2026-02-10'));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     expect(result.current.medications).toHaveLength(1);
-    expect(mocks.getMedications).toHaveBeenCalledWith('mock_token_user_1_long_live', '430242', '2026-02-10');
+    expect(mocks.getMedications).toHaveBeenCalledWith('mock_token_user_1_long_live', 430242, '2026-02-10');
   });
 
   it('useSymptomRecords flattens calendar response into records', async () => {
-    mocks.getSymptomRecordsCalendar.mockResolvedValue({
-      '2026-02-10': [
-        {
-          _id: 'sym_001',
-          pet_id: '430242',
-          date: '2026-02-10T08:30:00.000Z',
-          note: 'Vomited after eating breakfast.',
-          images: [],
-        },
-      ],
-    });
+    mocks.getSymptomRecordsCalendar.mockResolvedValue([
+      {
+        record_id: 1,
+        pet_id: 430242,
+        pet_name: 'Mochi',
+        pet_image: '',
+        time_added: '2026-02-10T08:30:00.000Z',
+        note: 'Vomited after eating breakfast.',
+        note_image: [],
+      },
+    ]);
 
-    const { result } = renderHook(() => useSymptomRecords('430242'));
+    const { result } = renderHook(() => useSymptomRecords(430242));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
     });
 
     expect(result.current.records).toHaveLength(1);
-    expect(result.current.records[0]?.id).toBe('sym_001');
-    expect(result.current.records[0]?.time).toMatch(/^\d{2}:\d{2}$/);
+    expect(result.current.records[0]?.record_id).toBe(1);
+    expect(result.current.records[0]?.time_added).toMatch(/^\d{2}:\d{2}$/);
   });
 });
