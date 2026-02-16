@@ -235,5 +235,27 @@ runForMobileViewports("Medication flow", () => {
         .should("be.greaterThan", 0);
     });
   });
+
+  describe("TC-MED-08: Deep link opens detail and edit mode", () => {
+    it("opens medication detail from query params and edit mode when open=edit", () => {
+      freezeToStableMedicationDay();
+      cy.visit("/pet-owners/medication-page?tab=today&noti_id=noti_001&med_id=med_001", {
+        onBeforeLoad(win) {
+          seedAuth(win);
+        },
+      });
+
+      cy.contains("Medication Detail", { timeout: 20000 }).should("exist");
+
+      cy.visit("/pet-owners/medication-page?tab=today&noti_id=noti_001&med_id=med_001&open=edit", {
+        onBeforeLoad(win) {
+          seedAuth(win);
+        },
+      });
+
+      cy.contains("Edit Medication", { timeout: 20000 }).should("exist");
+      cy.get("#dosage").should("exist");
+    });
+  });
   });
 });

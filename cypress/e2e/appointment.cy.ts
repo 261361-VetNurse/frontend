@@ -162,5 +162,20 @@ runForMobileViewports("Appointment flow", () => {
         assertTabContentRendered();
       });
     });
+
+    describe("TC-APP-06: Deep link opens edit appointment", () => {
+      it("opens Edit Appointment when appointment_id and open=edit are provided", () => {
+        freezeToStableAppointmentDay();
+        cy.visit("/pet-owners/calendar-page?tab=appointment&appointment_id=apt-001&open=edit", {
+          onBeforeLoad(win) {
+            seedAuth(win);
+          },
+        });
+
+        cy.contains("Appointment", { timeout: 20000 }).should("exist");
+        cy.contains("Edit Appointment", { timeout: 20000 }).should("exist");
+        cy.get('input[placeholder="Enter location"]').should("be.visible");
+      });
+    });
   });
 });

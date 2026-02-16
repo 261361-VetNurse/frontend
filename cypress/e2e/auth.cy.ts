@@ -1,6 +1,13 @@
 import { runForMobileViewports } from "../support/mobileViewports";
 
 runForMobileViewports("Auth flow", () => {
+    describe('TC-AUTH-00: /pet-owners redirects to login', () => {
+        it('redirects root pet owner route to login page', () => {
+            cy.visit('/pet-owners');
+            cy.location('pathname').should('eq', '/pet-owners/login-page');
+        });
+    });
+
     describe('TC-AUTH-01: LINE login creates session and redirects', () => { //Login ผ่าน LINE / สร้าง session
         it('logs in via mock LINE and redirects to home', () => {
             cy.visit('/pet-owners/login-page');
