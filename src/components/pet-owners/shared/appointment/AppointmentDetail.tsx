@@ -12,6 +12,8 @@ type Props = {
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
   onDelete?: (id: string) => void;
+  onAddToCalendar?: (appt: AppointmentDetailItem) => void;
+  formatTime?: (t: string) => string;
 };
 
 export default function AppointmentDetail({
@@ -20,6 +22,8 @@ export default function AppointmentDetail({
   onClose,
   onEdit,
   onDelete,
+  onAddToCalendar,
+  formatTime,
 }: Props) {
   if (!open || !appointment) return null;
 
@@ -105,6 +109,51 @@ export default function AppointmentDetail({
             </div>
           </div>
         ) : null}
+          {/* Add to Calendar */}
+          {onAddToCalendar && (
+            <Button
+              variant="secondary"
+              shape="pill"
+              fullWidth
+              onClick={() => onAddToCalendar(appointment)}
+            >
+              Add to Calendar
+            </Button>
+          )}
+
+          {/* Status */}
+          {appointment.status ? (
+            <div>
+              <div className="text-sm font-medium text-zinc-800">
+                Status
+              </div>
+              <div className="mt-1 text-sm text-zinc-700">
+                {appointment.status}
+              </div>
+            </div>
+          ) : null}
+
+          {/* ✅ Actions (shared Button) */}
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <Button
+              variant="primary"
+              shape="pill"
+              fullWidth
+              onClick={() => onEdit?.(appointment)}
+            >
+              Edit
+            </Button>
+
+            <Button
+              variant="danger"
+              shape="pill"
+              fullWidth
+              onClick={() => onDelete?.(appointment.id)}
+            >
+              Delete
+            </Button>
+          </div>
+        </div>
       </div>
     </FormDialog>
   );

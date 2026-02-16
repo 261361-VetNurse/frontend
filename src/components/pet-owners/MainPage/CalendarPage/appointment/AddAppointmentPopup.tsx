@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
+import { LocationOn, KeyboardArrowDown, Check } from "@mui/icons-material";
+import type { PetLite } from "@/components/pet-owners/shared/PetFilterSelector";
+import { exportICS } from "@/utils/exportICS";
 
 type PetLite = {
   id: string;
@@ -57,6 +60,34 @@ export default function AddAppointmentPopup({
 
     onClose();
   }
+
+    setIsSubmitting(true);
+    try {
+      const [h, m] = time.split(":").map(Number);
+      const start = new Date(date);
+      start.setHours(h, m, 0, 0);
+
+      const end = new Date(start.getTime() + 30 * 60 * 1000);
+
+      exportICS({
+        title: `Appointment - ${selectedPet?.name}`,
+        location: location.trim(),
+        start,
+        end,
+      });
+
+      await onSubmit?.({
+        petId: selectedPetId,
+        date,
+        time,
+        location: location.trim(),
+      });
+
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <FormDialog
