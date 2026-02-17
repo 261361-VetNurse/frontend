@@ -60,7 +60,7 @@ import {
  * Exchange LINE authorization code for access token
  */
 export async function exchangeLineToken(code: string): Promise<LineExchangeResponse> {
-    const response = await loggedFetch(`/auth/auth/line/exchange`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/line/exchange`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -83,7 +83,7 @@ export async function notifyAppointment(
     date: string
 ): Promise<any> {
     const queryString = `line_id=${encodeURIComponent(lineId)}&topic=${encodeURIComponent(topic)}&date=${encodeURIComponent(date)}`;
-    const response = await loggedFetch(`/auth/notify/appointment?${queryString}`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/notify/appointment?${queryString}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -100,7 +100,7 @@ export async function notifyAppointment(
  * Get current user information
  */
 export async function getCurrentUser(token: string): Promise<User> {
-    const response = await loggedFetch(`/auth/me`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/me`, {
         headers: {
             'Authorization': `Bearer ${token}`
         },
