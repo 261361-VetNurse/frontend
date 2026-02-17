@@ -37,6 +37,7 @@ import {
     EditMedicationPayload,
     MedicineItem
 } from '@/types/api/medication.dto';
+import { GroupedMedicineNotification } from '@/types/domain/medication';
 import {
     AddAppointmentPayload,
     EditAppointmentPayload
@@ -180,7 +181,7 @@ export const authStorage = {
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD format)
  */
-export async function getMedications(token: string, petId?: number, date?: string): Promise<any> {
+export async function getMedications(token: string, petId?: number, date?: string): Promise<GroupedMedicineNotification[]> {
     let url = `/v1/medications`;
     const params = new URLSearchParams();
     if (petId && petId !== 0) params.append('pet_id', petId.toString());

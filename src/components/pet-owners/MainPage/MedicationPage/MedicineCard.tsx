@@ -18,6 +18,12 @@ import { NotificationItem } from '@/types/domain/medication';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
+export interface ValidatedTimeSlot {
+  id: number; // notification_id
+  timeLabel: string;
+  status: OccurrenceStatus;
+}
+
 export interface TimeSlot {
   id: string; // reminder_id
   timeLabel: string;
@@ -26,10 +32,11 @@ export interface TimeSlot {
 
 type Props = {
   data: NotificationItem;
+  groupedTimes?: ValidatedTimeSlot[];
   onOpenDetail: () => void;
 
   // Callback now requires reminderId
-  onToggleTaken: (reminderId: string, nextTaken: boolean) => void;
+  onToggleTaken: (reminderId: string | number, nextTaken: boolean) => void;
 
   onEdit?: () => void;
   onDelete?: () => void;
@@ -50,6 +57,7 @@ function getStatusMeta(status: OccurrenceStatus) {
 
 export default function MedicineCard({
   data,
+  groupedTimes,
   onOpenDetail,
   onToggleTaken,
   onEdit,
@@ -85,11 +93,13 @@ export default function MedicineCard({
   const medicineName = data.medicine_name || 'Unknown Medicine';
   const dosage = data.dosage || '';
   const isStopped = false; // NotificationDetail doesn't have a status field for stopped
-  const times: TimeSlot[] = (data.reminder_time || []).map((t) => ({
+
+  // Use groupedTimes if available, otherwise fall back to original logic (though parent should provide groupedTimes now)
+  const displayTimes = groupedTimes || (data.reminder_time || []).map((t) => ({
     id: `${data.notification_id}_${t}`,
     timeLabel: t,
     status: (data.istaken || (data as any).status === 'sent') ? 'taken' : 'pending'
-  }));
+  } as any));
 
   return (
     <Card
@@ -163,7 +173,7 @@ export default function MedicineCard({
       <Divider />
 
       <TimesGrid>
-        {times.map((slot) => {
+        {displayTimes.map((slot) => {
           const { label, Icon, color } = getStatusMeta(slot.status);
 
           return (
@@ -173,7 +183,7 @@ export default function MedicineCard({
               onClick={(e) => {
                 e.stopPropagation();
                 if (slot.status === 'pending') {
-                  onToggleTaken(String(data.notification_id), true);
+                  onToggleTaken(slot.id, true);
                 }
               }}
               style={{ cursor: slot.status === 'pending' ? 'pointer' : 'default' }}

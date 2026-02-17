@@ -43,3 +43,29 @@ export interface NotificationDetail extends NotificationItem {
     created_at?: string;
     updated_at?: string;
 }
+
+export interface ReminderSlot {
+    notification_id: number;
+    time: string;
+    status: 'taken' | 'pending' | 'missed' | string;
+}
+
+export interface GroupedMedicineNotification {
+    medicine_id: number;
+    pet_id: number;
+    pet_name: string;
+    pet_image?: string;
+    medicine_name: string;
+    dosage?: string;
+    frequency?: string;
+    reminder_time: string[];
+    reminders: ReminderSlot[];
+    start_date?: string;
+    end_date?: string;
+    note?: string;
+
+    // Legacy fields for compatibility if needed (though backend response doesn't strictly include them in new model, 
+    // but NotificationItem had them. Let's keep them optional if we reuse code, or remove them if strict)
+    notification_id?: number; // Might not exist on group level
+    istaken?: boolean; // Might not exist on group level
+}
