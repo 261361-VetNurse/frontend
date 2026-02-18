@@ -118,7 +118,7 @@ export async function getCurrentUser(token: string): Promise<User> {
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`/v1/dashboard/home`, {
         headers: {
-            'access_token': token
+            'Authorization': `Bearer ${token}`
         },
     });
     if (!response.ok) {

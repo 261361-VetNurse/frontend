@@ -26,14 +26,14 @@ export default function PetAvatarPicker({
   return (
     <div className="relative">
       {/* Container */}
-      <div 
+      <div
         className={`relative h-24 w-24 overflow-hidden rounded-full border-2 border-white shadow-sm flex items-center justify-center
           ${isDefault ? "bg-zinc-200" : "bg-zinc-200"}`}
       >
         {isDefault ? (
           <div className="relative h-12 w-12 opacity-30">
             <Image
-              src="/pet-paw.svg"
+              src="https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp"
               alt="Default pet icon"
               fill
               className="object-contain"

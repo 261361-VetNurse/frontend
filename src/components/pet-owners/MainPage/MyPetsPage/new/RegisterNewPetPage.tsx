@@ -18,7 +18,7 @@ export default function RegisterNewPetPage() {
   useEffect(() => setMounted(true), []);
 
   // ===== State =====
-  const [avatarUrl, setAvatarUrl] = useState<string>("/pet-paw.svg");
+  const [avatarUrl, setAvatarUrl] = useState<string>("https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp");
   const [name, setName] = useState("");
   const [species, setSpecies] = useState("");
   const [breed, setBreed] = useState("");
