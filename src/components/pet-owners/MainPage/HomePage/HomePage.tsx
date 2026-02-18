@@ -16,6 +16,7 @@ import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
 import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail, exchangeLineToken } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { getMedicationStatus } from "@/utils/medicationStatus";
 
 export default function HomePage() {
   const router = useRouter();
@@ -27,6 +28,9 @@ export default function HomePage() {
   const [selectedNotification, setSelectedNotification] = useState<DashboardNotification | null>(null);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [popupLoading, setPopupLoading] = useState(false);
+
+  // Missing reminders state
+  const [showMissingReminders, setShowMissingReminders] = useState(false);
 
   /* Auth Logic: Check for LINE Login Code */
   useEffect(() => {
@@ -336,33 +340,122 @@ export default function HomePage() {
       </div>
 
       <div className="reminder-box">
+
         {error && !data?.medicines_notifications ? (
           <SectionError message="Could not load reminders" onRetry={fetchDashboard} />
         ) : (
-          data?.medicines_notifications && data.medicines_notifications.length > 0 ? (
-            data.medicines_notifications.map((med_noti) => {
+          (() => {
+            const notifications = data?.medicines_notifications || [];
+            if (notifications.length === 0) {
               return (
-                <div key={med_noti._id}>
-                  <ReminderCard
-                    datas={med_noti}
-                    petImageSize={40}
-                    onClick={() => openMedicationPopup(med_noti.notification_id)}
-                  />
+                <div
+                  style={{
+                    padding: "32px 16px",
+                    textAlign: "center",
+                    color: theme.colors.textSecondary,
+                    fontSize: "14px",
+                  }}
+                >
+                  No upcoming medication reminders.
                 </div>
               );
-            })
-          ) : (
-            <div
-              style={{
-                padding: "32px 16px",
-                textAlign: "center",
-                color: theme.colors.textSecondary,
-                fontSize: "14px",
-              }}
-            >
-              No upcoming medication reminders.
-            </div>
-          )
+            }
+
+            // Calculate status for each notification
+            const processedNotifications = notifications.map(noti => {
+              let timeStr = "00:00";
+              if (noti.time) {
+                timeStr = noti.time;
+              } else if (noti.notification_at) {
+                if (typeof noti.notification_at === 'string') {
+                  timeStr = noti.notification_at.split('T')[1]?.substring(0, 5) || "00:00";
+                } else if (noti.notification_at instanceof Date) {
+                  timeStr = noti.notification_at.toISOString().split('T')[1].substring(0, 5);
+                }
+              }
+
+              const computedStatus = getMedicationStatus(
+                timeStr,
+                noti.istaken || false,
+                noti.notification_at // Pass the date string/object
+              );
+              return { ...noti, status: computedStatus };
+            });
+
+            const missingReminders = processedNotifications.filter(n => n.status === 'missed');
+            const otherReminders = processedNotifications.filter(n => n.status !== 'missed');
+
+            return (
+              <>
+                {/* Missing Reminders Section */}
+                {missingReminders.length > 0 && (
+                  <div style={{
+                    marginBottom: 16,
+                    backgroundColor: '#FEF2F2',
+                    borderRadius: 12,
+                    border: '1px solid #FECACA',
+                    overflow: 'hidden'
+                  }}>
+                    <div
+                      onClick={() => setShowMissingReminders(!showMissingReminders)}
+                      style={{
+                        padding: '12px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        color: '#B91C1C',
+                        fontWeight: 500,
+                        fontSize: '14px'
+                      }}
+                    >
+                      <span>
+                        You have {missingReminders.length} missing reminder{missingReminders.length > 1 ? 's' : ''}
+                      </span>
+                      <ArrowForwardIosIcon
+                        sx={{
+                          fontSize: 14,
+                          transform: showMissingReminders ? 'rotate(90deg)' : 'none',
+                          transition: 'transform 0.2s'
+                        }}
+                      />
+                    </div>
+
+                    {showMissingReminders && (
+                      <div style={{ padding: '0 16px 16px 16px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {missingReminders.map((med_noti) => (
+                          <div key={med_noti._id}>
+                            <ReminderCard
+                              datas={med_noti} // processedNotifications already has updated status
+                              petImageSize={40}
+                              onClick={() => openMedicationPopup(med_noti.notification_id)}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Normal Reminders */}
+                {otherReminders.map((med_noti) => (
+                  <div key={med_noti._id}>
+                    <ReminderCard
+                      datas={med_noti}
+                      petImageSize={40}
+                      onClick={() => openMedicationPopup(med_noti.notification_id)}
+                    />
+                  </div>
+                ))}
+
+                {otherReminders.length === 0 && missingReminders.length > 0 && !showMissingReminders && (
+                  <div style={{ textAlign: 'center', padding: 20, color: theme.colors.textSecondary, fontSize: 13 }}>
+                    No other upcoming reminders today.
+                  </div>
+                )}
+              </>
+            );
+          })()
         )}
       </div>
 

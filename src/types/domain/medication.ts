@@ -48,6 +48,7 @@ export interface ReminderSlot {
     notification_id: number;
     time: string;
     status: 'taken' | 'pending' | 'missed' | string;
+    taken_at?: string;
 }
 
 export interface GroupedMedicineNotification {

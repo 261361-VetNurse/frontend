@@ -1,5 +1,5 @@
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { Medicine } from '@/types/domain/medication';
+import { Medicine, ReminderSlot } from '@/types/domain/medication';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -7,10 +7,12 @@ import { PetSection, MedicineSection, ScheduleSection, RemindersSection, Reminde
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
+import { getMedicationStatus } from '@/utils/medicationStatus';
+import { useState, useEffect } from 'react';
 
 interface MedicationDetailPopupProps {
   medicineReminder: any;
-  occurrences?: any[]; // For MedicationPage to match statuses for specific day
+  occurrences: ReminderSlot[]; // Strongly typed now
   highlightedReminderId?: number;
   page: 'home-page' | 'medication-page';
   onClose: () => void;
@@ -18,20 +20,10 @@ interface MedicationDetailPopupProps {
   onEdit: () => void;
 }
 
-type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
-
-const getStatus = (reminder: any): OccurrenceStatus => {
-  if (typeof reminder === 'object' && reminder.status) {
-    if (reminder.status === 'sent') return 'taken';
-    return reminder.status;
-  }
-  if (typeof reminder === 'object' && reminder.istaken) return 'taken';
-  return 'pending';
-};
+type OccurrenceStatus = 'pending' | 'taken' | 'missed';
 
 const getStatusMeta = (status: OccurrenceStatus) => {
   switch (status) {
-    case 'sent':
     case 'taken':
       return { label: 'Taken', Icon: CheckCircleIcon };
     case 'missed':
@@ -66,6 +58,38 @@ export default function MedicationDetailPopup({
   onToggleReminder,
   onEdit,
 }: MedicationDetailPopupProps) {
+  // Local state for optimistic updates
+  const [localOccurrences, setLocalOccurrences] = useState<ReminderSlot[]>([]);
+
+  useEffect(() => {
+    if (occurrences) {
+      setLocalOccurrences(occurrences);
+    } else if (medicineReminder.reminder_time) {
+      // Fallback if occurrences is missing (e.g. from Home Page deep link where grouping might be different)
+      // Ideally Home Page should also pass formatted occurrences.
+      // For now, mapping reminder_time to slots
+      const slots = medicineReminder.reminder_time.map((t: string) => ({
+        notification_id: medicineReminder.notification_id, // This is wrong if multiple times, but fallback
+        time: t,
+        status: 'pending', // Default fallback
+        taken_at: undefined
+      }));
+      setLocalOccurrences(slots);
+    }
+  }, [occurrences, medicineReminder]);
+
+  const handleToggle = (id: number) => {
+    // Optimistic Update
+    setLocalOccurrences(prev => prev.map(occ =>
+      occ.notification_id === id
+        ? { ...occ, status: 'taken', taken_at: new Date().toISOString() }
+        : occ
+    ));
+
+    // Trigger API call
+    onToggleReminder(id);
+  };
+
   const formatTakenTime = (takenAt?: string) => {
     if (!takenAt) return '';
     const date = new Date(takenAt);
@@ -73,29 +97,6 @@ export default function MedicationDetailPopup({
       `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
     )}`;
   };
-
-  // Helper to normalize reminders list
-  const remindersList = Array.isArray(medicineReminder.reminder_time)
-    ? medicineReminder.reminder_time.map((t: string | any, idx: number) => {
-      if (typeof t === 'string') {
-        const planId = medicineReminder._id || medicineReminder.medicine_id;
-        // Try to find matching occurrence from passed occurrences list
-        const occ = occurrences?.find(o =>
-          (o.plan_id === String(planId) || o.plan_id === planId) &&
-          o.time === t
-        );
-
-        const status = occ ? getStatus(occ) : getStatus(medicineReminder);
-        return {
-          id: occ?.reminder_id || `${planId}_${t}`,
-          time: t,
-          status: status,
-          taken_at: occ?.taken_at || medicineReminder.taken_at
-        };
-      }
-      return t;
-    })
-    : [];
 
   return (
     <FormDialog
@@ -133,7 +134,7 @@ export default function MedicationDetailPopup({
               </div>
               <div className='info-row'>
                 <div className='info-label'>Times per day:</div>
-                <div className='info-value'>{remindersList.length}</div>
+                <div className='info-value'>{localOccurrences.length}</div>
               </div>
             </div>
             <div className='info-row'>
@@ -146,22 +147,32 @@ export default function MedicationDetailPopup({
 
         <RemindersSection >
           <div className="section-title">Today's Reminders</div>
-          {remindersList.map((reminder: any) => {
-            const status = getStatus(reminder);
+          {localOccurrences.map((reminder) => {
+            // Use utility for status if not explicitly taken
+            // If API says 'taken', trust it. If not, calculate pending/missed based on time.
+            let status: OccurrenceStatus = reminder.status === 'taken' ? 'taken' : 'pending';
+            if (status !== 'taken') {
+              // Calculate if missed
+              const calculated = getMedicationStatus(reminder.time, false, new Date());
+              // getMedicationStatus returns 'pending' | 'missed' | 'taken'
+              status = calculated as OccurrenceStatus;
+            }
+
             const { label, Icon } = getStatusMeta(status);
             const isTaken = status === 'taken';
 
             return (
               <ReminderItem
-                key={reminder.id}
+                key={reminder.notification_id}
               >
                 <div className='reminder-time'>{formatTimeForDisplay(reminder.time)}</div>
 
                 <div className='reminder-status'>
                   <StatusButton
                     $status={status}
-                    onClick={() => !isTaken && onToggleReminder(medicineReminder.notification_id)}
+                    onClick={() => !isTaken && handleToggle(reminder.notification_id)}
                     title={label}
+                    disabled={isTaken}
                   >
                     <Icon style={{ width: 16, height: 16 }} />
                     <span>{label}</span>

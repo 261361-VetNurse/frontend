@@ -19,6 +19,7 @@ import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { getMedicationStatus } from "@/utils/medicationStatus";
 
 // Hooks
 import { usePets } from '@/hooks';
@@ -351,7 +352,7 @@ export default function MedicationPage() {
               groupedTimes={med.reminders.map(r => ({
                 id: r.notification_id,
                 timeLabel: r.time, // API returns HH:MM
-                status: r.status as any
+                status: getMedicationStatus(r.time, r.status === 'taken', baseDate)
               }))}
               onOpenDetail={() => {
                 // Use first reminder ID for detail
@@ -398,6 +399,13 @@ export default function MedicationPage() {
         <MedicationDetailPopup
           page="medication-page"
           medicineReminder={selectedReminder.medicineReminder}
+          occurrences={
+            // Find the grouped medicine to pass its reminders list
+            groupedMedicines.find(
+              gm => gm.medicine_id === selectedReminder.medicineReminder.medicine_id &&
+                gm.pet_id === selectedReminder.medicineReminder.pet_id
+            )?.reminders || []
+          }
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={closePopup}
           onToggleReminder={(reminderId: number) =>

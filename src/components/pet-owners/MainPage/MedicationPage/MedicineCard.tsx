@@ -182,11 +182,9 @@ export default function MedicineCard({
               $status={slot.status}
               onClick={(e) => {
                 e.stopPropagation();
-                if (slot.status === 'pending') {
-                  onToggleTaken(slot.id, true);
-                }
+                onOpenDetail(); // Always open detail instead of toggling
               }}
-              style={{ cursor: slot.status === 'pending' ? 'pointer' : 'default' }}
+              style={{ cursor: 'pointer' }}
             >
               <Icon style={{ fontSize: 16 }} />
               <div className="time">{slot.timeLabel}</div>
