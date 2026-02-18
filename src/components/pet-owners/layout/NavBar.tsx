@@ -5,29 +5,47 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons-material";
 
+// const NavBarStyle = styled.div`
+//   position: fixed;
+//   display: flex;
+//   bottom: 0;
+//   left: 0;
+//   right: 0;
+//   width: 100%;
+//   background: #fff;
+//   justify-content: center;
+//   z-index: 1000;
+//   box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+// `;
 const NavBarStyle = styled.div`
   position: fixed;
-  display: flex;
   bottom: 0;
   left: 0;
   right: 0;
   width: 100%;
   background: #fff;
-  justify-content: center;
   z-index: 1000;
-  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+  box-shadow: 0 -2px 2px rgba(0,0,0,0.15);
 `;
 
+// const NavBarWrap = styled.footer`
+//   display: flex;
+//   flex-direction: row;
+//   width: 393px;
+//   padding: 8px 0;
+//   justify-content: space-between;
+//   align-items: center;
+// `;
+
 const NavBarWrap = styled.footer`
-  display: flex;
-  flex-direction: row;
-  width: 393px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); 
+  width: 100%;
+  max-width: 420px;      
+  margin: 0 auto;       
   padding: 8px 0;
-  justify-content: space-between;
-  align-items: center;
-  
-  
 `;
+
 const NavItem = styled(Link)`
   display: flex;
   flex-direction: column;

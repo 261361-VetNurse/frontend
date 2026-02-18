@@ -30,7 +30,7 @@ export default function PetOwnersLayout({
           justifyContent: "center",
         }}
       >
-        <Container width={"393px"}>
+        <Container>
           <div style={{ width: "100%" }}>{children}</div>
         </Container>
       </main>

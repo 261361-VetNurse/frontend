@@ -125,7 +125,7 @@ export function Modal({
     return (
         <div
             className={[
-                "fixed inset-0 z-[1000] flex justify-center",
+                "fixed inset-0 z-[2000] flex justify-center",
                 placementCls,
                 "px-6", // 24px
                 overlayCls,
