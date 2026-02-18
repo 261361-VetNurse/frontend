@@ -9,12 +9,12 @@ export default function OwnersLayout({
 
   return (
     <div>
-      <Container width={"393px"} padding={"0px"}>
+      <Container padding={"0px"}>
         <main style={{ width: '100%' }}>
           {children}
         </main>
       </Container>
     </div>
-    
+
   );
 }
