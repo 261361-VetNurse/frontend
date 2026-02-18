@@ -383,7 +383,8 @@ export default function HomePage() {
             });
 
             const missingReminders = processedNotifications.filter(n => n.status === 'missed');
-            const otherReminders = processedNotifications.filter(n => n.status !== 'missed');
+            // Show only pending reminders (exclude missed - handled above, and taken - per request)
+            const otherReminders = processedNotifications.filter(n => n.status !== 'missed' && n.status !== 'taken');
 
             return (
               <>
