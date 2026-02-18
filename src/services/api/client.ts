@@ -868,7 +868,7 @@ export async function deleteSymptomRecord(token: string, recordId: number): Prom
     return response.json();
 }
 // ---------------- Notification API ----------------
-import { NotificationItem } from "@/types/domain/notification";
+import { NotificationItem, UnifiedNotification } from "@/types/domain/notification";
 export async function getNotifications(token: string): Promise<NotificationItem[]> {
     // Correct endpoint for notification feed is /v1/medications
     const response = await loggedFetch(`/v1/medications`, {
@@ -883,6 +883,20 @@ export async function getNotifications(token: string): Promise<NotificationItem[
     const json = await response.json();
     return json.data || json;
 }
+export async function getAllNotifications(token: string): Promise<UnifiedNotification[]> {
+    const response = await loggedFetch(`/v1/notifications`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch notifications');
+    }
+    const json = await response.json();
+    return json.data || json;
+}
+
 export async function markNotificationAsRead(token: string, id: string): Promise<boolean> {
     const response = await loggedFetch(`/v1/medications/${id}/taken`, {
         method: 'PATCH',

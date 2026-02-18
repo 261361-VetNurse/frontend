@@ -163,7 +163,7 @@ export default function MyPetsAppointments() {
                     id: String(a.appointment_id),
                     petName: selectedPet?.name || "-",
                     date: normalizeDateText(a.appointment_date),
-                    time: new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
+                    time: a.appointment_time || new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
                     location: a.location,
                   }}
                   onOpenDetail={handleOpenDetail}
