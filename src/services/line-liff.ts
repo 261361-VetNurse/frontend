@@ -6,7 +6,7 @@
 
 const LINE_LOGIN_CONFIG = {
     clientId: process.env.NEXT_PUBLIC_LINE_CLIENT_ID || '',
-    redirectUri: process.env.NEXT_PUBLIC_LINE_REDIRECT_URI || '',
+    redirectUri: `${process.env.NEXT_PUBLIC_WEB_URL || ''}${process.env.NEXT_PUBLIC_LINE_REDIRECT_PATH || ''}`,
     state: 'vetnurse',
     scope: 'profile openid',
 };
