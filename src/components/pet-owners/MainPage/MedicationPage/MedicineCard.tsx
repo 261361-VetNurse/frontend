@@ -59,7 +59,6 @@ export default function MedicineCard({
   data,
   groupedTimes,
   onOpenDetail,
-  onToggleTaken,
   onEdit,
   onDelete,
 }: Props) {
