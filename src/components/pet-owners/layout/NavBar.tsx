@@ -23,6 +23,9 @@ const NavBarWrap = styled.footer`
   max-width: 50%;      
   margin: 0 auto;       
   padding: 8px 0;
+  @media (max-width: 670px) {
+    max-width: 100%;
+  }
 `;
 
 const NavItem = styled(Link)`
