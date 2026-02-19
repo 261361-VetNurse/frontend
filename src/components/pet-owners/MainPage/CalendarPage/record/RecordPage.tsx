@@ -39,15 +39,10 @@ import { SymptomRecord } from "@/types/domain/symptom";
 /* ---------------- helpers ---------------- */
 function pad2(n: number) { return String(n).padStart(2, "0"); }
 
-function formatTime12h(time24: string) {
+function formatTime24h(time24: string) {
   if (!time24) return "";
-  const [hStr, mStr] = time24.split(":");
-  const h = Number(hStr);
-  const m = Number(mStr);
-  if (isNaN(h) || isNaN(m)) return time24;
-  const suffix = h >= 12 ? "P.M." : "A.M.";
-  const hour12 = ((h + 11) % 12) + 1;
-  return `${pad2(hour12)}.${pad2(m)} ${suffix}`;
+  const [h, m] = time24.split(":");
+  return `${h}:${m}`;
 }
 
 function formatHeaderDate(isoDate: string) {
@@ -178,7 +173,11 @@ export const RecordPage = ({
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
 
-      await createSymptomRecord(token, data);
+      await createSymptomRecord(token, {
+        ...data,
+        date_added: data.date_added,
+        time_added: data.time_added,
+      });
 
       await refetch();
       await refetch();
@@ -198,6 +197,8 @@ export const RecordPage = ({
       await editSymptomRecord(token, record_id, {
         note: payload.note,
         note_image: finalImages,
+        date_added: payload.date,
+        time_added: payload.time,
       });
 
       await refetch();
@@ -267,7 +268,7 @@ export const RecordPage = ({
                   <RecordCard
                     key={record.record_id}
                     petName={pet?.name ?? "-"}
-                    time={formatTime12h(record.time_added)}
+                    time={formatTime24h(record.time_added)}
                     note={record.note}
                     avatarUrl={pet?.profile_image ?? undefined}
                     imageUrls={record.note_image ?? []}
@@ -313,7 +314,7 @@ export const RecordPage = ({
         onClose={closePopup}
         onEdit={(rec) => { setDetailRecord(null); openEditPopup(rec); }}
         onDelete={handleDelete}
-        formatTime={(t: string) => formatTime12h(t)} // Format 24h to 12h for detail view
+        formatTime={(t: string) => formatTime24h(t)} // Format 24h to 12h for detail view
       />
     </Page>
   );

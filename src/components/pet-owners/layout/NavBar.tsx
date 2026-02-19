@@ -7,33 +7,33 @@ import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons
 
 const NavBarStyle = styled.div`
   position: fixed;
-  display: flex;
   bottom: 0;
   left: 0;
   right: 0;
   width: 100%;
   background: #fff;
-  justify-content: center;
   z-index: 1000;
-  box-shadow: 0 -2px 2px 0 rgba(0,0,0,0.25);
+  box-shadow: 0 -2px 2px rgba(0,0,0,0.15);
 `;
 
 const NavBarWrap = styled.footer`
-  display: flex;
-  flex-direction: row;
-  width: 393px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr); 
+  width: 100%;
+  max-width: 50%;      
+  margin: 0 auto;       
   padding: 8px 0;
-  justify-content: space-between;
-  align-items: center;
-  
-  
+  @media (max-width: 670px) {
+    max-width: 100%;
+  }
 `;
+
 const NavItem = styled(Link)`
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: 64px;
+  min-width: 40px;
   cursor: pointer;
   text-decoration: none;
 
@@ -42,6 +42,10 @@ const NavItem = styled(Link)`
     text-align: center;
     font-size: 11px;
     font-weight: 400;
+
+    @media (max-width: 330px) {
+      display: none;
+    }
   }
 `;
 

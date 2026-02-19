@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
-import PetFilterSelector, {
-} from "@/components/pet-owners/shared/PetFilterSelector";
+import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 
 import { Pet } from "@/types/domain/pet";
 
 import AppointmentCard from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard";
-import AppointmentTabs, {
-  type AppointmentTabKey,
-} from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentTabs";
+import { Tabs } from "@/components/pet-owners/shared/Tabs";
 import AppointmentDateSection from "@/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentDateSection";
 import AppointmentDetail from "@/components/pet-owners/shared/appointment/AppointmentDetail";
 
@@ -28,6 +25,7 @@ import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 
 export default function MyPetsAppointments() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { pet_id } = useParams<{ pet_id: string }>();
 
   // Use mockPets directly as it matches Pet[] expected by PetFilterSelector
@@ -58,7 +56,14 @@ export default function MyPetsAppointments() {
     return petOptions.find((p) => String(p.pet_id) === selectedPetId) ?? petOptions[0];
   }, [petOptions, selectedPetId]);
 
-  const [tab, setTab] = useState<AppointmentTabKey>("upcoming");
+  const tabData = [
+    { name: "Upcoming", params: "upcoming" },
+    { name: "Completed", params: "completed" },
+    { name: "Canceled", params: "canceled" },
+  ];
+
+  const currentTab = searchParams.get('tab') || 'upcoming';
+
   const [showCreatePopup, setShowCreatePopup] = useState(false);
   const [detail, setDetail] = useState<Appointment | null>(null);
 
@@ -69,8 +74,21 @@ export default function MyPetsAppointments() {
   }, [appointments, selectedPetId]);
 
   const filtered = useMemo(() => {
-    return allAppointments.filter((a) => a.status.toLowerCase() === tab.toLowerCase());
-  }, [allAppointments, tab]);
+    const now = new Date();
+    return allAppointments.filter((a) => {
+      let status = a.status;
+
+      // Check if "Upcoming" appointment is actually in the past
+      if (status === "Upcoming") {
+        const apptDate = new Date(a.appointment_date);
+        if (apptDate < now) {
+          status = "Completed";
+        }
+      }
+
+      return status.toLowerCase() === currentTab.toLowerCase();
+    });
+  }, [allAppointments, currentTab]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, Appointment[]>();
@@ -130,9 +148,7 @@ export default function MyPetsAppointments() {
         }}
       />
 
-      <div style={{ marginTop: 8 }}>
-        <AppointmentTabs value={tab} onChange={setTab} />
-      </div>
+      <Tabs data={tabData} queryKey="tab" />
 
       <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 24 }}>
         {grouped.length === 0 ? (
@@ -147,7 +163,7 @@ export default function MyPetsAppointments() {
                     id: String(a.appointment_id),
                     petName: selectedPet?.name || "-",
                     date: normalizeDateText(a.appointment_date),
-                    time: new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
+                    time: a.appointment_time || new Date(a.appointment_date).toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false }),
                     location: a.location,
                   }}
                   onOpenDetail={handleOpenDetail}
@@ -177,7 +193,6 @@ export default function MyPetsAppointments() {
         }}
       />
 
-      {/* Appointment Detail Popup */}
       <AppointmentDetail
         open={!!detail}
         appointment={detail}

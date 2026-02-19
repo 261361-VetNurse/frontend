@@ -5,6 +5,7 @@ export interface NotificationItem {
     notification_at: string; // ISO format
     istaken: boolean;
     pet_id: number;
+    message?: string; // Optional message field
 }
 
 export interface NotificationDetail extends NotificationItem {
@@ -17,4 +18,15 @@ export interface NotificationDetail extends NotificationItem {
     frequency?: string | null; // Match backend frequency field
     reminder_time: string[];
     time_per_day: number;
+}
+
+export interface UnifiedNotification {
+    type: 'medicine' | 'appointment';
+    notification_id: number;
+    title: string;
+    notification_at: string;
+    is_read: boolean;
+    status: string;
+    payload: any;
+    created_at: string;
 }

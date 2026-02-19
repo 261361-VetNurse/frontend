@@ -5,56 +5,21 @@ import { useParams, useRouter } from 'next/navigation';
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
-import MedicationDetailPopup from '../../MedicationPage/MedicationDetailPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 
-import { Medicine, NotificationDetail } from '@/types/domain/medication';
-import { OccurrenceStatus } from '@/types/domain/medication-occurrence';
+import { Medicine } from '@/types/domain/medication';
 import {
   formatTimeForDisplay,
-  updateReminderTakenStatus,
-  ReminderOccurrence,
-  buildOccurrencesForDate,
-  getTodayInLocalTimezone,
-  getUserTimezone,
 } from '@/utils/reminder-utils';
-import { authStorage, getMedications, markMedicationTaken, deleteMedicine } from '@/services/api/client';
+import { authStorage, getMedicinesByPet, markMedicationTaken, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import { TabsWrap, TabButton, Header, CardList } from "@/styles/components/medication.styled";
+import { CardList } from "@/styles/components/medication.styled";
 import { QuickDialButton } from '@/components/shared';
 
 // Types
-type TabType = 'today' | 'tomorrow' | 'other';
-type OccurrenceOverride = { status: OccurrenceStatus; taken_at?: string | null };
 
-function ymdInUserTz(date: Date): string {
-  const userTz = getUserTimezone();
-  const d = new Intl.DateTimeFormat('en-CA', {
-    timeZone: userTz,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-  return d;
-}
-
-function getDateForTab(tab: TabType): Date {
-  const today = getTodayInLocalTimezone();
-  if (tab === 'today') return today;
-
-  if (tab === 'tomorrow') {
-    const d = new Date(today);
-    d.setDate(d.getDate() + 1);
-    return d;
-  }
-
-  // other: day+2
-  const d = new Date(today);
-  d.setDate(d.getDate() + 2);
-  return d;
-}
 
 export default function MedicationPageV2() {
   const router = useRouter();
@@ -87,17 +52,9 @@ export default function MedicationPageV2() {
     return apiPets.find(p => p.pet_id === selectedPetId);
   }, [apiPets, selectedPetId]);
 
-  // Tabs
-  const [activeTab, setActiveTab] = useState<TabType>('today');
+
   const [showCreatePopup, setShowCreatePopup] = useState(false);
-
-  const [selectedReminder, setSelectedReminder] = useState<{
-    medicineReminder: Medicine;
-    highlightedReminderId?: string;
-  } | null>(null);
-
   const [editingReminder, setEditingReminder] = useState<Medicine | null>(null);
-  const [occurrenceOverrides, setOccurrenceOverrides] = useState<Record<string, OccurrenceOverride>>({});
 
   const fetchReminders = useCallback(async () => {
     if (!selectedPetId) return;
@@ -109,19 +66,31 @@ export default function MedicationPageV2() {
       setError(null);
 
       try {
-        const dateParam = undefined; // As per debug fix
-        const petIdParam = selectedPetId;
+        const data: any[] = await getMedicinesByPet(token, selectedPetId.toString());
 
-        // Important: getMedications likely returns ALL meds for the pet, we filter by date client side
-        const data = await getMedications(token, petIdParam, dateParam);
-        setMedicineReminders(data);
+        const mappedData: Medicine[] = data.map((item) => ({
+          medicine_id: item.medicine_id,
+          pet_id: item.pet_id,
+          name: item.name,
+          dosage: item.dosage,
+          frequency: item.frequency,
+          reminder_time: item.reminder_time || [],
+          start_date: item.start_date,
+          end_date: item.end_date,
+          status: item.status === 'TAKE' ? 'active' : 'stopped',
+          properties: item.properties,
+          image_urls: item.image_urls,
+          notes: item.notes
+        }));
+
+        setMedicineReminders(mappedData);
       } catch (apiErr: any) {
         console.error('API failed:', apiErr);
         setError(apiErr.message || 'Failed to load medication reminders');
       }
     } catch (err) {
-      console.error(err);
-      setError('Failed to load medication reminders');
+      console.error('Error fetching medicine reminders:', err);
+      setError('Failed to load medicine reminders');
     } finally {
       setRemindersLoading(false);
     }
@@ -131,40 +100,6 @@ export default function MedicationPageV2() {
     fetchReminders();
   }, [fetchReminders]);
 
-
-  // Derived Data
-  const baseDate = getDateForTab(activeTab);
-
-  const occurrences: ReminderOccurrence[] = useMemo(() => {
-    const today = getTodayInLocalTimezone();
-
-    if (activeTab === 'today') {
-      return buildOccurrencesForDate(medicineReminders, today, occurrenceOverrides);
-    }
-
-    if (activeTab === 'tomorrow') {
-      const d = new Date(today);
-      d.setDate(d.getDate() + 1);
-      return buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides);
-    }
-
-    // other: day+2..day+7
-    const out: ReminderOccurrence[] = [];
-    for (let i = 2; i <= 7; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() + i);
-      out.push(...buildOccurrencesForDate(medicineReminders, d, occurrenceOverrides));
-    }
-
-    return out.sort(
-      (a, b) => new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
-    );
-  }, [activeTab, medicineReminders, occurrenceOverrides]);
-
-  const filteredOccurrences = useMemo(() => {
-    // Already filtered by API for selectedPetId, but double check
-    return occurrences.filter(o => o.pet.pet_id === selectedPetId);
-  }, [occurrences, selectedPetId]);
 
 
   // Handlers
@@ -181,21 +116,7 @@ export default function MedicationPageV2() {
     fetchReminders();
   };
 
-  const handleReminderClick = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.medicine_id === occ.plan_id);
-    if (!plan) return;
-    setSelectedReminder({
-      medicineReminder: plan,
-      highlightedReminderId: occ.reminder_id,
-    });
-  };
 
-  const handleEditFromCard = (occ: ReminderOccurrence) => {
-    const plan = medicineReminders.find(mr => mr.medicine_id === occ.plan_id);
-    if (!plan) return;
-    setEditingReminder(plan);
-    setSelectedReminder(null);
-  };
 
   const handleDeleteFromCard = async (planId: string) => {
     if (window.confirm('Are you sure you want to delete this medication?')) {
@@ -214,37 +135,14 @@ export default function MedicationPageV2() {
     }
   };
 
-  const handleToggleReminder = async (planId: number, reminderId: string, isTaken: boolean) => {
-    // Simplified update logic for V2 as we rely on re-fetching or state management that matches MedicationPage
-    try {
-      const token = authStorage.getToken();
-      if (token) await markMedicationTaken(token, Number(reminderId));
-      fetchReminders(); // Refresh after toggle
-    } catch (err) {
-      console.error(err);
-      fetchReminders();
-    }
-  };
 
-  const handleEditFromDetail = () => {
-    if (!selectedReminder) return;
-    setEditingReminder(selectedReminder.medicineReminder);
-    setSelectedReminder(null);
-  };
 
   const handleSaveEdit = () => {
     setEditingReminder(null);
     fetchReminders();
   };
 
-  const formatDate = (d: Date): string => {
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const dayName = days[d.getDay()];
-    const day = d.getDate();
-    const month = d.getMonth() + 1;
-    const year = d.getFullYear();
-    return `${dayName}, ${day}/${month}/${year}`;
-  };
+
 
   const loading = remindersLoading || petsLoading;
 
@@ -264,38 +162,46 @@ export default function MedicationPageV2() {
         onChange={(petId) => handlePetSelect(petId)}
       />
 
-      <div style={{ marginTop: 8 }}>
-        <TabsWrap>
-          <TabButton $active={activeTab === "today"} onClick={() => setActiveTab("today")}>
-            Today
-          </TabButton>
-          <TabButton $active={activeTab === "tomorrow"} onClick={() => setActiveTab("tomorrow")}>
-            Tomorrow
-          </TabButton>
-          <TabButton $active={activeTab === "other"} onClick={() => setActiveTab("other")}>
-            Other
-          </TabButton>
-        </TabsWrap>
-      </div>
-
-      <div style={{ marginTop: 8 }}>
-        <Header>
-          <div className="Title">
-            {activeTab === 'today'
-              ? "Today's Medication Reminders"
-              : activeTab === 'tomorrow'
-                ? "Tomorrow's Medication Reminders"
-                : 'Other Medication Reminders'}
-          </div>
-          <div className="DateText">{activeTab !== 'other' ? formatDate(baseDate) : ''}</div>
-        </Header>
+      <div className="flex items-center justify-center px-4 py-2 gap-3">
+        <div className="h-[1px] flex-1 bg-zinc-300"></div>
+        <div className="text-sm font-medium text-zinc-500">All Medication</div>
+        <div className="h-[1px] flex-1 bg-zinc-300"></div>
       </div>
 
       <div className="flex flex-col gap-6">
         {loading ? (
           <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
-        ) : filteredOccurrences.length > 0 ? (
+        ) : medicineReminders.length > 0 ? (
           <CardList>
+            {medicineReminders.map((med) => (
+              <MedicineCard
+                key={med.medicine_id}
+                data={{
+                  notification_id: med.medicine_id, // Use medicine_id as fallback
+                  medicine_id: med.medicine_id,
+                  pet_id: med.pet_id,
+                  pet_name: selectedPet?.name || '',
+                  pet_image: selectedPet?.profile_image || '',
+                  medicine_name: med.name,
+                  dosage: med.dosage,
+                  reminder_time: med.reminder_time,
+                  istaken: false, // Not relevant for general list
+                }}
+                groupedTimes={med.reminder_time.map((time, index) => ({
+                  id: index, // continuous index as id
+                  timeLabel: time,
+                  status: 'pending' // Placeholder
+                }))}
+                onOpenDetail={() => {
+                  // We can still open detail, but might need adjustment if it expects occurrences
+                  // For now, passing the med as is
+                  setEditingReminder(med);
+                }}
+                onToggleTaken={() => { }} // Disable for general list
+                onEdit={() => setEditingReminder(med)}
+                onDelete={() => handleDeleteFromCard(String(med.medicine_id))}
+              />
+            ))}
             {(() => {
               // Group occurrences by plan_id similar to MedicationPage
               const groupedMap = new Map<number, {
@@ -370,7 +276,7 @@ export default function MedicationPageV2() {
           </CardList>
         ) : (
           <div style={{ fontSize: 14, color: "#71717a", textAlign: 'center', padding: '32px' }}>
-            No medication reminders.
+            No medications found.
           </div>
         )}
       </div>
@@ -391,19 +297,7 @@ export default function MedicationPageV2() {
         initialPetId={selectedPetId}
       />
 
-      {selectedReminder && (
-        <MedicationDetailPopup
-          page="medication-page"
-          medicineReminder={selectedReminder.medicineReminder}
-          occurrences={filteredOccurrences.filter(o => o.plan_id === selectedReminder.medicineReminder.medicine_id)}
-          highlightedReminderId={selectedReminder.highlightedReminderId ? Number(selectedReminder.highlightedReminderId) : undefined}
-          onClose={() => setSelectedReminder(null)}
-          onToggleReminder={(reminderId: number) =>
-            handleToggleReminder(selectedReminder.medicineReminder.medicine_id, reminderId.toString(), true)
-          }
-          onEdit={handleEditFromDetail}
-        />
-      )}
+
 
       {editingReminder && (
         <EditMedicationPopup

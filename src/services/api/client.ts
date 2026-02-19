@@ -50,6 +50,7 @@ import {
     EditMedicationPayload,
     MedicineItem
 } from '@/types/api/medication.dto';
+import { GroupedMedicineNotification } from '@/types/domain/medication';
 import {
     AddAppointmentPayload,
     EditAppointmentPayload
@@ -73,7 +74,7 @@ import {
  * Exchange LINE authorization code for access token
  */
 export async function exchangeLineToken(code: string): Promise<LineExchangeResponse> {
-    const response = await loggedFetch(`/auth/auth/line/exchange`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/line/exchange`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -96,7 +97,7 @@ export async function notifyAppointment(
     date: string
 ): Promise<any> {
     const queryString = `line_id=${encodeURIComponent(lineId)}&topic=${encodeURIComponent(topic)}&date=${encodeURIComponent(date)}`;
-    const response = await loggedFetch(`/auth/notify/appointment?${queryString}`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/notify/appointment?${queryString}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -113,7 +114,7 @@ export async function notifyAppointment(
  * Get current user information
  */
 export async function getCurrentUser(token: string): Promise<User> {
-    const response = await loggedFetch(`/auth/me`, {
+    const response = await loggedFetch(`${API_BASE_URL}/auth/me`, {
         headers: {
             'Authorization': `Bearer ${token}`
         },
@@ -130,7 +131,7 @@ export async function getCurrentUser(token: string): Promise<User> {
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`/v1/dashboard/home`, {
         headers: {
-            'access_token': token
+            'Authorization': `Bearer ${token}`
         },
     });
     if (!response.ok) {
@@ -194,7 +195,7 @@ export const authStorage = {
  * @param petId - Optional pet ID filter
  * @param date - Optional date filter (YYYY-MM-DD format)
  */
-export async function getMedications(token: string, petId?: number, date?: string): Promise<any> {
+export async function getMedications(token: string, petId?: number, date?: string): Promise<GroupedMedicineNotification[]> {
     let url = `/v1/medications`;
     const params = new URLSearchParams();
     if (petId && petId !== 0) params.append('pet_id', petId.toString());
@@ -884,7 +885,7 @@ export async function deleteSymptomRecord(token: string, recordId: number): Prom
     return response.json();
 }
 // ---------------- Notification API ----------------
-import { NotificationItem } from "@/types/domain/notification";
+import { NotificationItem, UnifiedNotification } from "@/types/domain/notification";
 export async function getNotifications(token: string): Promise<NotificationItem[]> {
     // Correct endpoint for notification feed is /v1/medications
     const response = await loggedFetch(`/v1/medications`, {
@@ -899,6 +900,20 @@ export async function getNotifications(token: string): Promise<NotificationItem[
     const json = await response.json();
     return json.data || json;
 }
+export async function getAllNotifications(token: string): Promise<UnifiedNotification[]> {
+    const response = await loggedFetch(`/v1/notifications`, {
+        headers: {
+            'Authorization': `Bearer ${token}`,
+        },
+    });
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to fetch notifications');
+    }
+    const json = await response.json();
+    return json.data || json;
+}
+
 export async function markNotificationAsRead(token: string, id: string): Promise<boolean> {
     const response = await loggedFetch(`/v1/medications/${id}/taken`, {
         method: 'PATCH',

@@ -120,6 +120,8 @@ export default function AddRecordPopup({
         pet_id: Number(selectedPetId),
         note: note.trim(),
         note_image: imageUrls,
+        date_added: date,
+        time_added: time,
       });
       onClose();
     } catch (err) {

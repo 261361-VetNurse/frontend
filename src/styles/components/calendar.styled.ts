@@ -14,6 +14,9 @@ export const Page = styled.div`
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    width: 100%; 
+    box-sizing: border-box;   
     padding-bottom: 80px;
   }
 

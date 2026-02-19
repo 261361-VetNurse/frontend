@@ -13,12 +13,13 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { PetId } from '@/types/domain/pet';
-import { Medicine, NotificationDetail, NotificationItem } from '@/types/domain/medication';
-import MedicineCard from './MedicineCard';
+import { Medicine, NotificationDetail, NotificationItem, GroupedMedicineNotification } from '@/types/domain/medication';
+import MedicineCard, { ValidatedTimeSlot } from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { getMedicationStatus } from "@/utils/medicationStatus";
 
 // Hooks
 import { usePets } from '@/hooks';
@@ -41,7 +42,7 @@ export default function MedicationPage() {
   const router = useRouter();
 
   // State
-  const [medicineNoti, setMedicinesNoti] = useState<NotificationItem[]>([]);
+  const [medicineNoti, setMedicinesNoti] = useState<GroupedMedicineNotification[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -82,11 +83,12 @@ export default function MedicationPage() {
   // Memoize baseDate to prevent infinite loop - only recalculate when activeTab changes
   const baseDate = useMemo(() => getDateForTab(activeTab), [activeTab]);
 
-  const fetchMedicineNotiData = async (token: string, petId: number, date: string) => {
+  const fetchMedicineNotiData = async (token: string, petId: number | undefined, date: string) => {
     try {
       setError(null);
-      const data = await getMedications(token, petId, date);
-      setMedicinesNoti(data);
+      const petIdParam = selectedPetId === 0 ? undefined : selectedPetId;
+      const data = await getMedications(token, petIdParam, date);
+      setMedicinesNoti(data as any); // Cast as any because getMedications return type might still be inferred as NotificationItem[] until we update client.ts
     } catch (error) {
       console.error('Error fetching medicine notifications:', error);
       setError('Failed to load medication reminders');
@@ -174,16 +176,16 @@ export default function MedicationPage() {
     if (!token) return;
 
     const date = baseDate.toISOString().split('T')[0];
-    fetchMedicineNotiData(token, selectedPetId, date);
+    const petIdParam = selectedPetId === 0 ? undefined : selectedPetId;
+    fetchMedicineNotiData(token, petIdParam, date);
   }, [selectedPetId, baseDate]);
 
-  // Client-side filtering as a safety measure
-  const filteredMedicines = useMemo(() => {
+  // Grouping Logic Removed - API returns grouped data
+  const groupedMedicines = useMemo(() => {
+    // Just filter by pet if needed
     if (selectedPetId === 0) return medicineNoti;
     return medicineNoti.filter(m => m.pet_id === selectedPetId);
   }, [medicineNoti, selectedPetId]);
-
-
   const handlePetSelect = (petId: number | null) => {
     setSelectedPetId(petId || 0);
     const params = new URLSearchParams(searchParams.toString());
@@ -328,17 +330,40 @@ export default function MedicationPage() {
               fetchMedicineNotiData(token, selectedPetId, date);
             }}
           />
-        ) : filteredMedicines.length > 0 ? (
-          filteredMedicines.map((med) => (
+        ) : groupedMedicines.length > 0 ? (
+          groupedMedicines.map((med) => (
             <MedicineCard
-              key={`${med.notification_id}_${med.medicine_id}`}
-              data={med}
-              onOpenDetail={() => handleReminderClick(med.notification_id, med.medicine_id)}
-              onToggleTaken={() =>
-                handleToggleReminder(med.notification_id)
+              key={`${med.medicine_id}_${med.pet_id}`}
+              data={{
+                // Adapter to make it look like NotificationItem for the card props if needed,
+                // OR update MedicineCard to take GroupedMedicineNotification.
+                // MedicineCard props: data: NotificationItem. 
+                // Let's create a fake NotificationItem structure from med
+                notification_id: med.reminders[0]?.notification_id || -1, // Use first noti id as base
+                medicine_id: med.medicine_id,
+                pet_id: med.pet_id,
+                pet_name: med.pet_name,
+                pet_image: med.pet_image,
+                medicine_name: med.medicine_name,
+                dosage: med.dosage,
+                reminder_time: med.reminders.map(r => r.time),
+                istaken: med.reminders.every(r => r.status === 'taken'), // Aggregate status
+              }}
+              groupedTimes={med.reminders.map(r => ({
+                id: r.notification_id,
+                timeLabel: r.time, // API returns HH:MM
+                status: getMedicationStatus(r.time, r.status === 'taken', baseDate)
+              }))}
+              onOpenDetail={() => {
+                // Use first reminder ID for detail
+                const firstId = med.reminders[0]?.notification_id;
+                if (firstId) handleReminderClick(firstId, med.medicine_id);
+              }}
+              onToggleTaken={(reminderId: string | number) =>
+                handleToggleReminder(Number(reminderId))
               }
               onEdit={() => handleEditFromCard(med.medicine_id)}
-              onDelete={() => handleDelete(med.notification_id.toString(), med.medicine_id.toString())}
+              onDelete={() => handleDelete(med.reminders[0]?.notification_id.toString() || '', med.medicine_id.toString())}
             />
           ))
         ) : (
@@ -374,6 +399,13 @@ export default function MedicationPage() {
         <MedicationDetailPopup
           page="medication-page"
           medicineReminder={selectedReminder.medicineReminder}
+          occurrences={
+            // Find the grouped medicine to pass its reminders list
+            groupedMedicines.find(
+              gm => gm.medicine_id === selectedReminder.medicineReminder.medicine_id &&
+                gm.pet_id === selectedReminder.medicineReminder.pet_id
+            )?.reminders || []
+          }
           highlightedReminderId={selectedReminder.highlightedReminderId}
           onClose={closePopup}
           onToggleReminder={(reminderId: number) =>

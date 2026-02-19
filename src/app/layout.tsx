@@ -30,7 +30,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={`${k2d.variable} antialiased`}>
+      <body className={`${k2d.variable} antialiased`} suppressHydrationWarning>
         <StyledComponentsRegistry>
           <AuthProvider>
             {children}
