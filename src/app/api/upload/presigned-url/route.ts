@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME;
         const R2_PUBLIC_URL = process.env.NEXT_PUBLIC_R2_PUBLIC_URL;
 
-        if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME) {
+        if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY || !R2_BUCKET_NAME || !R2_PUBLIC_URL) {
             console.error('Missing R2 environment variables');
             return NextResponse.json(
                 { detail: 'Server configuration error' },
@@ -56,8 +56,9 @@ export async function POST(request: NextRequest) {
         });
 
         // Sign the URL (expires in 1 hour)
-        const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-        const publicUrl = `${R2_PUBLIC_URL}/${uniqueFilename}`;
+        const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });  
+        const normalizedPublicUrl = R2_PUBLIC_URL.replace(/\/+$/, ''); // Remove trailing slash if exists
+        const publicUrl = `${normalizedPublicUrl}/${uniqueFilename}`;
 
         return NextResponse.json({
             success: true,

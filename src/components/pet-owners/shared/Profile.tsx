@@ -218,7 +218,7 @@ export default function Profile({
         <AvatarImage
           src={isPet
             ? "https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp"
-            : "https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp"
+            : "/Ava.svg"
           }
           alt={computedAlt}
           draggable={false}
