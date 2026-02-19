@@ -17,12 +17,14 @@ import { getUserProfile, updateUserProfile, authStorage } from '@/services/api/c
 import { UserProfileUpdatePayload } from '@/types/api/auth.dto';
 import { ImageUpload } from '@/components/shared/ImageUpload';
 
+const DEFAULT_OWNER_PROFILE_IMAGE = '/Ava.svg';
+
 const EditOwnerInformationPage = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [profilePicture, setProfilePicture] = useState<string>("/images/profile-test.png");
+  const [profilePicture, setProfilePicture] = useState<string>(DEFAULT_OWNER_PROFILE_IMAGE);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

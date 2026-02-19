@@ -698,6 +698,8 @@ export async function uploadImage(file: File, token: string, folder: string = 'p
         throw new Error('Failed to upload image to storage');
     }
 
+    console.log("image url", public_url);
+
     return public_url;
 }
 /**
