@@ -169,6 +169,16 @@ export default function HomePage() {
         setData(response.data);
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      const isUnauthenticated = /not authenticated|unauthorized|401/i.test(message);
+
+      if (isUnauthenticated) {
+        authStorage.removeToken();
+        setData(null);
+        setError(null);
+        return;
+      }
+
       console.error(err);
       setError("Failed to load dashboard data");
     } finally {

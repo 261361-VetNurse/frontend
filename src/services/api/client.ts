@@ -104,6 +104,9 @@ export async function getCurrentUser(token: string): Promise<User> {
     const response = await loggedFetch(`${API_BASE_URL}/auth/me`, {
         headers: {
             'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${token}`,
+            // Keep backward compatibility if backend still reads access_token.
+            'access_token': token,
         },
     });
     if (!response.ok) {
