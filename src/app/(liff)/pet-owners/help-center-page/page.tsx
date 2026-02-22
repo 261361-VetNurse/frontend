@@ -1,6 +1,6 @@
 "use client";
 
-import { X, ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft, Search } from 'lucide-react';
 
 export default function HelpCenterPage() {
   const faqItems = [
@@ -28,9 +28,9 @@ export default function HelpCenterPage() {
 
           {/* Search Bar */}
           <div className="relative mb-6">
-            <input 
-              type="text" 
-              placeholder="Search..." 
+            <input
+              type="text"
+              placeholder="Search..."
               className="w-full bg-white border border-gray-200 rounded-full py-2.5 px-5 pr-10 text-[14px] shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-400 transition-all"
             />
             <Search className="absolute right-4 top-3 text-gray-400" size={18} />
@@ -41,11 +41,10 @@ export default function HelpCenterPage() {
             <h3 className="text-[16px] font-bold text-gray-800 mb-3 ml-1">คำถามยอดฮิต</h3>
             <div className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-50 overflow-hidden">
               {faqItems.map((item, index) => (
-                <div 
-                  key={index} 
-                  className={`p-4 flex flex-col cursor-pointer hover:bg-gray-50 transition-colors ${
-                    index !== faqItems.length - 1 ? 'border-b border-gray-100' : ''
-                  }`}
+                <div
+                  key={index}
+                  className={`p-4 flex flex-col cursor-pointer hover:bg-gray-50 transition-colors ${index !== faqItems.length - 1 ? 'border-b border-gray-100' : ''
+                    }`}
                 >
                   <p className="text-[13px] text-gray-700 leading-relaxed font-medium">
                     <span className="font-bold text-gray-800">[{item.topic}]</span> {item.detail}

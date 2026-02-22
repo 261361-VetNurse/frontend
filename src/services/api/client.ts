@@ -717,6 +717,24 @@ export async function getPresignedUrl(
         objectKey: data.object_key ?? data.objectKey ?? '',
         publicUrl: data.public_url ?? data.publicUrl,
     };
+    const { upload_url, public_url } = await response.json();
+
+    // 2. Upload directly to R2
+    const uploadResponse = await fetch(upload_url, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': file.type,
+        },
+        body: file,
+    });
+
+    if (!uploadResponse.ok) {
+        throw new Error('Failed to upload image to storage');
+    }
+
+    console.log('Image uploaded successfully. Public URL:', public_url);
+
+    return public_url;
 }
 /**
  * Delete image from R2 storage
