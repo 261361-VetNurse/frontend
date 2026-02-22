@@ -27,7 +27,7 @@ import {
 import { getUserProfile, authStorage } from '@/services/api/client';
 import SectionError from "@/components/pet-owners/shared/SectionError";
 
-const DefaultImage = 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp';
+const DEFAULT_OWNER_PROFILE_IMAGE = '/Ava.svg';
 
 const OwnerInformationPage = () => {
   const router = useRouter();
@@ -79,7 +79,7 @@ const OwnerInformationPage = () => {
       <Header>
         <AvatarWrapper>
           <AvatarImg
-            src={userData?.picture_url || DefaultImage}
+            src={userData?.picture_url || DEFAULT_OWNER_PROFILE_IMAGE}
             alt="Owner Avatar"
             width={50}
             height={50}

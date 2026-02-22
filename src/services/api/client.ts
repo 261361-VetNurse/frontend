@@ -2,11 +2,6 @@
  * API Client for VetNurse Backend
  */
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env.NEXT_PUBLIC_API_URL : 'http://localhost:8000';
-
-
-import { Appointment } from '@/types/domain/appointment';
-import { SymptomRecord, SymptomCalendarResponse } from '@/types/domain/symptom';
-
 // Mock Helper
 /**
  * Wrapper for fetch to add logging
@@ -37,14 +32,6 @@ interface LineExchangeResponse {
 }
 import { User, UserProfile } from '@/types/domain/user';
 import { Pet } from '@/types/domain/pet';
-
-function normalizeAppointmentStatus(status?: string): Appointment["status"] {
-    const lower = (status ?? "").toLowerCase();
-    if (lower === "completed") return "Completed";
-    if (lower === "canceled" || lower === "cancelled") return "Canceled";
-    return "Upcoming";
-}
-
 import {
     AddMedicationPayload,
     EditMedicationPayload,
@@ -131,7 +118,7 @@ export async function getCurrentUser(token: string): Promise<User> {
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`/v1/dashboard/home`, {
         headers: {
-            'Authorization': `Bearer ${token}`
+            'access_token': token
         },
     });
     if (!response.ok) {
@@ -140,7 +127,6 @@ export async function getDashboardHome(token: string): Promise<import('@/types/d
     }
     return response.json();
 }
-
 /**
  * Storage helpers for authentication
  */
@@ -668,32 +654,17 @@ export async function addPetMedicalHistory(token: string, petId: string, data: A
 /**
  * Upload image to R2 storage via backend API
  */
-export async function uploadImage(file: File, token: string, folder: string = 'pets'): Promise<string> {
-    const { uploadUrl, publicUrl } = await getPresignedUrl(token, file.type, folder);
-
-    const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': file.type,
-        },
-        body: file,
-    });
-
-    if (!uploadResponse.ok) {
-        throw new Error('Failed to upload image to storage');
-    }
-
-    return publicUrl;
-}
-
 /**
  * Get presigned URL for direct R2 upload
  */
-export async function getPresignedUrl(
-    token: string,
-    fileType: string,
-    folder: string
-): Promise<{ uploadUrl: string; objectKey: string; publicUrl: string }> {
+/**
+ * Get presigned URL for direct R2 upload
+ */
+/**
+ * Upload image to R2 storage via backend API
+ */
+export async function uploadImage(file: File, token: string, folder: string = 'pets'): Promise<string> {
+    // 1. Get Presigned URL
     const response = await loggedFetch(`/api/upload/presigned-url`, {
         method: 'POST',
         headers: {
@@ -701,8 +672,9 @@ export async function getPresignedUrl(
             'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-            fileType,
-            folder,
+            filename: file.name,
+            content_type: file.type,
+            folder: folder
         }),
     });
 
@@ -711,12 +683,6 @@ export async function getPresignedUrl(
         throw new Error(error.detail || 'Failed to get upload URL');
     }
 
-    const data = await response.json();
-    return {
-        uploadUrl: data.upload_url ?? data.uploadUrl,
-        objectKey: data.object_key ?? data.objectKey ?? '',
-        publicUrl: data.public_url ?? data.publicUrl,
-    };
     const { upload_url, public_url } = await response.json();
 
     // 2. Upload directly to R2
@@ -732,7 +698,7 @@ export async function getPresignedUrl(
         throw new Error('Failed to upload image to storage');
     }
 
-    console.log('Image uploaded successfully. Public URL:', public_url);
+    console.log("image url", public_url);
 
     return public_url;
 }
@@ -810,6 +776,7 @@ export async function registerOwner(token: string, ownerData: RegisterOwnerPaylo
 // ============================================================================
 // SYMPTOM RECORDS API
 // ============================================================================
+import { SymptomRecord, SymptomCalendarResponse, SymptomRecordCreate, SymptomRecordUpdate } from '@/types/domain/symptom';
 /**
  * Get symptom records calendar
  */
