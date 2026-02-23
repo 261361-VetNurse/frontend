@@ -24,15 +24,15 @@ Wachirawit Chaiyamat – 660612156
 - LINE Authentication & Session  
 - Owner Registration  
 - Owner & Pet Approval Status Management  
+- My Pets List (Owner View)  
 - Symptom Record (CRUD)  
 - Medical History Timeline  
 - Image Upload (Symptoms)  
 - Medication Management  
 - Appointment Management  
 - Notifications  
-- Calendar  
+- Calendar (Appointment / Symptom Record Tab)  
 - Dashboard  
-- Help Center & UX Validation  
 * **Test Levels:** System Testing, Integration  
 * **Test Approach:** Agile Continuous Testing
 
@@ -76,15 +76,15 @@ Wachirawit Chaiyamat – 660612156
 
 Describe **why testing is performed** in this sprint.
 
-วัตถุประสงค์ของแผนการทดสอบนี้ คือเพื่อประเมินคุณภาพของฟีเจอร์ที่พัฒนาใน Sprint 1 ของระบบ Portal Vet Nurse โดยมุ่งเน้นการตรวจสอบว่าระบบทำงานสอดคล้องกับความต้องการของผู้ใช้ตาม User Stories และ Acceptance Criteria ที่กำหนดไว้ รวมถึงมีความสอดคล้องกับการออกแบบส่วนติดต่อผู้ใช้ (UI Design) จาก Figma และสามารถรองรับการใช้งานจริงในลักษณะ end-to-end ได้อย่างเหมาะสม ก่อนนำเสนอผลลัพธ์ใน Sprint Review และ Demo
+วัตถุประสงค์ของแผนการทดสอบนี้ คือเพื่อประเมินคุณภาพของฟีเจอร์ฝั่ง Frontend ที่พัฒนาใน Sprint 1 ของระบบ Portal Vet Nurse โดยมุ่งเน้นการตรวจสอบว่าระบบทำงานสอดคล้องกับความต้องการของผู้ใช้ตาม User Stories และ Acceptance Criteria ที่กำหนดไว้ รวมถึงมีความสอดคล้องกับการออกแบบส่วนติดต่อผู้ใช้ (UI Design) จาก Figma และรองรับการใช้งานจริงในลักษณะ user flow ได้อย่างเหมาะสมผ่านการทดสอบแบบ frontend-mocked (UI + mocked API responses) ภายใต้นโยบาย **mock-only** (ไม่ให้ test หลุดไปเรียก backend จริง) ก่อนนำเสนอผลลัพธ์ใน Sprint Review และ Demo
 
 ### **1.2 Test Scope**
 
 **In Scope**
 
 * User Stories ที่อยู่ใน Sprint 1  
-* การทดสอบการทำงานของระบบในระดับระบบ (ครอบคลุมทั้ง Frontend และ Backend)  
-* การทดสอบการเชื่อมต่อระหว่าง UI และ API  
+* การทดสอบการทำงานของ Frontend (User-facing flows) ด้วย Cypress แบบ frontend-mocked  
+* การทดสอบการเชื่อมต่อระหว่าง UI และ mocked API responses / intercept contracts (mock-only)  
 * Client-side validation  
 * Regression testing เบื้องต้น  
 * Exploratory testing ตาม workflow การใช้งานจริง
@@ -94,7 +94,8 @@ Describe **why testing is performed** in this sprint.
 * Future Features (เช่น Q\&A, Real-time Workflow Tracking)  
 * Performance / Load testing  
 * Security / Penetration testing  
-* ฟีเจอร์ของ Sprint 2
+* Backend API integration / database validation (ทดสอบแยกใน backend repo)  
+* Admin pages และ Help Center (ไม่นับใน coverage ของเอกสารฉบับนี้ แม้อาจมี smoke tests แยกเพื่อ sanity check)  
 
 ## **2\. Traceability (User Stories ↔ Tests)**
 
@@ -106,20 +107,23 @@ Describe **why testing is performed** in this sprint.
 
 | PRD / Story ID | User Story | Acceptance Criteria | Test Case ID(s) |
 | :---- | :---- | :---- | :---- |
-| US-01 | ผู้ใช้ login ผ่าน LINE ได้ | token ถูกต้อง / session ถูกสร้าง | TC-AUTH-01,02 |
+| US-01 | ผู้ใช้ login / redirect ผ่าน LINE flow ได้ | token ถูกต้อง / session ถูกสร้าง / redirect ถูกต้อง | TC-AUTH-00–03 |
 | US-02 | ผู้ใช้สามารถดูข้อมูลโปรไฟล์ตนเอง | แสดงข้อมูล owner ถูกต้อง | TC-AUTH-03 |
 | US-03 | ผู้ใช้สามารถลงทะเบียน Owner | validation ผ่าน, บันทึกสำเร็จ | TC-OWN-01–03 |
-| US-04 | ผู้ใช้สามารถแก้ไขข้อมูล Owner | แก้ไข field เดียว/หลาย field ได้ | TC-OWN-04 |
+| US-04 | ผู้ใช้สามารถแก้ไขข้อมูล Owner | แก้ไข field เดียว/หลาย field ได้ และเปลี่ยนรูปโปรไฟล์ได้ | TC-OWN-04–05 |
 | US-05 | ผู้ใช้สามารถเพิ่มสัตว์เลี้ยง | ข้อมูลจำเป็นครบ | TC-PET-01–03 |
 | US-06 | ผู้ใช้สามารถดู/แก้ไข/ลบสัตว์เลี้ยง | owner เท่านั้นที่จัดการได้ | TC-PET-04–06 |
+| US-06A | ผู้ใช้สามารถดูรายการสัตว์เลี้ยงของตน | redirect เมื่อไม่ login / แสดงรายการ / แสดง error+retry ได้ | TC-MYPETS-01–03 |
 | US-07 | ผู้ใช้สามารถบันทึกอาการสัตว์ | CRUD \+ upload รูป | TC-SYM-01–05 |
+| US-07A | ผู้ใช้สามารถเข้าหน้า Calendar (Record tab) และเพิ่ม symptom record จาก popup ได้ | เปิด record tab / เปิด popup / create จาก calendar ได้ | TC-CALREC-01–02 |
 | US-08 | ผู้ใช้สามารถดูประวัติการรักษา | เรียงตามลำดับเวลา | TC-HIS-01 |
-| US-09 | ผู้ใช้สามารถจัดการข้อมูลยา | CRUD ยาได้ | TC-MED-01–04 |
+| US-09 | ผู้ใช้สามารถจัดการข้อมูลยา | CRUD ยาได้ และรองรับ deep-link เข้า detail/edit | TC-MED-01–04,08 |
 | US-10 | ผู้ใช้สามารถดูตารางยา  (รายตัว) | Today / Tomorrow / Other | TC-MED-05–06 |
 | US-11 | ผู้ใช้สามารถดูตารางยา  (รวมสัตว์) | เปลี่ยน pet selector ได้ | TC-MED-07 |
-| US-12 | ผู้ใช้สามารถสร้างและจัดการนัดหมาย | CRUD นัดหมายได้ | TC-APP-01–04 |
+| US-12 | ผู้ใช้สามารถสร้างและจัดการนัดหมาย | CRUD นัดหมายได้ และรองรับ deep-link edit | TC-APP-01–04,06 |
 | US-13 | ผู้ใช้สามารถดูนัดหมายตามสถานะ | Upcoming / Completed / Canceled | TC-APP-05 |
 | US-14 | ผู้ใช้สามารถดู Dashboard | pets / reminder / upcoming | TC-DASH-01–03 |
+| US-15 | ผู้ใช้สามารถดู Notifications และ mark as read ได้ | grouped notifications / empty state / read state update | TC-NOTI-01–02 |
 
 ## 
 
@@ -127,7 +131,7 @@ Describe **why testing is performed** in this sprint.
 
 ### **3.1 Overall Test Strategy**
 
-การทดสอบใน Sprint 1 ดำเนินการแบบ **Agile Continuous Testing** โดยรวมการทดสอบ Frontend และ Backend ภายใต้ฟีเจอร์เดียวกัน เน้นการตรวจสอบ **end-to-end user flow** ตั้งแต่ UI → API → UI state
+การทดสอบใน Sprint 1 ดำเนินการแบบ **Agile Continuous Testing** โดยโฟกัสการทดสอบฝั่ง Frontend แบบ **frontend-mocked** (Cypress + `cy.intercept`) เน้นการตรวจสอบ **user flow** ตั้งแต่ UI interaction → mocked API response → UI state โดยไม่พึ่ง backend จริงใน repo นี้ และกำหนดนโยบาย **mock-only** สำหรับ suite `frontend-mocked` (ถ้ามี API request ที่ไม่ได้ mock/intercept ไว้ ต้อง fail test ทันที)
 
 ---
 
@@ -136,20 +140,20 @@ Describe **why testing is performed** in this sprint.
 Not limited to:
 
 * **Functional System Testing**  
-  ใช้เพื่อตรวจสอบการทำงานของระบบในภาพรวม โดยยืนยันว่าฟีเจอร์ที่พัฒนาใน Sprint 1 ทำงานสอดคล้องกับความต้องการของผู้ใช้ตาม User Stories และ Acceptance Criteria ที่กำหนดไว้  
+  ใช้เพื่อตรวจสอบการทำงานของ frontend ในภาพรวม โดยยืนยันว่าฟีเจอร์ที่พัฒนาใน Sprint 1 ทำงานสอดคล้องกับความต้องการของผู้ใช้ตาม User Stories และ Acceptance Criteria ที่กำหนดไว้ ภายใต้ mocked API conditions  
 * **Regression Testing**  
-  ดำเนินการทดสอบการทำงานร่วมกันระหว่างส่วนติดต่อผู้ใช้ (Frontend) และบริการฝั่งระบบ (Backend API) เพื่อยืนยันว่าข้อมูลถูกส่งและประมวลผลอย่างถูกต้องตลอดกระบวนการทำงาน  
-* **Exploratory Testing**  
   ทำการทดสอบฟังก์ชันหลักที่มีอยู่เดิม เพื่อให้มั่นใจว่าการเพิ่มหรือปรับปรุงฟีเจอร์ใหม่ใน Sprint 1 ไม่ส่งผลกระทบต่อการทำงานเดิมของระบบ  
-* **Integration Testing**  
+* **Exploratory Testing**  
   ใช้การทดสอบเชิงสำรวจตามสถานการณ์การใช้งานจริง โดยมุ่งเน้นการประเมินประสบการณ์ผู้ใช้ ลำดับขั้นตอนการทำงาน และกรณีที่อาจเกิดข้อผิดพลาดนอกเหนือจาก test case ที่กำหนดไว้
+* **Integration Testing**  
+  ใช้เพื่อตรวจสอบ integration ภายใน frontend เช่น page routing, local storage session, form validation และ network interception contracts ระหว่าง UI กับ mocked endpoints
 
 ## **4\. Test Environment**
 
 | Item | Description |
 | :---- | :---- |
 | Environment | Development / Staging |
-| Platform | Mobile Web Application (User), Web Application (Admin) |
+| Platform | Mobile Web Application (User) |
 | Browsers | Chrome, Safari |
 | OS | Android, iOS, Windows, macOS |
 | Test Data | Synthetic / mock data |
@@ -180,8 +184,8 @@ Not limited to:
 | Risk | Impact | Mitigation |
 | :---- | :---- | :---- |
 | ความต้องการของระบบเปลี่ยนหรือยังไม่ชัดเจนระหว่าง Sprint | High | System Analyst และ Lead Developers ประสานงานกับลูกค้าอย่างใกล้ชิดเพื่อยืนยัน requirement และ acceptance criteria |
-| Backend API บางส่วนยังไม่พร้อมใช้งาน | High | ใช้ mock data เพื่อให้สามารถทดสอบ frontend และ workflow ได้ก่อน |
-| การเชื่อมต่อระหว่าง Frontend และ Backend ไม่สมบูรณ์ | Medium | ดำเนินการ integration testing อย่างต่อเนื่อง และทดสอบร่วมกันระหว่างทีม |
+| Backend API บางส่วนยังไม่พร้อมใช้งาน | Medium | ใช้ mock data และ `cy.intercept()` เพื่อให้สามารถทดสอบ frontend และ workflow ได้ก่อน |
+| การ mock API ไม่ครบทุก endpoint ทำให้ test หลุดไปยิง backend จริง | High | กำหนดนโยบาย frontend-mocked = mock-only, ใช้ runtime guard ให้ fail ทันทีเมื่อมี unmocked API request และตรวจสอบ intercept coverage ก่อน merge |
 | Test environment ไม่เสถียรหรือเปลี่ยนแปลงระหว่าง Sprint | Medium | เตรียม environment สำรอง และจำกัดการเปลี่ยนแปลง environment ระหว่างช่วงทดสอบ |
 | เวลาใน Sprint จำกัด ทำให้ทดสอบไม่ครบทุกกรณี | Medium | จัดลำดับความสำคัญของ test cases โดยเน้น critical user flows |
 | ข้อมูลทดสอบไม่ครอบคลุมกรณี edge cases | Low | สร้าง synthetic และ mock test data เพิ่มเติมสำหรับกรณีสำคัญ |
@@ -192,8 +196,7 @@ Not limited to:
 
 ### **6.2 Dependencies**
 
-* ความพร้อมของ Backend API สำหรับฟีเจอร์ใน Sprint 1  
-* ความพร้อมของบริการ LINE Authentication  
+* ความพร้อมของ mock test data และ response contracts สำหรับฟีเจอร์ใน Sprint 1  
 * ความพร้อมของ Test Environment (Development / Staging)  
 * ความพร้อมของ Test Data สำหรับการทดสอบแต่ละฟีเจอร์  
 * ความพร้อมของทีมพัฒนาและทีมทดสอบในช่วง Sprint

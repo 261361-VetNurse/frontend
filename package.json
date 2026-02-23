@@ -11,9 +11,11 @@
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "cypress:open": "cypress open",
+    "cypress:open:frontend-integration": "cypress open --e2e --config specPattern=\"cypress/e2e/frontend-integration/**/*.cy.ts\"",
     "cypress:open:ios": "cypress open --env deviceGroup=ios",
     "cypress:open:android": "cypress open --env deviceGroup=android",
     "cypress:run": "cypress run",
+    "cypress:run:frontend-integration": "cypress run --spec \"cypress/e2e/frontend-integration/**/*.cy.ts\"",
     "cypress:run:ios": "cypress run --env deviceGroup=ios",
     "cypress:run:android": "cypress run --env deviceGroup=android",
     "cypress:run:all-mobile": "cypress run --env deviceGroup=all"
