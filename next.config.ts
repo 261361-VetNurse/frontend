@@ -22,22 +22,7 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  async rewrites() {
-    return [
-      {
-        source: "/v1/:path*",
-        destination: "http://localhost:8000/v1/:path*",
-      },
-      {
-        source: "/auth/:path*",
-        destination: "http://localhost:8000/auth/:path*",
-      },
-      {
-        source: "/me",
-        destination: "http://localhost:8000/me",
-      },
-    ];
-  },
+
 };
 
 export default nextConfig;

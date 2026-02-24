@@ -14,14 +14,15 @@ interface ImageUploadProps {
 }
 
 const DEFAULT_IMAGES = {
-    'pet-owner-profile': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp',
+    'pet-owner-profile': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/biank_pet_owner_profile_1x.webp',
     'pet-profile': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp',
-    'symptom-record': '/placeholder-image.png', // Fallback for records if needed
+    'symptom-record': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp',
+    'default': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp',
 };
 
 export function ImageUpload({
     onUploadComplete,
-    folder = 'pet-profile',
+    folder,
     currentImage,
     className
 }: ImageUploadProps) {
@@ -31,7 +32,7 @@ export function ImageUpload({
     const [error, setError] = useState<string | null>(null);
 
     // Determine display image: preview (newly uploaded) -> currentImage (prop) -> default
-    const displayImage = preview || currentImage || DEFAULT_IMAGES[folder];
+    const displayImage = preview || currentImage || DEFAULT_IMAGES[folder || 'default'];
 
     const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -79,12 +80,12 @@ export function ImageUpload({
 
     return (
         <div className={`relative ${className}`} style={{ overflow: 'visible' }}>
-            <div className="relative w-full h-full rounded-full overflow-hidden group border-2 border-zinc-200">
+            <div className="relative w-full h-full rounded-full overflow-hidden group border-2">
                 <Image
-                    src={displayImage}
                     alt="Profile"
+                    src={displayImage}
                     fill
-                    className="object-cover transition-opacity duration-300 group-hover:opacity-75"
+                    className="object-cover transition-opacity duration-300"
                     unoptimized
                 />
 
@@ -93,7 +94,7 @@ export function ImageUpload({
                     <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-full rounded-full backdrop-blur-xs flex items-center justify-center shadow-sm hover:bg-white/40 transition-colors z-10"
+                        className="w-full h-full rounded-full flex items-center justify-center shadow-sm hover:bg-white/40 transition-colors z-10"
                         disabled={uploading}
                     >
                         <EditIcon style={{ fontSize: '32px', color: 'white' }} />

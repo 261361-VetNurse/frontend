@@ -150,6 +150,8 @@ export default function RecordPage() {
         pet_id: data.pet_id,
         note: data.note,
         note_image: data.note_image,
+        date_added: data.date_added,
+        time_added: data.time_added,
       });
 
       await fetchRecords();
@@ -247,11 +249,8 @@ export default function RecordPage() {
         <AddRecordPopup
           open={openCreate}
           onClose={() => setOpenCreate(false)}
-          pet={{
-            name: selectedPet.name ?? "-",
-            pet_id: selectedPet.pet_id,
-            profile_image: selectedPet.profile_image,
-          }}
+          allPets={petOptions}
+          initialPetId={Number(selectedPetId)}
           onSubmit={handleSaveAdd}
         />
       )}

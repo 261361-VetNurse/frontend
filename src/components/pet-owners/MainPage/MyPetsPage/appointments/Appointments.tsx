@@ -17,7 +17,7 @@ import type { Appointment } from "@/types/domain/appointment";
 import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
 import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
-import AddAppointmentPopup from "@/components/pet-owners/MainPage/CalendarPage/appointment/AddAppointmentPopup";
+import AddAppointmentPopup from "@/components/pet-owners/shared/appointment/AddAppointmentPopup";
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 
 import { QuickDialButton } from "@/components/shared";
@@ -150,7 +150,7 @@ export default function MyPetsAppointments() {
 
       <Tabs data={tabData} queryKey="tab" />
 
-      <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 24 }}>
+      <div key={currentTab} className="fade-in" style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 24 }}>
         {grouped.length === 0 ? (
           <div style={{ fontSize: 14, color: "#71717a" }}>No appointments</div>
         ) : (
@@ -186,11 +186,7 @@ export default function MyPetsAppointments() {
         open={showCreatePopup}
         onClose={handleClosePopup}
         onSubmit={handleSubmitPopup}
-        pet={{
-          pet_id: selectedPet?.pet_id ?? 0,
-          name: selectedPet?.name ?? "-",
-          profile_image: selectedPet?.profile_image ?? undefined,
-        }}
+        allPets={pets}
       />
 
       <AppointmentDetail

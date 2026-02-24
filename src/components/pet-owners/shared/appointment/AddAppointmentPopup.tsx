@@ -103,18 +103,13 @@ export default function AddAppointmentPopup({
       dirty={Boolean(selectedPetId || date || time || location)}
     >
       {/* 1. Custom Pet Selector (แสดงรูปและ PID เหมือนรูปขวา) */}
-      <div className="space-y-1 pb-4 border-b border-zinc-100">
-        <label className="block text-sm font-medium text-zinc-800">
-          Select Pet
-        </label>
-        <PetFilterSelector
-          value={selectedPetId}
-          pets={allPets}
-          onChange={setSelectedPetId}
-          allowAllPets={true}
-          size="md"
-        />
-      </div>
+      <PetFilterSelector
+        value={selectedPetId}
+        pets={allPets as any}
+        onChange={(val) => setSelectedPetId(Number(val))}
+        allowAllPets={false}
+        size={"40px"}
+      />
 
       {/* 2. Appointment Time */}
       <div className="space-y-1 pt-2">

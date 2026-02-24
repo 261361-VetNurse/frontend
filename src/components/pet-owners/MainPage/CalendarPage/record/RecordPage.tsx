@@ -15,7 +15,6 @@ import CalendarModule, {
 import { CALENDAR_MARKER_PALETTE } from "@/styles/components/calendar.styled";
 
 import RecordCard from "@/components/pet-owners/shared/records/RecordCard";
-import AddRecordPopup from "./AddRecordPopup";
 import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
 import EditRecordPopup, { type EditRecordFormState } from "@/components/pet-owners/shared/records/EditRecordPopup";
 import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDetailPopup";
@@ -35,6 +34,7 @@ import {
 } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { SymptomRecord } from "@/types/domain/symptom";
+import AddSymptomPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
 
 /* ---------------- helpers ---------------- */
 function pad2(n: number) { return String(n).padStart(2, "0"); }
@@ -291,10 +291,10 @@ export const RecordPage = ({
         onClickAction={openCreatePopup}
       />
 
-      <AddRecordPopup
+      <AddSymptomPopup
         open={openCreate}
         onClose={closePopup}
-        pets={petOptions}
+        allPets={petOptions}
         initialPetId={selectedPetId}
         onSubmit={handleSaveAdd}
       />

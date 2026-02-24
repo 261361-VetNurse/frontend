@@ -318,7 +318,7 @@ export default function MedicationPage() {
         <div className='DateText'>{formatDate(baseDate)}</div>
       </Header>
 
-      <CardList>
+      <CardList key={activeTab} className="fade-in">
         {pageLoading && medicineNoti.length === 0 ? (
           <div style={{ padding: 20, textAlign: 'center' }}>Loading...</div>
         ) : error ? (
