@@ -72,8 +72,8 @@ export default function HomePage() {
             }
 
             // 6. Existing User -> Load Dashboard
-            // Refresh page/dashboard to use new token
-            fetchDashboard();
+            // Refresh dashboard after the new token is stored
+            await fetchDashboard();
           }
         } catch (err) {
           console.error("❌ Token exchange failed:", err);
@@ -175,10 +175,6 @@ export default function HomePage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchDashboard();
-  }, []);
 
   // Removed blocking error return
   // if (error) return ...
