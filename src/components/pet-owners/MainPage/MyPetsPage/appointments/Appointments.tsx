@@ -187,6 +187,7 @@ export default function MyPetsAppointments() {
         onClose={handleClosePopup}
         onSubmit={handleSubmitPopup}
         allPets={pets}
+        initialPetId={selectedPet ? Number(selectedPet.pet_id) : null}
       />
 
       <AppointmentDetail

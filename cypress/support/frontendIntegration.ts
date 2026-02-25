@@ -76,33 +76,42 @@ Cypress.Commands.add('fiGetAuthToken', () => {
 
   const developerAccessFallback = () => {
     cy.log('fi:token unavailable -> fallback Developer Access (DEV_1)');
-    return cy.visit('/pet-owners/login-page').then(() => {
-      cy.contains(/developer access/i, { timeout: 20000 }).should('be.visible');
-      cy.get('input:visible').last().should('be.visible').as('fiDevAccessInput');
-      cy.get('@fiDevAccessInput').clear();
-      cy.get('input:visible').last().should('be.visible').type('DEV_1');
-      cy.get('body').then(($body) => {
-        const enterButton = [...$body.find('button')].find((button) =>
-          /^Enter$/i.test((button.textContent ?? '').trim())
-        );
-        if (enterButton) {
-          cy.wrap(enterButton).click();
-        }
-      });
-
-      return cy
-        .window({ timeout: 30000 })
-        .should((win) => {
-          const token = win.localStorage.getItem('auth_token');
-          expect(token, 'auth_token from fiGetAuthToken Developer Access fallback')
-            .to.be.a('string')
-            .and.have.length.greaterThan(20);
+    return cy
+      .clearCookies({ log: false })
+      .then(() => cy.clearLocalStorage({ log: false }))
+      .then(() =>
+        cy.visit('/pet-owners/login-page', {
+          onBeforeLoad(win) {
+            win.localStorage.removeItem('auth_token');
+          },
         })
-        .then((win) => {
-          const token = String(win.localStorage.getItem('auth_token'));
-          return validateAndCacheToken(token);
-        });
-    });
+      )
+      .then(() => {
+        cy.location('pathname', { timeout: 20000 }).should('include', '/pet-owners/login-page');
+        cy.contains(/developer access/i, { timeout: 20000 }).should('be.visible');
+        cy
+          .get('[data-cy="dev-access-input"]', { timeout: 20000 })
+          .should('be.visible')
+          .as('fiDevAccessInput');
+        cy.get('@fiDevAccessInput').clear().type('DEV_1');
+        cy.get('[data-cy="dev-access-submit"]', { timeout: 20000 })
+          .should('be.visible')
+          .and('not.be.disabled')
+          .click();
+
+        return cy
+          .window({ timeout: 30000 })
+          .should((win) => {
+            const token = win.localStorage.getItem('auth_token');
+            expect(token, 'auth_token from fiGetAuthToken Developer Access fallback')
+              .to.be.a('string')
+              .and.have.length.greaterThan(20);
+          })
+          .then((win) => {
+            const token = String(win.localStorage.getItem('auth_token'));
+            return validateAndCacheToken(token);
+          });
+      });
   };
 
   return cy

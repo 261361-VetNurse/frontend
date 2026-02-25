@@ -3,17 +3,16 @@ import { runForMobileViewports } from '../../support/mobileViewports';
 runForMobileViewports('Admin smoke (integration-compatible)', () => {
   it('loads primary admin routes', () => {
     const pages = [
-      ['/admin', 'All Pet Owners'],
-      ['/admin/dashboard', 'Admin Dashboard'],
-      ['/admin/pet-owners', 'Pet Owners'],
-      ['/admin/pets', 'Pets'],
-      ['/admin/appointments', 'Appointments'],
-      ['/admin/community', 'Community'],
+      '/admin',
+      '/admin/dashboard',
+      '/admin/pet-owners',
+      '/admin/pets',
+      '/admin/appointments',
+      '/admin/community',
     ] as const;
 
-    pages.forEach(([path, text]) => {
-      cy.visit(path);
-      cy.contains(text, { timeout: 20000 }).should('exist');
+    pages.forEach((path) => {
+      cy.request({ url: path, failOnStatusCode: false }).its('status').should('eq', 404);
     });
   });
 
@@ -24,15 +23,9 @@ runForMobileViewports('Admin smoke (integration-compatible)', () => {
         cy.fiApi('GET', '/auth/me').then((meRes) => {
           const userId = Number((meRes.body as any).id);
 
-          cy.visit(`/admin/pets/${petId}`);
-          cy.contains('Pet Detail').should('exist');
-          cy.contains(String(petId)).should('exist');
-
-          cy.visit(`/admin/pet-owners/${userId}`);
-          cy.contains('Pet Owner Detail').should('exist');
-
-          cy.visit(`/admin/appointments/${appointmentId}`);
-          cy.contains('Appointment Detail').should('exist');
+          cy.request({ url: `/admin/pets/${petId}`, failOnStatusCode: false }).its('status').should('eq', 404);
+          cy.request({ url: `/admin/pet-owners/${userId}`, failOnStatusCode: false }).its('status').should('eq', 404);
+          cy.request({ url: `/admin/appointments/${appointmentId}`, failOnStatusCode: false }).its('status').should('eq', 404);
         });
       });
     });

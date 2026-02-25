@@ -56,7 +56,8 @@ runForMobileViewports('Pet flow (integration)', () => {
       cy.fiEnsureOwnerProfile();
       cy.fiCreatePet().then(({ petId }) => {
         cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/edit`);
-        cy.get('input[placeholder="Mochi"]').first().clear().type(updatedName);
+        cy.contains('label', /^Name$/).parent().find('input').first().clear();
+        cy.contains('label', /^Name$/).parent().find('input').first().type(updatedName);
         fiClickButton(/^Update$/);
 
         cy.location('pathname', { timeout: 20000 }).should('eq', `/pet-owners/my-pets-page/${petId}`);

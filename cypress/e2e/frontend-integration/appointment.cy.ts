@@ -73,8 +73,9 @@ runForMobileViewports('Appointment flow (integration)', () => {
         });
         cy.contains(String((payload as any).location), { timeout: 20000 })
           .should('be.visible')
+          .scrollIntoView()
           .click();
-        fiDialog().within(() => {
+        fiDialog().should('exist').within(() => {
           cy.contains('button', /^Delete$/).click();
         });
         cy.get('[role="dialog"]:visible').should('not.exist');
@@ -90,7 +91,7 @@ runForMobileViewports('Appointment flow (integration)', () => {
         location: fiUnique('CY-FI-APPT-DEEPLINK'),
         appointment_date: '2026-02-10T09:45:00',
       }).then(({ appointmentId }) => {
-        cy.fiVisitAuthed(`/pet-owners/calendar-page?tab=appointment&appointment_id=${appointmentId}&open=edit`);
+        cy.fiVisitAuthed(`/pet-owners/calendar-page?tab=appointment&appointment_id=${appointmentId}&popup=edit-appointment`);
         cy.contains('Edit Appointment', { timeout: 20000 }).should('exist');
         cy.get('input[placeholder="Enter location"]').should('be.visible');
       });

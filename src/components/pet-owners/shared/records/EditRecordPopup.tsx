@@ -30,6 +30,13 @@ export default function EditRecordPopup({
   onSave,
   maxImages = 4,
 }: Props) {
+  const legacyRecord = record as unknown as {
+    date?: string;
+    time?: string;
+    imageUrls?: string[];
+    petName?: string;
+    avatarUrl?: string;
+  } | null;
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [note, setNote] = useState("");
@@ -44,11 +51,11 @@ export default function EditRecordPopup({
   useEffect(() => {
     if (!open || !record) return;
 
-    setDate(record.date_added ?? "");
-    setTime(record.time_added ?? "");
+    setDate(record.date_added ?? legacyRecord?.date ?? "");
+    setTime(record.time_added ?? legacyRecord?.time ?? "");
     setNote(record.note ?? "");
 
-    setExistingImages(record.note_image ?? []);
+    setExistingImages(record.note_image ?? legacyRecord?.imageUrls ?? []);
     setNewFiles([]);
 
     // Clear old previews
@@ -199,7 +206,7 @@ export default function EditRecordPopup({
 
           <div className="min-w-0">
             <div className="text-sm font-semibold text-zinc-900 truncate">
-              {r.pet_name}
+              {r.pet_name ?? legacyRecord?.petName ?? "-"}
             </div>
             <div className="text-xs text-zinc-500 truncate">{`PID: ${r.pet_id}`}</div>
           </div>

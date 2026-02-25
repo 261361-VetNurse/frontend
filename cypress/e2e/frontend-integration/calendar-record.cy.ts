@@ -14,7 +14,8 @@ runForMobileViewports('Calendar record flow (integration)', () => {
       cy.get('button[aria-label="Quick dial button"]:visible').first().click();
       fiDialog().contains('Create Symptom Record').should('exist');
       fiDialog().within(() => {
-        cy.contains('button', /^Choose your pet$/).click();
+        cy.get('button[aria-haspopup="listbox"]').first().click();
+        cy.get('[role="listbox"]').should('be.visible');
         cy.contains('button', calPetName).click();
         cy.get('input[type="date"]').clear().type('2026-02-10');
         cy.get('input[type="time"]').type('12:30');
