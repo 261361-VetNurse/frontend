@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "cypress:open:frontend-integration": "cypress open --e2e --config \"specPattern=cypress/e2e/frontend-integration/**/*.cy.ts\"",
+    "cypress:run:frontend-integration": "env -u ELECTRON_RUN_AS_NODE cypress run --spec \"cypress/e2e/frontend-integration/**/*.cy.ts\""
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.985.0",
