@@ -1,7 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
   compiler: {
     styledComponents: true,
   },
@@ -27,15 +26,15 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/v1/:path*",
-        destination: "http://localhost:8000/v1/:path*",
+        destination: "http://localhost:8001/v1/:path*",
       },
       {
         source: "/auth/:path*",
-        destination: "http://localhost:8000/auth/:path*",
+        destination: "http://localhost:8001/auth/:path*",
       },
       {
         source: "/me",
-        destination: "http://localhost:8000/me",
+        destination: "http://localhost:8001/me",
       },
     ];
   },

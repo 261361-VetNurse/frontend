@@ -364,14 +364,20 @@ export default function HomePage() {
             // Calculate status for each notification
             const processedNotifications = notifications.map(noti => {
               let timeStr = "00:00";
-              if (noti.time) {
-                timeStr = noti.time;
-              } else if (noti.notification_at) {
-                if (typeof noti.notification_at === 'string') {
-                  timeStr = noti.notification_at.split('T')[1]?.substring(0, 5) || "00:00";
-                } else if (noti.notification_at instanceof Date) {
-                  timeStr = noti.notification_at.toISOString().split('T')[1].substring(0, 5);
+
+              // PRIORITY: Use notification_at to get the LOCAL time
+              if (noti.notification_at) {
+                const dateObj = new Date(noti.notification_at);
+                if (!isNaN(dateObj.getTime())) {
+                  // Get local hours and minutes
+                  const hours = dateObj.getHours().toString().padStart(2, '0');
+                  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                  timeStr = `${hours}:${minutes}`;
                 }
+              }
+              // Fallback to time string if notification_at fails (though it shouldn't)
+              else if (noti.time) {
+                timeStr = noti.time;
               }
 
               const computedStatus = getMedicationStatus(

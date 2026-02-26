@@ -29,6 +29,8 @@ import SectionError from "@/components/pet-owners/shared/SectionError";
 
 const DEFAULT_OWNER_PROFILE_IMAGE = '/Ava.svg';
 
+const DefaultImage = 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp';
+
 const OwnerInformationPage = () => {
   const router = useRouter();
   const [userData, setUserData] = useState<import('@/types/domain/user').UserProfile | null>(null);
@@ -80,6 +82,7 @@ const OwnerInformationPage = () => {
         <AvatarWrapper>
           <AvatarImg
             src={userData?.picture_url || DEFAULT_OWNER_PROFILE_IMAGE}
+            src={userData?.picture_url || DefaultImage}
             alt="Owner Avatar"
             width={50}
             height={50}

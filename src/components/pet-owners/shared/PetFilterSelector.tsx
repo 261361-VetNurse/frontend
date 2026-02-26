@@ -232,7 +232,7 @@ function PetRow({
         {isAll ? (
           <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
             <Image
-              src="/pet-paw.svg"
+              src="https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp"
               alt="All pets"
               fill
               className="object-contain p-2"

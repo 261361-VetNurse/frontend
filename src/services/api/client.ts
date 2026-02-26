@@ -118,7 +118,7 @@ export async function getCurrentUser(token: string): Promise<User> {
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
     const response = await loggedFetch(`/v1/dashboard/home`, {
         headers: {
-            'access_token': token
+            'Authorization': `Bearer ${token}`
         },
     });
     if (!response.ok) {
@@ -359,6 +359,40 @@ export async function filterMedicines(token: string, params: Record<string, any>
         const error = await response.json();
         throw new Error(error.detail || 'Failed to filter medicines');
     }
+    const json = await response.json();
+    return json.data || json;
+}
+/**
+ * Scan medication label (OCR)
+ */
+export async function scanMedication(
+    token: string,
+    file: File
+): Promise<{
+    name?: string;
+    dosage?: string;
+    frequency?: string;
+    reminder_time?: string[];
+}> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await loggedFetch(
+        `/v1/medications/scan`,
+        {
+            method: "POST",
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to scan medication");
+    }
+
     const json = await response.json();
     return json.data || json;
 }
@@ -697,8 +731,6 @@ export async function uploadImage(file: File, token: string, folder: string = 'p
     if (!uploadResponse.ok) {
         throw new Error('Failed to upload image to storage');
     }
-
-    console.log("image url", public_url);
 
     return public_url;
 }
