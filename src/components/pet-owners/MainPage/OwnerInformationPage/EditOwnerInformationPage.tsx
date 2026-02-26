@@ -25,6 +25,7 @@ const EditOwnerInformationPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string>(DEFAULT_OWNER_PROFILE_IMAGE);
+  const [profilePicture, setProfilePicture] = useState<string>('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -112,7 +113,7 @@ const EditOwnerInformationPage = () => {
   return (
     <Container>
       <TopHeader>
-        <BackButton onClick={() => router.back()} aria-label="back">
+        <BackButton data-cy="owner-edit-back" onClick={() => router.back()} aria-label="back">
           <ArrowBackIosNewIcon />
         </BackButton>
         <PageTitle>Edit Owner Information</PageTitle>
@@ -129,9 +130,14 @@ const EditOwnerInformationPage = () => {
         />
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}>
+      <form
+        data-cy="owner-edit-form"
+        onSubmit={handleSubmit}
+        style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '0 16px' }}
+      >
         <FormField label="First Name" htmlFor="firstName">
           <TextInput
+            data-cy="owner-edit-first-name"
             id="firstName"
             value={formData.firstName}
             onChange={(e) => handleInputChange('firstName', e.target.value)}
@@ -140,6 +146,7 @@ const EditOwnerInformationPage = () => {
 
         <FormField label="Last Name" htmlFor="lastName">
           <TextInput
+            data-cy="owner-edit-last-name"
             id="lastName"
             value={formData.lastName}
             onChange={(e) => handleInputChange('lastName', e.target.value)}
@@ -148,6 +155,7 @@ const EditOwnerInformationPage = () => {
 
         <FormField label="Gender" htmlFor="gender">
           <SelectInput
+            data-cy="owner-edit-gender"
             id="gender"
             value={formData.gender}
             onChange={(e) => handleInputChange('gender', e.target.value)}
@@ -157,6 +165,7 @@ const EditOwnerInformationPage = () => {
 
         <FormField label="Phone" htmlFor="phone">
           <TextInput
+            data-cy="owner-edit-phone"
             id="phone"
             type="tel"
             value={formData.phone}
@@ -166,6 +175,7 @@ const EditOwnerInformationPage = () => {
 
         <FormField label="Email" htmlFor="email">
           <TextInput
+            data-cy="owner-edit-email"
             id="email"
             type="email"
             value={formData.email}
@@ -175,6 +185,7 @@ const EditOwnerInformationPage = () => {
 
         <FormField label="Line ID" htmlFor="line_id">
           <TextInput
+            data-cy="owner-edit-line-id"
             id="line_id"
             value={formData.line_id}
             onChange={(e) => handleInputChange('line_id', e.target.value)}
@@ -182,7 +193,7 @@ const EditOwnerInformationPage = () => {
         </FormField>
 
         <div style={{ marginTop: '32px' }}>
-          <PrimaryButton size='md' type="submit" disabled={submitting}>
+          <PrimaryButton data-cy="owner-edit-submit" size='md' type="submit" disabled={submitting}>
             {submitting ? 'Updating...' : 'Update'}
           </PrimaryButton>
         </div>

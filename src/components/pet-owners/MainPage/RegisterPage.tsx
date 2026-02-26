@@ -162,9 +162,10 @@ export default function RegisterPage() {
           <Subtitle>Please fill the form</Subtitle>
         </Header>
 
-        <Form onSubmit={handleSubmit}>
+        <Form data-cy="register-form" onSubmit={handleSubmit}>
           <FormField label="First Name" htmlFor="firstName" error={errors.firstName}>
             <TextInput
+              data-cy="register-first-name"
               id="firstName"
               value={formData.firstName}
               onChange={handleInputChange('firstName')}
@@ -175,6 +176,7 @@ export default function RegisterPage() {
 
           <FormField label="Last Name" htmlFor="lastName" error={errors.lastName}>
             <TextInput
+              data-cy="register-last-name"
               id="lastName"
               value={formData.lastName}
               onChange={handleInputChange('lastName')}
@@ -185,6 +187,7 @@ export default function RegisterPage() {
 
           <FormField label="Gender" htmlFor="gender" error={errors.gender}>
             <SelectInput
+              data-cy="register-gender"
               id="gender"
               value={formData.gender}
               onChange={handleInputChange('gender')}
@@ -196,6 +199,7 @@ export default function RegisterPage() {
 
           <FormField label="Phone" htmlFor="phone" error={errors.phone}>
             <TextInput
+              data-cy="register-phone"
               id="phone"
               type="tel"
               value={formData.phone}
@@ -207,6 +211,7 @@ export default function RegisterPage() {
 
           <FormField label="Email" htmlFor="email" error={errors.email}>
             <TextInput
+              data-cy="register-email"
               id="email"
               type="email"
               value={formData.email}
@@ -220,6 +225,7 @@ export default function RegisterPage() {
 
           <FormField label="Address Line 1" htmlFor="addressLine1" error={errors.addressLine1}>
             <TextInput
+              data-cy="register-address-line1"
               id="addressLine1"
               value={formData.addressLine1}
               onChange={handleInputChange('addressLine1')}
@@ -230,6 +236,7 @@ export default function RegisterPage() {
 
           <FormField label="Address Line 2 (Optional)" htmlFor="addressLine2" error={errors.addressLine2}>
             <TextInput
+              data-cy="register-address-line2"
               id="addressLine2"
               value={formData.addressLine2}
               onChange={handleInputChange('addressLine2')}
@@ -241,6 +248,7 @@ export default function RegisterPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <FormField label="Subdistrict" htmlFor="subdistrict" error={errors.subdistrict}>
               <TextInput
+                data-cy="register-subdistrict"
                 id="subdistrict"
                 value={formData.subdistrict}
                 onChange={handleInputChange('subdistrict')}
@@ -251,6 +259,7 @@ export default function RegisterPage() {
 
             <FormField label="District" htmlFor="district" error={errors.district}>
               <TextInput
+                data-cy="register-district"
                 id="district"
                 value={formData.district}
                 onChange={handleInputChange('district')}
@@ -263,6 +272,7 @@ export default function RegisterPage() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             <FormField label="Province" htmlFor="province" error={errors.province}>
               <TextInput
+                data-cy="register-province"
                 id="province"
                 value={formData.province}
                 onChange={handleInputChange('province')}
@@ -273,6 +283,7 @@ export default function RegisterPage() {
 
             <FormField label="Postal Code" htmlFor="postalCode" error={errors.postalCode}>
               <TextInput
+                data-cy="register-postal-code"
                 id="postalCode"
                 value={formData.postalCode}
                 onChange={handleInputChange('postalCode')}
@@ -284,7 +295,13 @@ export default function RegisterPage() {
 
         </Form>
 
-        <PrimaryButton size="md" type="submit" disabled={loading || !isFormComplete} onClick={handleSubmit}>
+        <PrimaryButton
+          data-cy="register-submit"
+          size="md"
+          type="submit"
+          disabled={loading || !isFormComplete}
+          onClick={handleSubmit}
+        >
           {loading ? 'Registering...' : 'Register'}
         </PrimaryButton>
       </RegisterCard>

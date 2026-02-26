@@ -26,6 +26,7 @@ import {
 } from '@/styles/components/owner-information.styled';
 import { getUserProfile, authStorage } from '@/services/api/client';
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { Profile } from '@/components/shared';
 
 const DEFAULT_OWNER_PROFILE_IMAGE = '/Ava.svg';
 
@@ -80,6 +81,10 @@ const OwnerInformationPage = () => {
       </TopHeader>
       <Header>
         <AvatarWrapper>
+          <Profile
+            alt={displayName}
+            imageUrl={userData?.picture_url}
+            size="48px"
           <AvatarImg
             src={userData?.picture_url || DEFAULT_OWNER_PROFILE_IMAGE}
             src={userData?.picture_url || DefaultImage}

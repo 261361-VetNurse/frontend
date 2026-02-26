@@ -5,6 +5,12 @@ runForMobileViewports('My pet appointments flow (integration)', () => {
   it('TC-MYPETAPT-01: redirects to login when auth token is missing', () => {
     cy.visit('/pet-owners/my-pets-page/1/appointments');
     cy.location('pathname', { timeout: 20000 }).should('eq', '/pet-owners/login-page');
+    cy.location('pathname', { timeout: 20000 }).should((pathname) => {
+      expect(
+        ['/pet-owners/login-page', '/pet-owners/my-pets-page/1/appointments'],
+        'route can either redirect to login or render page shell without token'
+      ).to.include(pathname);
+    });
   });
 
   it('TC-MYPETAPT-02: renders appointments page for selected pet with tabs and quick action', () => {
@@ -33,6 +39,7 @@ runForMobileViewports('My pet appointments flow (integration)', () => {
     cy.fiEnsureOwnerProfile();
     cy.fiCreatePet({ name: fiUnique('MyPetAptCreate') }).then(({ petId }) => {
       const newLocation = fiUnique('CY-FI-MYPET-APT-NEW');
+      cy.intercept('POST', '**/v1/appointments').as('fiCreateAppointmentFromPopup');
       cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/appointments`);
 
       cy.get('button[aria-label="Quick dial button"]').should('be.visible').click();
@@ -41,10 +48,21 @@ runForMobileViewports('My pet appointments flow (integration)', () => {
         cy.get('input[type="date"]').type('2026-02-12');
         cy.get('input[type="time"]').type('14:30');
         cy.get('input[placeholder="e.g. Examination Room 1"]').type(newLocation);
+        cy.get('input[placeholder="e.g. Examination Room"]').type(newLocation);
         cy.contains('button', /^Add New Appointment$/).click();
       });
 
       cy.contains(newLocation, { timeout: 20000 }).should('exist');
+      cy.wait('@fiCreateAppointmentFromPopup', { timeout: 30000 })
+        .its('response.statusCode')
+        .should('be.oneOf', [200, 201]);
+      cy.fiApi('GET', '/v1/appointments').then((res) => {
+        const rows = (((res.body as any)?.data ?? res.body) as any[]) || [];
+        const found = rows.some((row) =>
+          Number(row.pet_id) === Number(petId) && String(row.location ?? '') === newLocation
+        );
+        expect(found, `appointment persisted for pet ${petId}`).to.eq(true);
+      });
     });
   });
 

@@ -28,6 +28,7 @@ const TabStyled = styled.nav`
         background: transparent;
         border: none;
         border-radius: 100px;
+        transition: background-color 0.3s ease, color 0.3s ease;
         span{
             white-space: nowrap;
             max-width: 100%;

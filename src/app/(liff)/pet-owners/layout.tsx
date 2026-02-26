@@ -31,7 +31,9 @@ export default function PetOwnersLayout({
         }}
       >
         <Container>
-          <div style={{ width: "100%" }}>{children}</div>
+          <div key={pathname} className="fade-in" style={{ width: "100%" }}>
+            {children}
+          </div>
         </Container>
       </main>
       {shouldShowNavbar && <NavBar />}

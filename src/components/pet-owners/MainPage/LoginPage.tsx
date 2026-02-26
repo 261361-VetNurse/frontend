@@ -125,6 +125,7 @@ export default function LoginPage() {
                 )}
 
                 <PrimaryButton
+                    data-cy="login-line-submit"
                     size="md"
                     type="button"
                     onClick={handleLoginClick}
@@ -140,6 +141,7 @@ export default function LoginPage() {
                     </div>
                     <div className="flex gap-2">
                         <input
+                            data-cy="dev-access-input"
                             type="text"
                             placeholder="Enter Code / Token ex.DEV_TEST_CODE"
                             className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 text-sm outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
@@ -152,6 +154,7 @@ export default function LoginPage() {
                             }}
                         />
                         <button
+                            data-cy="dev-access-submit"
                             type="button"
                             onClick={handleDevLogin}
                             disabled={loading || !devCode}

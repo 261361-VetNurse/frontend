@@ -15,6 +15,7 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { NotificationItem } from '@/types/domain/medication';
+import { Profile } from '@/components/shared';
 
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
@@ -113,7 +114,11 @@ export default function MedicineCard({
     >
       <MainRow>
         <Left>
-          <Avatar src={petImageUrl || '/Ava.svg'} alt={petName} />
+          <Profile
+            alt={petName}
+            imageUrl={petImageUrl}
+            size="48px"
+          />
           <Info>
             <PetName>{petName}</PetName>
             <MedName $disabled={!!isStopped}>{medicineName}</MedName>

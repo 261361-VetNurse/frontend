@@ -6,7 +6,7 @@ import { PetLite } from "@/types/domain/pet";
 import Profile from "@/components/pet-owners/shared/Profile";
 
 type Mode = "filter" | "formField";
-type Size = "sm" | "md";
+type Size = "sm" | "md" | string;
 type VisualState = "default" | "disabled" | "error";
 
 type Props = {
@@ -210,7 +210,7 @@ function PetRow({
 }: {
   active?: boolean;
   onClick: () => void;
-  size: "sm" | "md";
+  size: "sm" | "md" | string;
   name: string;
   pid?: number;
   profile_image?: string | null;
