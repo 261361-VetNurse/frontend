@@ -65,6 +65,40 @@ runForMobileViewports('Pet flow (integration)', () => {
       });
     });
 
+    it('edits pet note via UI and shows updated value on detail + reopen edit', () => {
+      const updatedNote = fiUnique('CY-FI-PET-NOTE');
+      cy.fiEnsureOwnerProfile();
+      cy.fiCreatePet().then(({ petId }) => {
+        cy.intercept('PATCH', `**/v1/pets/${petId}`).as('fiUpdatePetNote');
+
+        cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/edit`);
+        cy.contains('label', /^Note$/).parent().find('input').first().clear().type(updatedNote);
+        fiClickButton(/^Update$/);
+
+        cy.wait('@fiUpdatePetNote', { timeout: 30000 }).then((interception) => {
+          expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
+          expect(interception.request.body).to.include({
+            note: updatedNote,
+          });
+        });
+
+        cy.location('pathname', { timeout: 20000 }).should('eq', `/pet-owners/my-pets-page/${petId}`);
+        cy.fiApi('GET', `/v1/pets/${petId}`).then((res) => {
+          const body = (res.body as Record<string, unknown>) ?? {};
+          const data = (
+            body.data && typeof body.data === 'object'
+              ? (body.data as Record<string, unknown>)
+              : body
+          ) as Record<string, unknown>;
+          expect(String(data.note ?? ''), 'updated note in pet detail API').to.eq(updatedNote);
+        });
+        cy.contains('div', /^Note$/).parent().should('contain.text', updatedNote);
+
+        cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/edit`);
+        cy.contains('label', /^Note$/).parent().find('input').first().should('have.value', updatedNote);
+      });
+    });
+
     it('deletes pet from detail page and returns to my pets page', () => {
       cy.fiEnsureOwnerProfile();
       cy.fiCreatePet({ name: fiUnique('CY-FI-PET-DELETE') }).then(({ petId, payload }) => {
