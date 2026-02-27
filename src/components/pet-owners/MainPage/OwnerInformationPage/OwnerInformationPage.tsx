@@ -85,12 +85,6 @@ const OwnerInformationPage = () => {
             alt={displayName}
             imageUrl={userData?.picture_url}
             size="48px"
-          <AvatarImg
-            src={userData?.picture_url || DEFAULT_OWNER_PROFILE_IMAGE}
-            src={userData?.picture_url || DefaultImage}
-            alt="Owner Avatar"
-            width={50}
-            height={50}
           />
         </AvatarWrapper>
         <div>

@@ -25,7 +25,6 @@ const EditOwnerInformationPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string>(DEFAULT_OWNER_PROFILE_IMAGE);
-  const [profilePicture, setProfilePicture] = useState<string>('');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

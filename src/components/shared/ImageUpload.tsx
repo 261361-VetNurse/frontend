@@ -15,7 +15,6 @@ interface ImageUploadProps {
 
 const DEFAULT_IMAGES = {
     'pet-owner-profile': '/Ava.svg',
-    'pet-owner-profile': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/biank_pet_owner_profile_1x.webp',
     'pet-profile': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp',
     'symptom-record': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp',
     'default': 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp',

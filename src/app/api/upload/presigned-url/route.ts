@@ -59,9 +59,6 @@ export async function POST(request: NextRequest) {
         const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
         const normalizedPublicUrl = R2_PUBLIC_URL.replace(/\/+$/, '');
         const publicUrl = `${normalizedPublicUrl}/${uniqueFilename}`;
-        const uploadUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
-        const normalizedPublicUrl = R2_PUBLIC_URL.replace(/\/+$/, ''); // Remove trailing slash if exists
-        const publicUrl = `${normalizedPublicUrl}/${uniqueFilename}`;
 
         return NextResponse.json({
             success: true,
