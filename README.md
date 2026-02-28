@@ -7,7 +7,7 @@ This is the frontend application for the VetNurse project, built with [Next.js](
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/) v20 or higher
-- [Yarn](https://yarnpkg.com/) (`npm install -g yarn`)
+- [Yarn](https://yarnpkg.com/) (`npm install -g yarn`) OR [npm](https://www.npmjs.com/)
 - [Docker](https://www.docker.com/) (for containerized deployment)
 
 ---
@@ -16,8 +16,14 @@ This is the frontend application for the VetNurse project, built with [Next.js](
 
 ### 1. Install Dependencies
 
+You can use either Yarn (recommended as per our `package.json` packageManager) or NPM:
+
 ```bash
+# Using Yarn
 yarn install
+
+# Or using NPM
+npm install
 ```
 
 ### 2. Configure Environment Variables
@@ -37,7 +43,11 @@ Ensure the backend is running on `http://localhost:8000` before starting the fro
 ### 4. Run the Dev Server
 
 ```bash
+# Using Yarn
 yarn dev
+
+# Or using NPM
+npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). The page hot-reloads on save.
@@ -111,13 +121,21 @@ docker run -d \
 **1. Build**
 
 ```bash
+# Using Yarn
 yarn build
+
+# Or using NPM
+npm run build
 ```
 
 **2. Start**
 
 ```bash
+# Using Yarn
 yarn start
+
+# Or using NPM
+npm start
 ```
 
 The production server runs on port 3000 by default.
@@ -146,9 +164,9 @@ The production server runs on port 3000 by default.
 
 ## Additional Commands
 
-| Command | Description |
-|---|---|
-| `yarn dev` | Start development server with hot-reload |
-| `yarn build` | Build optimised production bundle |
-| `yarn start` | Start production server (requires `yarn build` first) |
-| `yarn lint` | Run ESLint |
+| Description | Yarn Command | NPM Command |
+|---|---|---|
+| Start development server with hot-reload | `yarn dev` | `npm run dev` |
+| Build optimised production bundle | `yarn build` | `npm run build` |
+| Start production server (requires build first) | `yarn start` | `npm start` |
+| Run ESLint | `yarn lint` | `npm run lint` |

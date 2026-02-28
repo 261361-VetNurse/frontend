@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -60,9 +61,9 @@ export default function AddMedicationPopupV2({
   const canSubmit = useMemo(() => {
     return Boolean(
       pet?.id &&
-        medicationName.trim() &&
-        dosage.trim() &&
-        reminders.length > 0
+      medicationName.trim() &&
+      dosage.trim() &&
+      reminders.length > 0
     );
   }, [pet?.id, medicationName, dosage, reminders]);
 

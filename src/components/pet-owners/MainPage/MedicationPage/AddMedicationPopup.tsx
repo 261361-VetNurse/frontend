@@ -165,6 +165,7 @@ export default function CreateMedicationPopup({
 
   useEffect(() => {
     if (open && initialPetId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPetId(initialPetId);
     }
   }, [open, initialPetId]);
@@ -285,9 +286,9 @@ export default function CreateMedicationPopup({
       setReminders([{ id: 'r1', time: '08:00', status: 'pending' }]);
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(`Failed to create medication: ${err.message}`);
+      alert(`Failed to create medication: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

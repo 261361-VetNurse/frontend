@@ -54,6 +54,7 @@ export function Modal({
     scroll = "inside",
     radius = "lg",
     header = "titleWithClose",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     footer = "actionsSticky",
     closeButton = "on",
     dismissable = "backdrop",

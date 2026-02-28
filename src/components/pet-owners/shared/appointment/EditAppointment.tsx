@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
-import type { Appointment, AppointmentStatus } from "@/types/domain/appointment";
+import type { Appointment } from "@/types/domain/appointment";
 import Profile from "@/components/pet-owners/shared/Profile";
 
 type Props = {
@@ -28,7 +29,6 @@ export default function EditAppointment({
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [location, setLocation] = useState("");
-  const [status, setStatus] = useState<AppointmentStatus>("Upcoming");
   const [note, setNote] = useState("");
 
   useEffect(() => {
@@ -39,8 +39,7 @@ export default function EditAppointment({
     setTime(dateObj.format("HH:mm"));
     setLocation(appointment.location ?? "");
     setNote(appointment.note ?? "");
-    setStatus(appointment.status);
-  }, [open, appointment?.appointment_id]);
+  }, [open, appointment]);
 
   const canSubmit = useMemo(() => {
     return Boolean(

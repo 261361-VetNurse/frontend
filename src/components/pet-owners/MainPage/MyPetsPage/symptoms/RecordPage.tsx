@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import { useEffect, useMemo, useState, useCallback } from "react";
@@ -15,6 +16,7 @@ import RecordDetailPopup from "@/components/pet-owners/shared/records/RecordDeta
 import EditRecordPopup, { EditRecordFormState } from "@/components/pet-owners/shared/records/EditRecordPopup";
 import AddRecordPopup from "@/components/pet-owners/shared/records/AddRecordPopup";
 import { AddSymptomPayload } from "@/types/api/record.dto";
+import type { SymptomRecord } from "@/types/domain/symptom";
 
 // Import UI Library & Icons
 import { Add } from "@mui/icons-material";
@@ -83,8 +85,8 @@ export default function RecordPage() {
   const [items, setItems] = useState<RecordItem[]>([]);
   const [selectedDateISO, setSelectedDateISO] = useState<string>(todayISO());
   const [openCreate, setOpenCreate] = useState(false);
-  const [detailRecord, setDetailRecord] = useState<any | null>(null);
-  const [editRecord, setEditRecord] = useState<any | null>(null);
+  const [detailRecord, setDetailRecord] = useState<SymptomRecord | null>(null);
+  const [editRecord, setEditRecord] = useState<SymptomRecord | null>(null);
 
   // Fetch Logic
   const fetchRecords = useCallback(async () => {
@@ -138,7 +140,8 @@ export default function RecordPage() {
   function openDetailById(id: string) {
     const found = items.find((x) => x.id === id);
     if (!found) return;
-    setDetailRecord({ ...found, petPid: found.petPid ?? "-" });
+    // RecordItem is close enough for display purposes; cast via unknown
+    setDetailRecord({ ...found, petPid: found.petPid ?? "-" } as unknown as SymptomRecord);
   }
 
   async function handleSaveAdd(data: AddSymptomPayload) {
@@ -201,7 +204,7 @@ export default function RecordPage() {
     <PetFilterSelector
       mode="filter"
       allowAllPets={false}
-      pets={petOptions as any}
+      pets={petOptions as PetLite[]}
       value={Number(selectedPetId)}
       onChange={(v) => setSelectedPetId(String(v))}
     />

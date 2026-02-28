@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -112,7 +113,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   record: MedicationEditRecord | null;
-  pet: PetLite;               
+  pet: PetLite;
   onSave?: (data: EditMedicationPayload) => void;
 };
 

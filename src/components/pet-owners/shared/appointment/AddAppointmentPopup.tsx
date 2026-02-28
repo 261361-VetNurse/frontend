@@ -105,7 +105,7 @@ export default function AddAppointmentPopup({
       {/* 1. Custom Pet Selector (แสดงรูปและ PID เหมือนรูปขวา) */}
       <PetFilterSelector
         value={selectedPetId}
-        pets={allPets as any}
+        pets={allPets}
         onChange={(val) => setSelectedPetId(Number(val))}
         allowAllPets={false}
         size={"40px"}

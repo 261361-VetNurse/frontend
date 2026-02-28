@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { proxyRequest } from "@/lib/api-proxy";
 
 export async function POST(

@@ -1,0 +1,95 @@
+yarn run v1.22.22
+$ eslint
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/app/api/notifications/[id]/read/route.ts
+  1:23  warning  'NextResponse' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentCard.tsx
+  3:8  warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/CalendarPage/appointment/AppointmentPage.tsx
+  32:3   warning  'getPets' is defined but never used                   @typescript-eslint/no-unused-vars
+  41:7   warning  'appointmentTabs' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  74:51  warning  'loadingApps' is assigned a value but never used      @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/HomePage/AppointmentCard.tsx
+  80:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  84:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+  92:21  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/HomePage/MedicationDetailPopup.tsx
+   2:10  warning  'Medicine' is defined but never used  @typescript-eslint/no-unused-vars
+   3:10  warning  'Pet' is defined but never used       @typescript-eslint/no-unused-vars
+  12:10  warning  'Icon' is defined but never used      @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/LoginPage.tsx
+   4:21  warning  'useSearchParams' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+  61:8   warning  React Hook useEffect has a missing dependency: 'handleTokenCallback'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  65:9   warning  'isNew' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MedicationPage/EditMedicationPopup.tsx
+  282:27  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MedicationPage/MedicationDetailPopup.tsx
+   3:10  warning  'Medicine' is defined but never used               @typescript-eslint/no-unused-vars
+  58:3   warning  'highlightedReminderId' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MedicationPage/MedicationPage.tsx
+   16:10  warning  'PetId' is defined but never used                                                                                         @typescript-eslint/no-unused-vars
+   17:10  warning  'Medicine' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   17:20  warning  'NotificationDetail' is defined but never used                                                                            @typescript-eslint/no-unused-vars
+   17:40  warning  'NotificationItem' is defined but never used                                                                              @typescript-eslint/no-unused-vars
+   18:24  warning  'ValidatedTimeSlot' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   33:3   warning  'getMedicineDetail' is defined but never used                                                                             @typescript-eslint/no-unused-vars
+   34:3   warning  'createMedicine' is defined but never used                                                                                @typescript-eslint/no-unused-vars
+   47:19  warning  'setLoading' is assigned a value but never used                                                                           @typescript-eslint/no-unused-vars
+  146:9   warning  'openViewPopup' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
+  154:9   warning  'openEditPopup' is assigned a value but never used                                                                        @typescript-eslint/no-unused-vars
+  185:6   warning  React Hook useEffect has a missing dependency: 'fetchMedicineNotiData'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MedicationPage/MedicineCard.tsx
+   11:8   warning  'CloseIcon' is defined but never used        @typescript-eslint/no-unused-vars
+  182:19  warning  'label' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  182:32  warning  'color' is assigned a value but never used   @typescript-eslint/no-unused-vars
+  236:7   warning  'Avatar' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/MyPets.tsx
+  63:6  warning  React Hook useEffect has a missing dependency: 'router'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/PetCard.tsx
+  9:10  warning  'useMemo' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/appointments/AppointmentCard.tsx
+   3:8  warning  'Image' is defined but never used                   @typescript-eslint/no-unused-vars
+  20:7  warning  'statusIconMap' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/appointments/Appointments.tsx
+  195:18  warning  'appt' is defined but never used  @typescript-eslint/no-unused-vars
+  199:20  warning  'id' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/medication/MedicationV2.tsx
+  28:10  warning  '_error' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/pet-info/PetInfo.tsx
+  10:10  warning  'formatAge' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/MainPage/MyPetsPage/symptoms/RecordPage.tsx
+  136:5  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/shared/Profile.tsx
+    3:17  warning  'useMemo' is defined but never used       @typescript-eslint/no-unused-vars
+  171:3   warning  'fallbackText' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/components/pet-owners/shared/appointment/EditAppointment.tsx
+  7:28  warning  'AppointmentStatus' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/thipwarin/MyWork/SE_VetNurse_Project/frontend/src/utils/reminder-utils.ts
+  90:1  warning  Unused eslint-disable directive (no problems were reported from '@typescript-eslint/no-unused-vars')
+  93:3  warning  '_planId' is defined but never used                                                                   @typescript-eslint/no-unused-vars
+  94:3  warning  '_reminderId' is defined but never used                                                               @typescript-eslint/no-unused-vars
+  95:3  warning  '_isTaken' is defined but never used                                                                  @typescript-eslint/no-unused-vars
+
+✖ 48 problems (0 errors, 48 warnings)
+  0 errors and 3 warnings potentially fixable with the `--fix` option.
+
+Done in 6.09s.

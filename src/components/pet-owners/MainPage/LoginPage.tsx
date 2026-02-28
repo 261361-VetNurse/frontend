@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { PrimaryButton } from '@/components/pet-owners/shared/form/PrimaryButton';
 import {
     RegisterContainer,
@@ -34,7 +34,7 @@ export default function LoginPage() {
         // Handle callback from Backend (after Line OAuth)
         const params = new URLSearchParams(window.location.search);
         const token = params.get('token');
-        const isNew = params.get('is_new') === 'true';
+        // isNew was removed because it's unused
         const authError = params.get('error');
 
         if (authError) {
@@ -56,13 +56,13 @@ export default function LoginPage() {
         }
 
         if (token && !authLoading) {
-            handleTokenCallback(token, isNew);
+            handleTokenCallback(token);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router, user, authLoading]);
 
     const handleTokenCallback = async (
         token: string,
-        isNew: boolean
     ) => {
         setPageLoading(true);
         try {

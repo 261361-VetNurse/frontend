@@ -63,7 +63,7 @@ export default function EditRecordPopup({
       // cleanup on unmount or close? 
       // We'll clean up previews in the next effect or when unmounting
     };
-  }, [open, record?.record_id]);
+  }, [open, record, record?.record_id]);
 
   // Clean up previews when component unmounts
   useEffect(() => {

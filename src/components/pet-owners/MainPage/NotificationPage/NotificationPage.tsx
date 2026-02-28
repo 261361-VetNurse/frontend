@@ -51,8 +51,7 @@ export default function NotificationsPage() {
         if (item.type === 'medicine') {
             try {
                 // Navigate to medication page with query params to open popup
-                // We use the medicine_id from payload to open the specific medicine
-                const medicineId = item.payload?.medicine_id;
+
 
                 // Optimistically update status if not already read
                 if (!item.is_read) {
@@ -78,7 +77,7 @@ export default function NotificationsPage() {
             }
         } else if (item.type === 'appointment') {
             // For appointments, navigate to calendar page
-            const appointmentId = item.payload?.appointment_id;
+            const appointmentId = (item.payload as { appointment_id?: string | number })?.appointment_id;
 
             // Mark as read locally (optimistic)
             if (!item.is_read) {

@@ -7,7 +7,6 @@ import { Pet } from "@/types/domain/pet";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import BasicInfoCard from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/BasicInfoCard";
 import MenuItem from "@/components/pet-owners/MainPage/MyPetsPage/pet-info/MenuItem";
-import { formatAge } from "@/lib/pets/age";
 import { Page } from "@/styles/components/my-pets-page.styled";
 // shared component
 import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
@@ -38,8 +37,8 @@ export default function PetInfo() {
         // client.ts getPets requires token.
         const data = await getPets(token || "");
         setPets(data);
-      } catch (err: any) {
-        setError(err.message || "Failed to load pets");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load pets');
       } finally {
         setLoading(false);
       }
@@ -106,7 +105,7 @@ export default function PetInfo() {
   }
 
   const currentPet = pet;
-  const ageText = formatAge(currentPet.birth_date || "");
+
 
   const petsForSelector: Pet[] = pets;
 

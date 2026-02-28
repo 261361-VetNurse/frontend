@@ -6,7 +6,6 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { useRouter } from "next/navigation";
 import { Pet } from "@/types/domain/pet";
 import { theme } from '@/styles';
-import { useMemo } from 'react';
 
 function formatAge(birthDateISO: string) {
   const birth = new Date(birthDateISO);

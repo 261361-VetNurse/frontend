@@ -192,11 +192,11 @@ export default function MyPetsAppointments() {
         open={!!detail}
         appointment={detail}
         onClose={() => setDetail(null)}
-        onEdit={(appt) => {
+        onEdit={() => {
           setDetail(null);
           // implement edit if needed
         }}
-        onDelete={(id) => {
+        onDelete={() => {
           setDetail(null);
           // implement delete if needed
         }}

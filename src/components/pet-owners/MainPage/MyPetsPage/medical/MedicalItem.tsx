@@ -3,8 +3,8 @@
 import Image from "next/image";
 
 type Props = {
-  time: string; 
-  note: string; 
+  time: string;
+  note: string;
   onClick?: () => void;
 
   showDelete?: boolean;
@@ -20,7 +20,7 @@ export default function MedicalItem({
   onDelete,
   deleteIconSrc = "/icons/trash.svg",
 }: Props) {
-  const Wrapper: any = onClick ? "button" : "div";
+  const Wrapper: React.ElementType = onClick ? "button" : "div";
 
   return (
     <div

@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 export type AppointmentStatus = "upcoming" | "completed" | "canceled";
 
 export type Appointment = {
@@ -15,12 +13,6 @@ export type Appointment = {
 type AppointmentCardProps = {
   appointment: Appointment;
   onOpenDetail?: (id: string) => void;
-};
-
-const statusIconMap: Record<AppointmentStatus, string> = {
-  upcoming: "/note.svg",
-  completed: "/complete.svg",
-  canceled: "/cancel.svg",
 };
 
 export default function AppointmentCard({

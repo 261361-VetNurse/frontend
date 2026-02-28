@@ -55,7 +55,7 @@ const EditOwnerInformationPage = () => {
           setProfilePicture(user.picture_url);
         }
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch user profile:', err);
         setError('Failed to load user information.');
       } finally {
@@ -95,9 +95,9 @@ const EditOwnerInformationPage = () => {
       await updateUserProfile(token, updateData);
       router.back();
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update profile:', err);
-      setError(err.message || "Failed to update profile");
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setSubmitting(false);
     }

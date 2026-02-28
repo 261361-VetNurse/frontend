@@ -149,7 +149,7 @@ export default function AddSymptomPopup({
     >
       <PetFilterSelector
         value={selectedPetId}
-        pets={allPets as any}
+        pets={allPets}
         onChange={(val) => setSelectedPetId(Number(val))}
         allowAllPets={false}
         size={"40px"}

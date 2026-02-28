@@ -29,19 +29,11 @@ import {
   cancelAppointment,
   deleteAppointment,
   authStorage,
-  getPets,
   getAppointmentDetail,
 } from "@/services/api/client";
 
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { Pet } from "@/types";
-
-/* ---------------- tabs ---------------- */
-
-const appointmentTabs = [
-  { name: "Appointment", path: "/appointment", params: "appointment" },
-  { name: "Record", path: "/record", params: "record" },
-];
 
 /* ================= page ================= */
 
@@ -71,7 +63,7 @@ export default function AppointmentPage({
   const selectedDateKey = dayjs(selectedDate).format("YYYY-MM-DD");
 
   /* -------- appointment data -------- */
-  const { appointments: apiAppointments, loading: loadingApps, error, refetch } = useAppointments();
+  const { appointments: apiAppointments, loading: error, refetch } = useAppointments();
 
   const filteredByPet = useMemo(() => {
     if (selectedPetId === 0) return apiAppointments;

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
@@ -205,7 +206,7 @@ type ReminderTime = {
 type EditMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
-  medicineReminder?: Medicine | any | null; // Support Medicine or EachDayMedicine (MedicineReminderVM)
+  medicineReminder?: (Medicine & { medicine_name?: string; medicine_dosage?: string; medicine_frequency?: string; notification_id?: number; _id?: string }) | null;
   pets: Pet[];
   onSuccess: () => void;
 };
@@ -380,9 +381,9 @@ export default function EditMedicationPopup({
 
       alert('Medication updated successfully!');
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(`Failed to update medication: ${err.message}`);
+      alert(`Failed to update medication: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

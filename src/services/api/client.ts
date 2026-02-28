@@ -30,6 +30,8 @@ import {
     AddAppointmentPayload,
     EditAppointmentPayload
 } from '@/types/api/appointment.dto';
+import { Appointment } from '@/types/domain/appointment';
+import { DashboardNotification } from '@/types/domain/dashboard';
 import {
     CreatePetDTO,
     UpdatePetDTO
@@ -70,7 +72,7 @@ export async function notifyAppointment(
     lineId: string,
     topic: string,
     date: string
-): Promise<any> {
+): Promise<unknown> {
     const queryString = `line_id=${encodeURIComponent(lineId)}&topic=${encodeURIComponent(topic)}&date=${encodeURIComponent(date)}`;
     const response = await fetch(`${API_BASE_URL}/auth/notify/appointment?${queryString}`, {
         method: 'POST',
@@ -191,7 +193,7 @@ export async function getMedications(token: string, petId?: number, date?: strin
 /**
  * Get medication notification detail
  */
-export async function getMedicationNotificationDetail(token: string, notificationId: number): Promise<any> {
+export async function getMedicationNotificationDetail(token: string, notificationId: number): Promise<DashboardNotification> {
     const response = await fetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -210,7 +212,7 @@ export async function getMedicationNotificationDetail(token: string, notificatio
 export async function markMedicationTaken(
     token: string,
     notificationId: number
-): Promise<any> {
+): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/medications/${notificationId}/taken`, {
         method: 'PATCH',
         headers: {
@@ -230,7 +232,7 @@ export async function markMedicationTaken(
 export async function getMedicineDetail(
     token: string,
     notificationId: number
-): Promise<any> {
+): Promise<unknown> {
     const response = await fetch(
         `${API_BASE_URL}/v1/medications/${notificationId}`,
         {
@@ -256,7 +258,7 @@ export async function editMedicine(
     token: string,
     medicineId: string,
     medicineData: EditMedicationPayload
-): Promise<any> {
+): Promise<unknown> {
     const response = await fetch(
         `${API_BASE_URL}/v1/medications/medicines/${medicineId}`,
         {
@@ -280,7 +282,7 @@ export async function editMedicine(
 export async function deleteMedicine(
     token: string,
     medicineId: string
-): Promise<any> {
+): Promise<unknown> {
     const response = await fetch(
         `${API_BASE_URL}/v1/medications/medicines/${medicineId}`,
         {
@@ -302,7 +304,7 @@ export async function deleteMedicine(
 /**
  * Create new medicine
  */
-export async function createMedicine(token: string, medicineData: AddMedicationPayload): Promise<any> {
+export async function createMedicine(token: string, medicineData: AddMedicationPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/medications/medicines`, {
         method: 'POST',
         headers: {
@@ -320,7 +322,7 @@ export async function createMedicine(token: string, medicineData: AddMedicationP
 /**
  * Get medicines by pet
  */
-export async function getMedicinesByPet(token: string, petId: string): Promise<any> {
+export async function getMedicinesByPet(token: string, petId: string): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/medications/medicines/by-pet/${petId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -336,7 +338,7 @@ export async function getMedicinesByPet(token: string, petId: string): Promise<a
 /**
  * Filter medicines
  */
-export async function filterMedicines(token: string, params: Record<string, any>): Promise<MedicineItem[]> {
+export async function filterMedicines(token: string, params: Record<string, string>): Promise<MedicineItem[]> {
     const queryString = new URLSearchParams(params).toString();
     const response = await fetch(`${API_BASE_URL}/v1/medications/medicines/filter?${queryString}`, {
         headers: {
@@ -358,7 +360,7 @@ export async function filterMedicines(token: string, params: Record<string, any>
  * @param token - Access token
  * @param status - Optional status filter ("Upcoming", "Completed", "Canceled")
  */
-export async function getAppointments(token: string, status?: string): Promise<any> {
+export async function getAppointments(token: string, status?: string): Promise<Appointment[]> {
     let url = `${API_BASE_URL}/v1/appointments`;
     if (status) url += `?status=${encodeURIComponent(status)}`;
     const response = await fetch(url, {
@@ -376,7 +378,7 @@ export async function getAppointments(token: string, status?: string): Promise<a
 /**
  * Get appointment detail
  */
-export async function getAppointmentDetail(token: string, appointmentId: number): Promise<any> {
+export async function getAppointmentDetail(token: string, appointmentId: number): Promise<Appointment> {
     const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -393,7 +395,7 @@ export async function getAppointmentDetail(token: string, appointmentId: number)
 /**
  * Create new appointment
  */
-export async function createAppointment(token: string, appointmentData: AddAppointmentPayload): Promise<any> {
+export async function createAppointment(token: string, appointmentData: AddAppointmentPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/appointments`, {
         method: 'POST',
         headers: {
@@ -415,7 +417,7 @@ export async function editAppointment(
     token: string,
     appointmentId: number,
     appointmentData: EditAppointmentPayload
-): Promise<any> {
+): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: {
@@ -433,7 +435,7 @@ export async function editAppointment(
 /**
  * Cancel appointment
  */
-export async function cancelAppointment(token: string, appointmentId: number): Promise<any> {
+export async function cancelAppointment(token: string, appointmentId: number): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}/cancel`, {
         method: 'PATCH',
         headers: {
@@ -449,7 +451,7 @@ export async function cancelAppointment(token: string, appointmentId: number): P
 /**
  * Delete appointment
  */
-export async function deleteAppointment(token: string, appointmentId: number): Promise<any> {
+export async function deleteAppointment(token: string, appointmentId: number): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         method: 'DELETE',
         headers: {
@@ -484,7 +486,7 @@ export async function getPets(token: string): Promise<Pet[]> {
 /**
  * Get pet dashboard home data
  */
-export async function getPetDashboard(token: string): Promise<any> {
+export async function getPetDashboard(token: string): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/pets/dashboard/home`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -571,7 +573,7 @@ export async function updatePet(token: string, petId: string, petData: UpdatePet
 /**
  * Delete pet
  */
-export async function deletePet(token: string, petId: string): Promise<any> {
+export async function deletePet(token: string, petId: string): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}`, {
         method: 'DELETE',
         headers: {
@@ -587,7 +589,7 @@ export async function deletePet(token: string, petId: string): Promise<any> {
 /**
  * Record pet symptom
  */
-export async function recordPetSymptom(token: string, petId: string, data: AddSymptomPayload): Promise<any> {
+export async function recordPetSymptom(token: string, petId: string, data: AddSymptomPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/symptoms`, {
         method: 'POST',
         headers: {
@@ -605,7 +607,7 @@ export async function recordPetSymptom(token: string, petId: string, data: AddSy
 /**
  * Get pet medical history
  */
-export async function getPetMedicalHistory(token: string, petId: string): Promise<any> {
+export async function getPetMedicalHistory(token: string, petId: string): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -620,7 +622,7 @@ export async function getPetMedicalHistory(token: string, petId: string): Promis
 /**
  * Add pet medical history
  */
-export async function addPetMedicalHistory(token: string, petId: string, data: AddMedicalPayload): Promise<any> {
+export async function addPetMedicalHistory(token: string, petId: string, data: AddMedicalPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
         method: 'POST',
         headers: {
@@ -724,7 +726,7 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
 /**
  * Update user profile
  */
-export async function updateUserProfile(token: string, profileData: UserProfileUpdatePayload): Promise<any> {
+export async function updateUserProfile(token: string, profileData: UserProfileUpdatePayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/user/profile`, {
         method: 'PATCH',
         headers: {
@@ -761,7 +763,7 @@ export async function registerOwner(token: string, ownerData: RegisterOwnerPaylo
 // ============================================================================
 // SYMPTOM RECORDS API
 // ============================================================================
-import { SymptomRecord, SymptomCalendarResponse, SymptomRecordCreate, SymptomRecordUpdate } from '@/types/domain/symptom';
+import { SymptomRecord, SymptomCalendarResponse } from '@/types/domain/symptom';
 /**
  * Get symptom records calendar
  */
@@ -786,7 +788,7 @@ export async function getSymptomRecordsCalendar(token: string, petId?: string, m
 /**
  * Create symptom record
  */
-export async function createSymptomRecord(token: string, data: AddSymptomPayload): Promise<any> {
+export async function createSymptomRecord(token: string, data: AddSymptomPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/symptom-records`, {
         method: 'POST',
         headers: {
@@ -821,7 +823,7 @@ export async function getSymptomRecordDetail(token: string, recordId: string): P
 /**
  * Edit symptom record
  */
-export async function editSymptomRecord(token: string, recordId: number, data: EditSymptomPayload): Promise<any> {
+export async function editSymptomRecord(token: string, recordId: number, data: EditSymptomPayload): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
         method: 'PATCH',
         headers: {
@@ -840,7 +842,7 @@ export async function editSymptomRecord(token: string, recordId: number, data: E
 /**
  * Delete symptom record
  */
-export async function deleteSymptomRecord(token: string, recordId: number): Promise<any> {
+export async function deleteSymptomRecord(token: string, recordId: number): Promise<unknown> {
     const response = await fetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
         method: 'DELETE',
         headers: {

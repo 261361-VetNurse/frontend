@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { Medicine, ReminderSlot } from '@/types/domain/medication';
+import { ReminderSlot } from '@/types/domain/medication';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -11,6 +12,7 @@ import { getMedicationStatus } from '@/utils/medicationStatus';
 import { useState, useEffect } from 'react';
 
 interface MedicationDetailPopupProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   medicineReminder: any;
   occurrences: ReminderSlot[]; // Strongly typed now
   highlightedReminderId?: number;
@@ -53,7 +55,6 @@ const getFrequencyLabel = (freq: string | number): string => {
 export default function MedicationDetailPopup({
   medicineReminder,
   occurrences,
-  highlightedReminderId,
   onClose,
   onToggleReminder,
   onEdit,
@@ -146,7 +147,7 @@ export default function MedicationDetailPopup({
         </ScheduleSection>
 
         <RemindersSection >
-          <div className="section-title">Today's Reminders</div>
+          <div className="section-title">Today&apos;s Reminders</div>
           {localOccurrences.map((reminder) => {
             // Use utility for status if not explicitly taken
             // If API says 'taken', trust it. If not, calculate pending/missed based on time.

@@ -8,7 +8,6 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import CloseIcon from '@mui/icons-material/Close';
 import { theme } from '@/styles/tokens/theme';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -98,8 +97,9 @@ export default function MedicineCard({
   const displayTimes = groupedTimes || (data.reminder_time || []).map((t) => ({
     id: `${data.notification_id}_${t}`,
     timeLabel: t,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     status: (data.istaken || (data as any).status === 'sent') ? 'taken' : 'pending'
-  } as any));
+  } as unknown as ValidatedTimeSlot));
 
   return (
     <Card
@@ -178,7 +178,7 @@ export default function MedicineCard({
 
       <TimesGrid>
         {displayTimes.map((slot) => {
-          const { label, Icon, color } = getStatusMeta(slot.status);
+          const { Icon } = getStatusMeta(slot.status);
 
           return (
             <TimeChip
@@ -230,16 +230,6 @@ const Left = styled.div`
   align-items: center;
   gap: 12px;
   min-width: 0;
-`;
-
-const Avatar = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: 9999px;
-  object-fit: cover;
-  flex: 0 0 auto;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 `;
 
 const Info = styled.div`

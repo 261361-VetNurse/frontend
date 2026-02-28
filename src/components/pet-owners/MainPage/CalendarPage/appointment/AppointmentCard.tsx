@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import dayjs from "dayjs";
 import { Card } from "@/components/ui/card";
 import { LocationOn, AccessTime } from "@mui/icons-material";

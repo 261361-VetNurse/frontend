@@ -2,7 +2,6 @@
 
 import { BackButton } from '@/styles/components/shared-component.styled';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import { useRouter } from 'next/navigation';
 
 export default function PetInfoTopBar({
   title,
@@ -12,7 +11,6 @@ export default function PetInfoTopBar({
   backPageUrl?: string;
   onBack: () => void;
 }) {
-const router = useRouter();
 
   return (
     <div className="relative pt-4 w-full flex items-center">

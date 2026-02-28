@@ -12,7 +12,6 @@ import {
   Header,
   Divider,
   AvatarWrapper,
-  AvatarImg,
   OwnerName,
   OwnerId,
   Section,
@@ -28,7 +27,6 @@ import { getUserProfile, authStorage } from '@/services/api/client';
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { Profile } from '@/components/shared';
 
-const DefaultImage = 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp';
 
 const OwnerInformationPage = () => {
   const router = useRouter();

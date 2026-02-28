@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import styled, { css } from 'styled-components';
 import { theme } from "@/styles/tokens/theme";
 
@@ -49,12 +49,6 @@ const toCssSize = (v: ProfileSize | undefined, fallbackPx: number) => {
   return typeof v === 'number' ? `${v}px` : v;
 };
 
-const getInitial = (label?: string, fallbackText?: string) => {
-  const s = (fallbackText ?? label ?? '').trim();
-  if (!s) return '?';
-  // pick first letter/char; works for Thai too
-  return s[0].toUpperCase?.() ?? s[0];
-};
 
 const Wrapper = styled.div<{
   $clickable: boolean;
@@ -126,16 +120,6 @@ const AvatarImage = styled.img`
   display: block;
 `;
 
-const Fallback = styled.div`
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  user-select: none;
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.72);
-  font-weight: 600;
-`;
 
 const Skeleton = styled.div`
   width: 100%;
@@ -184,7 +168,6 @@ export default function Profile({
   selected = false,
   disabled = false,
   loading = false,
-  fallbackText,
   badge,
   notificationCount,
   onClick,
@@ -199,8 +182,6 @@ export default function Profile({
   const show = showLabel ?? Boolean(label);
 
   const computedAlt = alt ?? label ?? ariaLabel ?? 'profile';
-  const initial = useMemo(() => getInitial(label, fallbackText), [label, fallbackText]);
-
   const cssSize = toCssSize(size, 56);
 
   const content = (

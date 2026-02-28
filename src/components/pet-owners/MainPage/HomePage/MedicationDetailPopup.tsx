@@ -1,6 +1,4 @@
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { Medicine } from '@/types/domain/medication';
-import { Pet } from '@/types/domain/pet';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
@@ -9,7 +7,6 @@ import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import MedicationIcon from '@mui/icons-material/Medication';
 import { DashboardNotification } from '@/types/domain/dashboard';
-import { Icon } from 'lucide-react';
 
 interface MedicationDetailPopupProps {
   noti: DashboardNotification;
