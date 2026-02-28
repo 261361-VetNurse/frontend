@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
-import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { Add, Remove, CheckBox, CheckBoxOutlineBlank, PhotoCamera } from '@mui/icons-material';
 import { theme } from '@/styles/tokens/theme';
 
 
@@ -11,6 +11,7 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import { PetLite } from '@/types/domain/pet';
 import { createMedicine, authStorage } from '@/services/api/client';
 import { AddMedicationPayload } from '@/types/api/medication.dto';
+import { scanMedication } from '@/services/api/client';
 
 
 
@@ -138,6 +139,33 @@ const DayButton = styled.button<{ $selected: boolean }>`
   }
 `;
 
+const ScanningText = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: ${theme.colors.primary};
+  font-weight: 500;
+  font-size: 14px;
+`;
+
+const Dot = styled.span`
+  animation: blink 1.4s infinite both;
+
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes blink {
+    0% { opacity: 0.2; }
+    20% { opacity: 1; }
+    100% { opacity: 0.2; }
+  }
+`;
+
 type ReminderTime = {
   id: string;
   time: string;
@@ -162,7 +190,9 @@ export default function CreateMedicationPopup({
   const [petId, setPetId] = useState<number | null>(null);
   const [medicineName, setMedicineName] = useState('');
   const [dosage, setDosage] = useState('');
-
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  
   useEffect(() => {
     if (open && initialPetId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -292,6 +322,42 @@ export default function CreateMedicationPopup({
     }
   };
 
+  const handleScan = async (file: File) => {
+    try {
+      setIsScanning(true);
+
+      const token = authStorage.getToken() || "";
+      const data = await scanMedication(token, file);
+
+      if (data.name) setMedicineName(data.name);
+      if (data.dosage) setDosage(data.dosage);
+
+      if (data.reminder_time?.length) {
+        setReminders(
+          data.reminder_time.map((time: string, i: number) => ({
+            id: `r${i + 1}`,
+            time,
+            status: "pending",
+          }))
+        );
+      }
+
+      if (data.frequency === "-1") {
+        setIsEveryday(true);
+        setSelectedDays([]);
+      } else if (data.frequency) {
+        setIsEveryday(false);
+        setSelectedDays(data.frequency.split(",").map(Number));
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("Scan failed");
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   return (
     <FormDialog
       open={open}
@@ -310,6 +376,69 @@ export default function CreateMedicationPopup({
           value={petId || 0}
           onChange={(id) => setPetId(id)}
         />
+        
+        <FormField label="Scan Medication">
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            ref={fileInputRef}
+            style={{ display: "none" }}
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                handleScan(e.target.files[0]);
+              }
+            }}
+          />
+
+          <div
+            onClick={() => !isScanning && fileInputRef.current?.click()}
+            style={{
+              width: "100%",
+              height: "140px",
+              border: "2px dashed #ccc",
+              borderRadius: "12px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: isScanning ? "not-allowed" : "pointer",
+              backgroundColor: isScanning ? "#f5f5f5" : "#fafafa",
+              transition: "0.2s",
+              fontSize: "32px",
+              opacity: isScanning ? 0.6 : 1
+            }}
+          >
+            {isScanning ? (
+            <span style={{ color: theme.colors.primary, fontWeight: 500 }}>
+              <ScanningText>
+                Scanning
+                <Dot>.</Dot>
+                <Dot>.</Dot>
+                <Dot>.</Dot>
+              </ScanningText>
+            </span>
+          ) : (
+            <>
+              <PhotoCamera
+                sx={{
+                  fontSize: 42,
+                  color: theme.colors.primary
+                }}
+              />
+              <span
+                style={{
+                  marginTop: "8px",
+                  fontSize: "14px",
+                  color: theme.colors.primary,
+                  fontWeight: 500
+                }}
+              >
+                Tap to scan
+              </span>
+            </>
+          )}
+          </div>
+        </FormField>
 
         <Row>
           <FormField label="Medicine Name" htmlFor="medicine-name-input">

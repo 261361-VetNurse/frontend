@@ -266,20 +266,32 @@ export default function HomePage() {
       </div>
 
       <div className="head-section">
-        <div className="head-right">Reminder</div>
+        <div
+          className="head-right"
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={theme.colors.textSecondary}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+
+          <span>Medication Reminder</span>
+        </div>
+
         <div
           className="head-left"
           onClick={() => router.push("/pet-owners/medication-page")}
         >
           <div className="sub">show all</div>
-          <ArrowForwardIosIcon
-            sx={{
-              ml: "auto",
-              fontSize: 16,
-              color: theme.colors.textSecondary,
-              cursor: "pointer",
-            }}
-          />
         </div>
       </div>
 
@@ -434,9 +446,39 @@ export default function HomePage() {
           Loading...
         </div>
       )}
+      
+      <div
+        style={{
+          height: 1,
+          backgroundColor: theme.colors.border || "#E5E7EB",
+          margin: "24px 0",
+        }}
+      />
 
       <div className="head-section">
-        <div className="head-right">Upcoming appointments</div>
+        <div
+          className="head-right"
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={theme.colors.textSecondary}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+
+          Upcoming appointments
+        </div>
+
         <div
           className="head-left"
           onClick={() => router.push("/pet-owners/calendar-page?tab=appointment")}

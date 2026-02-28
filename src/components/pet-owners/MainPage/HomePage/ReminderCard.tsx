@@ -59,8 +59,18 @@ export default function ReminderCard({
         <div className='flex flex-row gap-2 items-center'>
           <Profile imageUrl={datas.pet_image} size={petImageSize} isPet={true} />
           <div className="reminder-text">
-            <div className="med-name">{datas.medicine_name}</div>
-            <div className="med-dosage">{datas.dosage ? `${datas.dosage}` : ''}</div>
+            <div className="med-name">
+              {datas.medicine_name}
+              {datas.dosage && (
+                <span className="med-dosage-inline">
+                  {" "}
+                  {datas.dosage}
+                </span>
+              )}
+            </div>
+            <div className="pet-name">
+              {datas.pet_name}
+            </div>
           </div>
         </div>
         <div className="status-icon" aria-label={status}>

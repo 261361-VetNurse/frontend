@@ -352,6 +352,40 @@ export async function filterMedicines(token: string, params: Record<string, stri
     const json = await response.json();
     return json.data || json;
 }
+/**
+ * Scan medication label (OCR)
+ */
+export async function scanMedication(
+    token: string,
+    file: File
+): Promise<{
+    name?: string;
+    dosage?: string;
+    frequency?: string;
+    reminder_time?: string[];
+}> {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await loggedFetch(
+        `/v1/medications/scan`,
+        {
+            method: "POST",
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        }
+    );
+
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to scan medication");
+    }
+
+    const json = await response.json();
+    return json.data || json;
+}
 // ============================================================================
 // APPOINTMENTS API
 // ============================================================================
