@@ -192,10 +192,9 @@ export default function CreateMedicationPopup({
   const [dosage, setDosage] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   useEffect(() => {
     if (open && initialPetId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPetId(initialPetId);
     }
   }, [open, initialPetId]);
@@ -376,7 +375,7 @@ export default function CreateMedicationPopup({
           value={petId || 0}
           onChange={(id) => setPetId(id)}
         />
-        
+
         <FormField label="Scan Medication">
           <input
             type="file"
@@ -409,34 +408,34 @@ export default function CreateMedicationPopup({
             }}
           >
             {isScanning ? (
-            <span style={{ color: theme.colors.primary, fontWeight: 500 }}>
-              <ScanningText>
-                Scanning
-                <Dot>.</Dot>
-                <Dot>.</Dot>
-                <Dot>.</Dot>
-              </ScanningText>
-            </span>
-          ) : (
-            <>
-              <PhotoCamera
-                sx={{
-                  fontSize: 42,
-                  color: theme.colors.primary
-                }}
-              />
-              <span
-                style={{
-                  marginTop: "8px",
-                  fontSize: "14px",
-                  color: theme.colors.primary,
-                  fontWeight: 500
-                }}
-              >
-                Tap to scan
+              <span style={{ color: theme.colors.primary, fontWeight: 500 }}>
+                <ScanningText>
+                  Scanning
+                  <Dot>.</Dot>
+                  <Dot>.</Dot>
+                  <Dot>.</Dot>
+                </ScanningText>
               </span>
-            </>
-          )}
+            ) : (
+              <>
+                <PhotoCamera
+                  sx={{
+                    fontSize: 42,
+                    color: theme.colors.primary
+                  }}
+                />
+                <span
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "14px",
+                    color: theme.colors.primary,
+                    fontWeight: 500
+                  }}
+                >
+                  Tap to scan
+                </span>
+              </>
+            )}
           </div>
         </FormField>
 

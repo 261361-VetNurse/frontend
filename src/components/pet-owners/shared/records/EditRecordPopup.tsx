@@ -82,10 +82,6 @@ export default function EditRecordPopup({
 
   const r = record;
 
-  function handleOverlayClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target === e.currentTarget) onClose();
-  }
-
   function handlePickFiles(list: FileList | null) {
     if (!list) return;
 
