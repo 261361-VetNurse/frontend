@@ -7,6 +7,7 @@ export const theme = {
     background: '#FFFFFF',
     textPrimary: '#000000',
     textSecondary: '#666666',
-    error: '#D32F2F'
+    error: '#D32F2F',
+    border: "#E5E7EB"
   }
 };

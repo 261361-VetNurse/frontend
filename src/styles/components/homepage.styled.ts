@@ -115,16 +115,23 @@ export const ReminderCardStyle = styled.div<{ status: string }>`
     .reminder-text {
         display: flex;
         flex-direction: column;
-      .med-name{
-        font-size: 16px;
-        font-weight: 700;
-        color: #000;
-      }
-      .med-dosage{
+      .med-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: #111827;
+        }
+
+        .med-dosage-inline {
+        font-weight: 400;
         font-size: 14px;
-        font-weight: 500;
-        color: ${theme.colors.textSecondary};
-      }
+        color: #6B7280;
+        }
+
+        .pet-name {
+        font-size: 13px;
+        color: #212429;
+        margin-top: 2px;
+        }
     }
     .status-icon {
       display: flex;
