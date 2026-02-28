@@ -7,10 +7,7 @@ export async function proxyRequest(
     endpoint: string
 ) {
     const url = `${API_BASE_URL}${endpoint}`;
-    console.log(`[Proxy] ${request.method} ${url}`);
 
-    const incomingAuth = request.headers.get('authorization');
-    console.log(`[Proxy] Incoming Auth: ${incomingAuth ? incomingAuth.substring(0, 20) + '...' : 'NONE'}`);
 
 
     try {

@@ -1,51 +1,34 @@
-import { useState, useEffect } from 'react';
+import useSWR from 'swr';
+import { authStorage, getMedications } from '@/services/api/client';
+import type { GroupedMedicineNotification } from '@/types/domain/medication';
 
-interface UseMedicationsReturn {
-    medications: any[];
-    loading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
+function medicationsFetcher(petId?: number, date?: string): Promise<GroupedMedicineNotification[]> {
+    const token = authStorage.getToken();
+    if (!token) return Promise.resolve([]);
+    return getMedications(token, petId, date);
 }
 
 /**
- * Custom hook to fetch medications
- * @param petId - Optional pet ID filter
- * @param date - Optional date filter (YYYY-MM-DD)
+ * Fetch medication notifications, optionally filtered by petId and date.
+ * SWR key encodes the filters so changing petId or date triggers a new fetch
+ * while the old result is served from cache until the new one arrives.
  */
-export function useMedications(petId?: number, date?: string): UseMedicationsReturn {
-    const [medications, setMedications] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export function useMedications(petId?: number, date?: string) {
+    const swrKey = ['medications', petId ?? null, date ?? null] as const;
 
-    const fetchMedications = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // Dynamic import to avoid circular dep if any (though client shouldn't)
-            const { getMedications, authStorage } = await import('@/services/api/client');
-
-            const currentToken = authStorage.getToken();
-            const tokenToUse = currentToken || '';
-
-            if (!tokenToUse) {
-                // optionally handle no token
-            }
-
-            const data = await getMedications(tokenToUse, petId, date);
-            setMedications(data);
-
-        } catch (err) {
-            console.error('Error loading medications:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load medications');
-        } finally {
-            setLoading(false);
+    const { data, error, isLoading, mutate } = useSWR<GroupedMedicineNotification[]>(
+        swrKey,
+        () => medicationsFetcher(petId, date),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 15_000, // 15 s — medications are time-sensitive
         }
+    );
+
+    return {
+        medications: data ?? [],
+        loading: isLoading,
+        error: error ? (error instanceof Error ? error.message : 'Failed to load medications') : null,
+        refetch: mutate,
     };
-
-    useEffect(() => {
-        fetchMedications();
-    }, [petId, date]);
-
-    return { medications, loading, error, refetch: fetchMedications };
 }

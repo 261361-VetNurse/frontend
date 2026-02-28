@@ -1,36 +1,154 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# VetNurse Frontend
 
-## Getting Started
+This is the frontend application for the VetNurse project, built with [Next.js](https://nextjs.org/).
 
-First, run the development server:
+---
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) v20 or higher
+- [Yarn](https://yarnpkg.com/) (`npm install -g yarn`)
+- [Docker](https://www.docker.com/) (for containerized deployment)
+
+---
+
+## Local Development
+
+### 1. Install Dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open `.env.local` and fill in your actual values (API URL, R2 credentials, LINE keys).
 
-## Learn More
+> **Note:** LINE Login requires HTTPS. If you're using ngrok locally, update `REDIRECT_URI` with your current ngrok address and keep it in sync with the **LINE Developer Console**.
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Start the Backend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Ensure the backend is running on `http://localhost:8000` before starting the frontend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 4. Run the Dev Server
 
-## Deploy on Vercel
+```bash
+yarn dev
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open [http://localhost:3000](http://localhost:3000). The page hot-reloads on save.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Production Deployment
+
+### Option A — Docker Compose (Recommended)
+
+This is the simplest way to run the frontend in production.
+
+**1. Create your environment file**
+
+```bash
+cp .env.example .env
+# Fill in all real values in .env
+```
+
+**2. Build and start the container**
+
+```bash
+docker compose up --build -d
+```
+
+The app will be available at `http://your-server-ip:3000`.
+
+**3. Useful commands**
+
+```bash
+# View logs
+docker compose logs -f frontend
+
+# Restart
+docker compose restart frontend
+
+# Stop
+docker compose down
+
+# Rebuild after code changes
+docker compose up --build -d
+```
+
+---
+
+### Option B — Docker (Manual)
+
+**1. Build the image**
+
+```bash
+docker build -t vetnurse-frontend .
+```
+
+**2. Run the container**
+
+```bash
+docker run -d \
+  --name vetnurse-frontend \
+  --restart unless-stopped \
+  -p 3000:3000 \
+  --env-file .env \
+  -m 768m \
+  -e NODE_OPTIONS="--max-old-space-size=512" \
+  vetnurse-frontend
+```
+
+---
+
+### Option C — Node.js Direct (No Docker)
+
+**1. Build**
+
+```bash
+yarn build
+```
+
+**2. Start**
+
+```bash
+yarn start
+```
+
+The production server runs on port 3000 by default.
+
+---
+
+## Environment Variables Reference
+
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | ✅ | Backend API base URL (e.g. `https://api.yourserver.com`) |
+| `NEXT_PUBLIC_LINE_CLIENT_ID` | ✅ | LINE Login client ID — same value as `LOGIN_CLIENT_ID` on the backend |
+| `NEXT_PUBLIC_WEB_URL` | ✅ | Base URL of this web app, no trailing slash (e.g. `https://bdb682332f94.ngrok-free.app`) |
+| `NEXT_PUBLIC_LINE_REDIRECT_PATH` | ✅ | Path portion of your LINE `REDIRECT_URI` (e.g. `/auth/callback`) |
+| `NEXT_PUBLIC_R2_PUBLIC_URL` | ✅ | Cloudflare R2 public CDN URL (browser-safe) |
+| `R2_ACCOUNT_ID` | ✅ | Cloudflare account ID — **server-only** |
+| `R2_ACCESS_KEY_ID` | ✅ | R2 API access key — **server-only** |
+| `R2_SECRET_ACCESS_KEY` | ✅ | R2 API secret key — **server-only** |
+| `R2_BUCKET_NAME` | ✅ | R2 bucket name — **server-only** |
+
+> **How LINE redirect URI works:** The full redirect URL is assembled as `NEXT_PUBLIC_WEB_URL` + `NEXT_PUBLIC_LINE_REDIRECT_PATH`. For example if your ngrok URL is `https://bdb682332f94.ngrok-free.app` and your callback path is `/auth/callback`, set both vars accordingly.
+
+> **Backend-only vars:** `CHANNEL_ID`, `KEY_ID`, `LOGIN_CLIENT_SECRET` are consumed by the **backend** during the token exchange step — the frontend proxies this call and never reads those values itself. Do **not** add them to this project's `.env` file.
+
+---
+
+## Additional Commands
+
+| Command | Description |
+|---|---|
+| `yarn dev` | Start development server with hot-reload |
+| `yarn build` | Build optimised production bundle |
+| `yarn start` | Start production server (requires `yarn build` first) |
+| `yarn lint` | Run ESLint |

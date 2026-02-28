@@ -26,7 +26,8 @@ export default function LoginPage() {
     useEffect(() => {
         // Check if user is already logged in
         if (user) {
-            router.push('/pet-owners/home-page');
+            const from = new URLSearchParams(window.location.search).get('from') || '/pet-owners/home-page';
+            router.push(from);
             return;
         }
 
@@ -34,8 +35,6 @@ export default function LoginPage() {
         const params = new URLSearchParams(window.location.search);
         const token = params.get('token');
         const isNew = params.get('is_new') === 'true';
-        const userId = params.get('user_id');
-        const displayName = params.get('display_name');
         const authError = params.get('error');
 
         if (authError) {
@@ -52,14 +51,10 @@ export default function LoginPage() {
                     break;
             }
             setError(errorMsg);
-            // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
             return;
         }
 
-        if (token) {
-            handleTokenCallback(token, isNew);
-        }
         if (token && !authLoading) {
             handleTokenCallback(token, isNew);
         }
@@ -72,12 +67,10 @@ export default function LoginPage() {
         setPageLoading(true);
         try {
             await login(token);
-
-            // Clean up URL
             window.history.replaceState({}, '', window.location.pathname);
-
-            // Redirect based on user registration status
-            router.push(`/pet-owners/home-page?code=${token}`);
+            // Redirect to the page the user originally tried to visit
+            const from = new URLSearchParams(window.location.search).get('from') || '/pet-owners/home-page';
+            router.push(from);
         } catch (err) {
             console.error('Token handling error:', err);
             setError('Failed to process login. Please try again.');
@@ -96,8 +89,10 @@ export default function LoginPage() {
 
     const handleDevLogin = () => {
         if (!devCode) return;
-        // Redirect to home page with code, letting HomePage handle the exchange
-        router.push(`/pet-owners/home-page?code=${encodeURIComponent(devCode)}`);
+        // Route through /auth/callback — same path as real LINE login.
+        // The backend's /auth/line/exchange handles DEV_TEST_CODE the same way as a real code.
+        // This ensures the cookie is set correctly after exchange.
+        router.push(`/auth/callback?code=${encodeURIComponent(devCode)}`);
     };
 
     return (

@@ -22,18 +22,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initialize from storage or dev fake auth
     useEffect(() => {
         const initAuth = async () => {
-            // --- NORMAL API MODE ---
             const storedToken = authStorage.getToken();
-            if (storedToken) {
-                setToken(storedToken);
-                try {
-                    const userData = await getCurrentUser(storedToken);
-                    setUser(userData);
-                } catch (error) {
-                    console.error("Failed to restore user session:", error);
-                    authStorage.removeToken();
-                    setToken(null);
+
+            if (!storedToken) {
+                // No token in localStorage — clear any stale cookie and redirect to login
+                // (cookie may have outlived localStorage if user cleared DevTools storage)
+                document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
+                setIsLoading(false);
+                const isPublic = window.location.pathname.startsWith('/pet-owners/login-page')
+                    || window.location.pathname.startsWith('/auth');
+                if (!isPublic) {
+                    window.location.href = `/pet-owners/login-page?from=${encodeURIComponent(window.location.pathname)}`;
                 }
+                return;
+            }
+
+            // Backfill the auth cookie for users who logged in before middleware was introduced
+            setToken(storedToken);
+            document.cookie = `auth-token=${storedToken}; path=/; SameSite=Strict; max-age=${60 * 60 * 24 * 7}`;
+            try {
+                const userData = await getCurrentUser(storedToken);
+                setUser(userData);
+            } catch (error) {
+                // Check if we're on the register page — new users have a valid token
+                // but no profile yet, so getCurrentUser will fail with 404/403.
+                // Don't clear token or redirect in that case.
+                const onRegisterPage = window.location.pathname.startsWith('/pet-owners/register-page');
+                if (onRegisterPage) {
+                    // Token is valid but profile not yet created — let register page proceed
+                    setIsLoading(false);
+                    return;
+                }
+                console.error("Failed to restore user session:", error);
+                authStorage.removeToken();
+                document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
+                setToken(null);
+                // Token was invalid/expired — kick to login
+                window.location.href = '/pet-owners/login-page';
+                return;
             }
             setIsLoading(false);
         };
@@ -48,6 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setToken(newToken);
             const userData = await getCurrentUser(newToken);
             setUser(userData);
+            // Set auth cookie so the Edge middleware can gate routes
+            // (localStorage is not accessible server-side)
+            document.cookie = `auth-token=${newToken}; path=/; SameSite=Strict; max-age=${60 * 60 * 24 * 7}`; // 7 days
         } catch (error) {
             console.error("Login failed:", error);
             authStorage.removeToken();
@@ -63,8 +92,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         authStorage.clear();
         setToken(null);
         setUser(null);
-        // Optional: Redirect to login or let the consumer handle it
-        window.location.href = "/login";
+        // Clear the auth cookie
+        document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
+        window.location.href = '/pet-owners/login-page';
     };
 
     return (

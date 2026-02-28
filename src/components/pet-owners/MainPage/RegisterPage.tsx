@@ -16,6 +16,7 @@ import {
 } from '@/styles/components/register.styled';
 import { authStorage, registerOwner } from '@/services/api/client';
 import { RegisterOwnerPayload } from '@/types/api/auth.dto';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface FormData {
   firstName: string;
@@ -33,6 +34,7 @@ interface FormData {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -137,8 +139,9 @@ export default function RegisterPage() {
 
       await registerOwner(token, payload);
 
-      console.log('Registration successful');
-      // Update local storage user if needed, or just redirect to reload profile
+      // Load user profile into AuthContext so home-page has user data immediately
+      await login(token);
+
       router.push('/pet-owners/home-page');
     } catch (err) {
       console.error("Registration failed:", err);

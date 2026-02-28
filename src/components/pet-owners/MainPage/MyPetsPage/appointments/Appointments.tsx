@@ -102,7 +102,6 @@ export default function MyPetsAppointments() {
   const handleAdd = () => setShowCreatePopup(true);
   const handleClosePopup = () => setShowCreatePopup(false);
   const handleSubmitPopup = async (data: AddAppointmentPayload) => {
-    console.log("handleSubmitPopup called. Data:", data);
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
@@ -194,12 +193,10 @@ export default function MyPetsAppointments() {
         appointment={detail}
         onClose={() => setDetail(null)}
         onEdit={(appt) => {
-          console.log("Edit clicked", appt);
           setDetail(null);
           // implement edit if needed
         }}
         onDelete={(id) => {
-          console.log("Delete clicked", id);
           setDetail(null);
           // implement delete if needed
         }}

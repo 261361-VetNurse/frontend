@@ -6,19 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL !== undefined ? process.env
 /**
  * Wrapper for fetch to add logging
  */
-async function loggedFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-    const method = init?.method || 'GET';
-    const url = input.toString();
-    console.log(`🚀 [API Request] ${method} ${url}`);
-    try {
-        const response = await fetch(input, init);
-        console.log(`✅ [API Response] ${method} ${url} - ${response.status} ${response.statusText}`);
-        return response;
-    } catch (error) {
-        console.error(`❌ [API Error] ${method} ${url}`, error);
-        throw error;
-    }
-}
+
 interface LineExchangeResponse {
     access_token: string;
     token_type: string;
@@ -61,7 +49,7 @@ import {
  * Exchange LINE authorization code for access token
  */
 export async function exchangeLineToken(code: string): Promise<LineExchangeResponse> {
-    const response = await loggedFetch(`${API_BASE_URL}/auth/line/exchange`, {
+    const response = await fetch(`${API_BASE_URL}/auth/line/exchange`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -84,7 +72,7 @@ export async function notifyAppointment(
     date: string
 ): Promise<any> {
     const queryString = `line_id=${encodeURIComponent(lineId)}&topic=${encodeURIComponent(topic)}&date=${encodeURIComponent(date)}`;
-    const response = await loggedFetch(`${API_BASE_URL}/auth/notify/appointment?${queryString}`, {
+    const response = await fetch(`${API_BASE_URL}/auth/notify/appointment?${queryString}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -101,7 +89,7 @@ export async function notifyAppointment(
  * Get current user information
  */
 export async function getCurrentUser(token: string): Promise<User> {
-    const response = await loggedFetch(`${API_BASE_URL}/auth/me`, {
+    const response = await fetch(`${API_BASE_URL}/auth/me`, {
         headers: {
             'Authorization': `Bearer ${token}`
         },
@@ -116,7 +104,7 @@ export async function getCurrentUser(token: string): Promise<User> {
  * Get dashboard home data
  */
 export async function getDashboardHome(token: string): Promise<import('@/types/domain/dashboard').DashboardResponse> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/dashboard/home`, {
+    const response = await fetch(`${API_BASE_URL}/v1/dashboard/home`, {
         headers: {
             'Authorization': `Bearer ${token}`
         },
@@ -188,7 +176,7 @@ export async function getMedications(token: string, petId?: number, date?: strin
     if (date) params.append('date', date);
     const queryString = params.toString();
     if (queryString) url += `?${queryString}`;
-    const response = await loggedFetch(url, {
+    const response = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -204,7 +192,7 @@ export async function getMedications(token: string, petId?: number, date?: strin
  * Get medication notification detail
  */
 export async function getMedicationNotificationDetail(token: string, notificationId: number): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/${notificationId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -223,7 +211,7 @@ export async function markMedicationTaken(
     token: string,
     notificationId: number
 ): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${notificationId}/taken`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/${notificationId}/taken`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -243,7 +231,7 @@ export async function getMedicineDetail(
     token: string,
     notificationId: number
 ): Promise<any> {
-    const response = await loggedFetch(
+    const response = await fetch(
         `${API_BASE_URL}/v1/medications/${notificationId}`,
         {
             headers: {
@@ -269,7 +257,7 @@ export async function editMedicine(
     medicineId: string,
     medicineData: EditMedicationPayload
 ): Promise<any> {
-    const response = await loggedFetch(
+    const response = await fetch(
         `${API_BASE_URL}/v1/medications/medicines/${medicineId}`,
         {
             method: 'PATCH',
@@ -293,7 +281,7 @@ export async function deleteMedicine(
     token: string,
     medicineId: string
 ): Promise<any> {
-    const response = await loggedFetch(
+    const response = await fetch(
         `${API_BASE_URL}/v1/medications/medicines/${medicineId}`,
         {
             method: 'DELETE',
@@ -315,7 +303,7 @@ export async function deleteMedicine(
  * Create new medicine
  */
 export async function createMedicine(token: string, medicineData: AddMedicationPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/medicines`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/medicines`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -333,7 +321,7 @@ export async function createMedicine(token: string, medicineData: AddMedicationP
  * Get medicines by pet
  */
 export async function getMedicinesByPet(token: string, petId: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/medicines/by-pet/${petId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/medicines/by-pet/${petId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -350,7 +338,7 @@ export async function getMedicinesByPet(token: string, petId: string): Promise<a
  */
 export async function filterMedicines(token: string, params: Record<string, any>): Promise<MedicineItem[]> {
     const queryString = new URLSearchParams(params).toString();
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/medicines/filter?${queryString}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/medicines/filter?${queryString}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -373,7 +361,7 @@ export async function filterMedicines(token: string, params: Record<string, any>
 export async function getAppointments(token: string, status?: string): Promise<any> {
     let url = `${API_BASE_URL}/v1/appointments`;
     if (status) url += `?status=${encodeURIComponent(status)}`;
-    const response = await loggedFetch(url, {
+    const response = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -383,14 +371,13 @@ export async function getAppointments(token: string, status?: string): Promise<a
         throw new Error(error.detail || 'Failed to get appointments');
     }
     const json = await response.json();
-    console.log(json);
     return json.data || json;
 }
 /**
  * Get appointment detail
  */
 export async function getAppointmentDetail(token: string, appointmentId: number): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -407,7 +394,7 @@ export async function getAppointmentDetail(token: string, appointmentId: number)
  * Create new appointment
  */
 export async function createAppointment(token: string, appointmentData: AddAppointmentPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/appointments`, {
+    const response = await fetch(`${API_BASE_URL}/v1/appointments`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -429,7 +416,7 @@ export async function editAppointment(
     appointmentId: number,
     appointmentData: EditAppointmentPayload
 ): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -447,7 +434,7 @@ export async function editAppointment(
  * Cancel appointment
  */
 export async function cancelAppointment(token: string, appointmentId: number): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/appointments/${appointmentId}/cancel`, {
+    const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}/cancel`, {
         method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -463,7 +450,7 @@ export async function cancelAppointment(token: string, appointmentId: number): P
  * Delete appointment
  */
 export async function deleteAppointment(token: string, appointmentId: number): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/appointments/${appointmentId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -482,7 +469,7 @@ export async function deleteAppointment(token: string, appointmentId: number): P
  * Get all pets
  */
 export async function getPets(token: string): Promise<Pet[]> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -498,7 +485,7 @@ export async function getPets(token: string): Promise<Pet[]> {
  * Get pet dashboard home data
  */
 export async function getPetDashboard(token: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/dashboard/home`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/dashboard/home`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -513,7 +500,7 @@ export async function getPetDashboard(token: string): Promise<any> {
  * Get pet detail
  */
 export async function getPetDetail(token: string, petId: string): Promise<Pet> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -529,7 +516,7 @@ export async function getPetDetail(token: string, petId: string): Promise<Pet> {
  * Create new pet (register pet)
  */
 export async function createPet(token: string, petData: CreatePetDTO): Promise<Pet> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -548,7 +535,7 @@ export async function createPet(token: string, petData: CreatePetDTO): Promise<P
  * Register a new pet (special registration flow)
  */
 export async function registerPet(token: string, petData: CreatePetDTO): Promise<{ message: string, pet_id: number }> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/register/pet`, {
+    const response = await fetch(`${API_BASE_URL}/v1/register/pet`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -566,7 +553,7 @@ export async function registerPet(token: string, petData: CreatePetDTO): Promise
  * Update pet information
  */
 export async function updatePet(token: string, petId: string, petData: UpdatePetDTO): Promise<Pet> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -585,7 +572,7 @@ export async function updatePet(token: string, petId: string, petData: UpdatePet
  * Delete pet
  */
 export async function deletePet(token: string, petId: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -601,7 +588,7 @@ export async function deletePet(token: string, petId: string): Promise<any> {
  * Record pet symptom
  */
 export async function recordPetSymptom(token: string, petId: string, data: AddSymptomPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}/symptoms`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/symptoms`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -619,7 +606,7 @@ export async function recordPetSymptom(token: string, petId: string, data: AddSy
  * Get pet medical history
  */
 export async function getPetMedicalHistory(token: string, petId: string): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -634,7 +621,7 @@ export async function getPetMedicalHistory(token: string, petId: string): Promis
  * Add pet medical history
  */
 export async function addPetMedicalHistory(token: string, petId: string, data: AddMedicalPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
+    const response = await fetch(`${API_BASE_URL}/v1/pets/${petId}/medical-history`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -665,7 +652,7 @@ export async function addPetMedicalHistory(token: string, petId: string, data: A
  */
 export async function uploadImage(file: File, token: string, folder: string = 'pets'): Promise<string> {
     // 1. Get Presigned URL
-    const response = await loggedFetch(`/api/upload/presigned-url`, {
+    const response = await fetch(`/api/upload/presigned-url`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -698,15 +685,13 @@ export async function uploadImage(file: File, token: string, folder: string = 'p
         throw new Error('Failed to upload image to storage');
     }
 
-    console.log('Image uploaded successfully. Public URL:', public_url);
-
     return public_url;
 }
 /**
  * Delete image from R2 storage
  */
 export async function deleteImage(filename: string, token: string): Promise<void> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/upload/image?filename=${encodeURIComponent(filename)}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/upload/image?filename=${encodeURIComponent(filename)}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -724,7 +709,7 @@ export async function deleteImage(filename: string, token: string): Promise<void
  * Get user profile
  */
 export async function getUserProfile(token: string): Promise<UserProfile> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
+    const response = await fetch(`${API_BASE_URL}/v1/user/profile`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -740,7 +725,7 @@ export async function getUserProfile(token: string): Promise<UserProfile> {
  * Update user profile
  */
 export async function updateUserProfile(token: string, profileData: UserProfileUpdatePayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/user/profile`, {
+    const response = await fetch(`${API_BASE_URL}/v1/user/profile`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -759,7 +744,7 @@ export async function updateUserProfile(token: string, profileData: UserProfileU
  * Register owner profile
  */
 export async function registerOwner(token: string, ownerData: RegisterOwnerPayload): Promise<{ message: string }> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/register/owner`, {
+    const response = await fetch(`${API_BASE_URL}/v1/register/owner`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -786,7 +771,7 @@ export async function getSymptomRecordsCalendar(token: string, petId?: string, m
     if (petId) params.append('pet_id', petId);
     if (month) params.append('month', month);
     if (params.toString()) url += `?${params.toString()}`;
-    const response = await loggedFetch(url, {
+    const response = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -796,14 +781,13 @@ export async function getSymptomRecordsCalendar(token: string, petId?: string, m
         throw new Error(error.detail || 'Failed to get symptom records calendar');
     }
     const json = await response.json();
-    console.log(json);
     return json.data;
 }
 /**
  * Create symptom record
  */
 export async function createSymptomRecord(token: string, data: AddSymptomPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/symptom-records`, {
+    const response = await fetch(`${API_BASE_URL}/v1/symptom-records`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -822,7 +806,7 @@ export async function createSymptomRecord(token: string, data: AddSymptomPayload
  * Get symptom record detail
  */
 export async function getSymptomRecordDetail(token: string, recordId: string): Promise<SymptomRecord> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -838,7 +822,7 @@ export async function getSymptomRecordDetail(token: string, recordId: string): P
  * Edit symptom record
  */
 export async function editSymptomRecord(token: string, recordId: number, data: EditSymptomPayload): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -857,7 +841,7 @@ export async function editSymptomRecord(token: string, recordId: number, data: E
  * Delete symptom record
  */
 export async function deleteSymptomRecord(token: string, recordId: number): Promise<any> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
+    const response = await fetch(`${API_BASE_URL}/v1/symptom-records/${recordId}`, {
         method: 'DELETE',
         headers: {
             'Authorization': `Bearer ${token}`,
@@ -873,7 +857,7 @@ export async function deleteSymptomRecord(token: string, recordId: number): Prom
 import { NotificationItem, UnifiedNotification } from "@/types/domain/notification";
 export async function getNotifications(token: string): Promise<NotificationItem[]> {
     // Correct endpoint for notification feed is /v1/medications
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -886,7 +870,7 @@ export async function getNotifications(token: string): Promise<NotificationItem[
     return json.data || json;
 }
 export async function getAllNotifications(token: string): Promise<UnifiedNotification[]> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/notifications`, {
+    const response = await fetch(`${API_BASE_URL}/v1/notifications`, {
         headers: {
             'Authorization': `Bearer ${token}`,
         },
@@ -900,7 +884,7 @@ export async function getAllNotifications(token: string): Promise<UnifiedNotific
 }
 
 export async function markNotificationAsRead(token: string, id: string): Promise<boolean> {
-    const response = await loggedFetch(`${API_BASE_URL}/v1/medications/${id}/taken`, {
+    const response = await fetch(`${API_BASE_URL}/v1/medications/${id}/taken`, {
         method: 'PATCH',
         headers: {
             'Authorization': `Bearer ${token}`,
