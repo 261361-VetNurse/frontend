@@ -51,7 +51,7 @@ export default function AppointmentDetail({
       onSecondary={() => onDelete?.(appointment.appointment_id)}
     >
       {/* Pet row */}
-      <div className="flex items-center gap-3 pb-4 border-b border-zinc-100">
+      <div className="flex flex-row items-center gap-3 pb-4 border-b border-zinc-100 w-full">
         <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100 shrink-0">
           <Profile
             imageUrl={appointment.pet_image}
@@ -59,162 +59,86 @@ export default function AppointmentDetail({
             size="small"
           />
         </div>
-
         <div className="min-w-0">
           <div className="text-sm font-semibold text-zinc-900 truncate">
             {appointment.pet_name}
           </div>
           <div className="text-xs text-zinc-500 truncate">
             PID: {appointment.pet_id}
-
-            <div className="min-w-0">
-              <div className="text-sm font-semibold text-zinc-900 truncate">
-                {appointment.pet_name}
-              </div>
-              <div className="text-xs text-zinc-500 truncate">
-                PID: {appointment.pet_id}
-              </div>
-            </div>
           </div>
-
-          {/* Body */}
-          <div className="px-5 pb-5 space-y-4">
-            {/* Date & Time */}
-            <div className="grid grid-cols-2 gap-3 text-sm text-zinc-800">
-              <div>
-                <div className="flex items-center gap-1 font-medium">
-                  <CalendarToday fontSize="inherit" />
-                  Date
-                </div>
-                <div className="mt-1 text-zinc-700">{dateText}</div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1 font-medium">
-                  <AccessTime fontSize="inherit" />
-                  Time
-                </div>
-                <div className="mt-1 text-zinc-700">{timeText}</div>
-              </div>
-            </div>
-
-            {/* Location */}
-            <div>
-              <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
-                <LocationOn fontSize="small" />
-                Location
-              </div>
-              <div className="mt-1 text-sm text-zinc-700">
-                {appointment.location}
-              </div>
-            </div>
-
-            {/* Add to Calendar */}
-            {onAddToCalendar && (
-              <Button
-                variant="secondary"
-                shape="pill"
-                fullWidth
-                onClick={() => onAddToCalendar(appointment)}
-              >
-                Add to Calendar
-              </Button>
-            )}
-
-            {/* Status */}
-            {appointment.status ? (
-              <div>
-                <div className="text-sm font-medium text-zinc-800">
-                  Status
-                </div>
-                <div className="mt-1 text-sm text-zinc-700">
-                  {appointment.status}
-                </div>
-              </div>
-            ) : null}
-
-            {/* ✅ Actions (shared Button) */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <Button
-                variant="primary"
-                shape="pill"
-                fullWidth
-                onClick={() => onEdit?.(appointment)}
-              >
-                Edit
-              </Button>
-
-              <Button
-                variant="danger"
-                shape="pill"
-                fullWidth
-                onClick={() => onDelete?.(appointment.appointment_id)}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Body */}
-        <div className="space-y-4 pt-2">
-          {/* Date & Time */}
-          <div className="grid grid-cols-2 gap-3 text-sm text-zinc-800">
-            <div>
-              <div className="flex items-center gap-1 font-medium">
-                <CalendarToday fontSize="inherit" />
-                Date
-              </div>
-              <div className="mt-1 text-zinc-700">{dateText}</div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-1 font-medium">
-                <AccessTime fontSize="inherit" />
-                Time
-              </div>
-              <div className="mt-1 text-zinc-700">{timeText}</div>
-            </div>
-          </div>
-
-          {/* Location */}
-          <div>
-            <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
-              <LocationOn fontSize="small" />
-              Location
-            </div>
-            <div className="mt-1 text-sm text-zinc-700">
-              {appointment.location}
-            </div>
-          </div>
-
-          {/* Note */}
-          {appointment.note ? (
-            <div>
-              <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
-                <Note fontSize="small" />
-                Note
-              </div>
-              <div className="mt-1 text-sm text-zinc-700">
-                {appointment.note}
-              </div>
-            </div>
-          ) : null}
-
-          {/* Status */}
-          {appointment.status ? (
-            <div>
-              <div className="text-sm font-medium text-zinc-800">
-                Status
-              </div>
-              <div className="mt-1 text-sm text-zinc-700">
-                {appointment.status}
-              </div>
-            </div>
-          ) : null}
         </div>
       </div>
-    </FormDialog>
+
+      {/* Body */}
+      <div className="space-y-4 pt-2 w-full">
+        {/* Date & Time */}
+        <div className="grid grid-cols-2 gap-3 text-sm text-zinc-800">
+          <div>
+            <div className="flex items-center gap-1 font-medium">
+              <CalendarToday fontSize="inherit" />
+              Date
+            </div>
+            <div className="mt-1 text-zinc-700">{dateText}</div>
+          </div>
+
+          <div>
+            <div className="flex items-center gap-1 font-medium">
+              <AccessTime fontSize="inherit" />
+              Time
+            </div>
+            <div className="mt-1 text-zinc-700">{timeText}</div>
+          </div>
+        </div>
+
+        {/* Location */}
+        <div>
+          <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
+            <LocationOn fontSize="small" />
+            Location
+          </div>
+          <div className="mt-1 text-sm text-zinc-700">
+            {appointment.location}
+          </div>
+        </div>
+
+        {/* Note */}
+        {appointment.note ? (
+          <div>
+            <div className="flex items-center gap-1 text-sm font-medium text-zinc-800">
+              <Note fontSize="small" />
+              Note
+            </div>
+            <div className="mt-1 text-sm text-zinc-700">
+              {appointment.note}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Status */}
+        {appointment.status ? (
+          <div>
+            <div className="text-sm font-medium text-zinc-800">
+              Status
+            </div>
+            <div className="mt-1 text-sm text-zinc-700">
+              {appointment.status}
+            </div>
+          </div>
+        ) : null}
+
+        {/* Add to Calendar */}
+        {onAddToCalendar && (
+          <Button
+            variant="secondary"
+            shape="pill"
+            fullWidth
+            onClick={() => onAddToCalendar(appointment)}
+          >
+            Add to Calendar
+          </Button>
+        )}
+      </div>
+    </FormDialog >
   );
 }
 
