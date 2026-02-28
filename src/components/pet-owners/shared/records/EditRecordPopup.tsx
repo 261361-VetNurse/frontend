@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { uploadImage, authStorage } from "@/services/api/client";
 import { SymptomRecord } from "@/types/domain/symptom";
+import { FormDialog } from "../FormDialog";
 
 export type EditRecordFormState = {
   id: string;
@@ -161,31 +162,17 @@ export default function EditRecordPopup({
   const canAddMore = currentCount < maxImages;
 
   return (
-    <div
-      className="fixed inset-0 z-[1000] bg-black/30 flex items-center justify-center px-4"
-      onClick={handleOverlayClick}
-      role="dialog"
-      aria-modal="true"
+    <FormDialog
+      open={open}
+      onClose={onClose}
+      title="Edit Record"
+      primaryLabel="Save"
+      onPrimary={handleSave}
+      primaryDisabled={!canSubmit}
     >
-      <div className="w-full max-w-[380px] rounded-2xl bg-white shadow-lg border border-zinc-100 overflow-hidden">
-        {/* Header */}
-        <div className="relative px-5 pt-5 pb-3">
-          <div className="text-center font-semibold text-zinc-900">
-            Edit Record
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute right-4 top-4 text-zinc-700 hover:text-zinc-900"
-            aria-label="Close"
-          >
-            ✕
-          </button>
-        </div>
-
+      <div className="flex flex-col space-y-4">
         {/* Pet row */}
-        <div className="px-5 pb-4 flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100">
             {r.pet_image ? (
               <Image
@@ -205,166 +192,148 @@ export default function EditRecordPopup({
           </div>
         </div>
 
-        {/* Form */}
-        <div className="px-5 pb-5 space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            {/* Date */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Date
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </div>
-
-            {/* Time */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-800 mb-1">
-                Time
-              </label>
-              <input
-                type="time"
-                className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-              />
-            </div>
-          </div>
-
-          {/* Note */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Date */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
-              Note
+              Date
             </label>
-            <textarea
-              className="w-full min-h-[90px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 resize-y"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+            <input
+              type="date"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
             />
           </div>
 
-          {/* Images */}
+          {/* Time */}
           <div>
-            <div className="flex items-center justify-between">
-              <label className="block text-sm font-medium text-zinc-800">
-                Image
-              </label>
-
-              <button
-                type="button"
-                onClick={() => canAddMore && fileRef.current?.click()}
-                disabled={!canAddMore}
-                className={[
-                  "text-sm",
-                  canAddMore
-                    ? "text-sky-600 hover:text-sky-700"
-                    : "text-zinc-300 cursor-not-allowed",
-                ].join(" ")}
-              >
-                Add
-              </button>
-            </div>
-
+            <label className="block text-sm font-medium text-zinc-800 mb-1">
+              Time
+            </label>
             <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => handlePickFiles(e.target.files)}
+              type="time"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
             />
+          </div>
+        </div>
 
-            <div className="mt-2 grid grid-cols-2 gap-3">
-              {/* Existing Images */}
-              {existingImages.map((url, idx) => (
-                <div
-                  key={`existing-${url}-${idx}`}
-                  className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
-                >
-                  <Image
-                    src={url}
-                    alt={`img-${idx + 1}`}
-                    fill
-                    className="object-cover"
-                  />
+        {/* Note */}
+        <div>
+          <label className="block text-sm font-medium text-zinc-800 mb-1">
+            Note
+          </label>
+          <textarea
+            className="w-full min-h-[90px] rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 resize-y"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(idx)}
-                    className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
-                    aria-label="Remove image"
-                    title="Remove"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+        {/* Images */}
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-zinc-800">
+              Image
+            </label>
 
-              {/* New Images */}
-              {newPreviews.map((url, idx) => (
-                <div
-                  key={`new-${url}-${idx}`}
-                  className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
-                >
-                  <Image
-                    src={url}
-                    alt={`new-img-${idx + 1}`}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute top-0 left-0 bg-sky-500 text-white text-[10px] px-2 py-0.5 rounded-br-lg">
-                    New
-                  </div>
+            <button
+              type="button"
+              onClick={() => canAddMore && fileRef.current?.click()}
+              disabled={!canAddMore}
+              className={[
+                "text-sm",
+                canAddMore
+                  ? "text-sky-600 hover:text-sky-700"
+                  : "text-zinc-300 cursor-not-allowed",
+              ].join(" ")}
+            >
+              Add
+            </button>
+          </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeNewFile(idx)}
-                    className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
-                    aria-label="Remove image"
-                    title="Remove"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(e) => handlePickFiles(e.target.files)}
+          />
 
-              {canAddMore && (
+          <div className="mt-2 grid grid-cols-2 gap-3">
+            {/* Existing Images */}
+            {existingImages.map((url, idx) => (
+              <div
+                key={`existing-${url}-${idx}`}
+                className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
+              >
+                <Image
+                  src={url}
+                  alt={`img-${idx + 1}`}
+                  fill
+                  className="object-cover"
+                />
+
                 <button
                   type="button"
-                  onClick={() => fileRef.current?.click()}
-                  className="aspect-square rounded-xl border border-zinc-200 bg-white flex items-center justify-center text-3xl text-zinc-500 hover:bg-zinc-50"
-                  aria-label="Add image"
+                  onClick={() => removeExistingImage(idx)}
+                  className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
+                  aria-label="Remove image"
+                  title="Remove"
                 >
-                  +
+                  ✕
                 </button>
-              )}
-            </div>
+              </div>
+            ))}
 
-            <div className="mt-2 text-xs text-zinc-500">
-              {currentCount}/{maxImages} images
-            </div>
+            {/* New Images */}
+            {newPreviews.map((url, idx) => (
+              <div
+                key={`new-${url}-${idx}`}
+                className="relative aspect-square rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200"
+              >
+                <Image
+                  src={url}
+                  alt={`new-img-${idx + 1}`}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute top-0 left-0 bg-sky-500 text-white text-[10px] px-2 py-0.5 rounded-br-lg">
+                  New
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => removeNewFile(idx)}
+                  className="absolute right-2 top-2 h-7 w-7 rounded-full bg-white/90 text-zinc-700 shadow flex items-center justify-center hover:bg-white"
+                  aria-label="Remove image"
+                  title="Remove"
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+
+            {canAddMore && (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="aspect-square rounded-xl border border-zinc-200 bg-white flex items-center justify-center text-3xl text-zinc-500 hover:bg-zinc-50"
+                aria-label="Add image"
+              >
+                +
+              </button>
+            )}
           </div>
 
-          {/* Save */}
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!canSubmit}
-            className={[
-              "w-full rounded-full py-3 text-sm font-semibold transition shadow-sm",
-              canSubmit
-                ? "bg-sky-500 text-white hover:bg-sky-600 active:scale-[0.99]"
-                : "bg-zinc-200 text-zinc-500 cursor-not-allowed",
-            ].join(" ")}
-          >
-            Save
-          </button>
+          <div className="mt-2 text-xs text-zinc-500">
+            {currentCount}/{maxImages} images
+          </div>
         </div>
       </div>
-    </div>
+    </FormDialog>
   );
 }

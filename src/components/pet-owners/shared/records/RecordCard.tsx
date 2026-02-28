@@ -20,7 +20,7 @@ export default function RecordCard({
   imageUrls = [],
   onClick,
 }: Props) {
-  const firstImg = imageUrls[0];
+  const firstImg = imageUrls[0] || "https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp";
   const restCount = Math.max(0, imageUrls.length - 1);
 
   return (

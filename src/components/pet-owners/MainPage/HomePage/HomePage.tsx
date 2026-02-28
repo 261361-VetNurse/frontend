@@ -292,6 +292,14 @@ export default function HomePage() {
           onClick={() => router.push("/pet-owners/medication-page")}
         >
           <div className="sub">show all</div>
+          <ArrowForwardIosIcon
+            sx={{
+              ml: "auto",
+              fontSize: 16,
+              color: theme.colors.textSecondary,
+              cursor: "pointer",
+            }}
+          />
         </div>
       </div>
 

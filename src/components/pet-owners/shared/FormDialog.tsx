@@ -19,6 +19,7 @@ export type FormDialogProps = {
 
     dirty?: boolean;
     submitting?: boolean;
+    primaryDisabled?: boolean;
 
     primaryLabel: string;
     onPrimary: () => void;
@@ -47,6 +48,7 @@ export function FormDialog({
 
     dirty = false,
     submitting = false,
+    primaryDisabled = false,
 
     primaryLabel,
     onPrimary,
@@ -131,7 +133,7 @@ export function FormDialog({
                         shape="pill"
                         fullWidth
                         onClick={onPrimary}
-                        disabled={submitting}
+                        disabled={submitting || primaryDisabled}
                     >
                         {submitting ? "Loading..." : primaryLabel}
                     </Button>

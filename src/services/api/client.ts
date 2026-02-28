@@ -367,8 +367,8 @@ export async function scanMedication(
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await loggedFetch(
-        `/v1/medications/scan`,
+    const response = await fetch(
+        `${API_BASE_URL}/v1/medications/scan`,
         {
             method: "POST",
             headers: {
