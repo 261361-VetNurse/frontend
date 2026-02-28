@@ -23,6 +23,7 @@ import AddRoundedIcon from "@mui/icons-material/AddRounded";
 import { useAppointments } from "@/hooks/useAppointments";
 import { Appointment } from "@/types/domain/appointment";
 
+
 import {
   createAppointment,
   editAppointment,
@@ -34,6 +35,7 @@ import {
 
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { Pet } from "@/types";
+import { exportICS } from "@/utils/exportICS";
 
 /* ================= page ================= */
 
@@ -270,6 +272,19 @@ export default function AppointmentPage({
           openEditPopup(a);
         }}
         onDelete={handleDelete}
+
+        onAddToCalendar={(a) => {
+          const start = dayjs(`${a.appointment_date} ${a.appointment_time}`).toDate();
+          const end = dayjs(start).add(1, "hour").toDate();
+
+          exportICS({
+            title: `${a.pet_name} Appointment`,
+            description: `Pet ID: ${a.pet_id}`,
+            location: a.location,
+            start,
+            end,
+          });
+        }}
       />
 
       {/* Edit */}

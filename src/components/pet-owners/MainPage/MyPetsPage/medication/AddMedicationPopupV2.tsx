@@ -3,16 +3,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-
-export type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
-};
+import type { PetLite } from "@/types/domain/pet";
 
 export type AddMedicationPayloadV2 = {
-  petId: string;
+  petId: number;
   medicationName: string;
   dose: string;
   times: string; // derived from reminders.length
@@ -60,12 +54,12 @@ export default function AddMedicationPopupV2({
 
   const canSubmit = useMemo(() => {
     return Boolean(
-      pet?.id &&
+      pet?.pet_id &&
       medicationName.trim() &&
       dosage.trim() &&
       reminders.length > 0
     );
-  }, [pet?.id, medicationName, dosage, reminders]);
+  }, [pet?.pet_id, medicationName, dosage, reminders]);
 
   if (!open) return null;
 
@@ -93,7 +87,7 @@ export default function AddMedicationPopupV2({
     if (!canSubmit) return;
 
     onSubmit?.({
-      petId: pet.id,
+      petId: pet.pet_id,
       medicationName: medicationName.trim(),
       dose: dosage.trim(),
       times: String(reminders.length),
@@ -129,9 +123,9 @@ export default function AddMedicationPopupV2({
         {/* Pet (locked) */}
         <div className="px-6 pb-4 flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-            {pet.avatarUrl ? (
+            {pet.profile_image ? (
               <Image
-                src={pet.avatarUrl}
+                src={pet.profile_image}
                 alt={pet.name}
                 fill
                 className="object-cover"
@@ -143,7 +137,7 @@ export default function AddMedicationPopupV2({
               {pet.name}
             </div>
             <div className="text-sm text-zinc-500 truncate">
-              PID: {pet.pid}
+              PID: {pet.pet_id}
             </div>
           </div>
         </div>
