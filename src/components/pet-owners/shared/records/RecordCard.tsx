@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
+import { ChevronRight } from "@mui/icons-material";
 
 type Props = {
   petName: string;
@@ -20,36 +21,43 @@ export default function RecordCard({
   imageUrls = [],
   onClick,
 }: Props) {
-  const firstImg = imageUrls[0] || "https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/default_image.webp";
+  const firstImg = imageUrls[0];
   const restCount = Math.max(0, imageUrls.length - 1);
 
   return (
-    <Card headerRight={time} onClick={onClick}>
-      <div className="flex items-start gap-3">
-        {/* Avatar */}
-        <div className="relative h-11 w-11 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-          {avatarUrl && (
-            <Image src={avatarUrl} alt={petName} fill className="object-cover" />
-          )}
-        </div>
+    <Card
+      headerRight={time}
+      onClick={onClick}
+      className="w-full text-left transition hover:bg-zinc-50 active:scale-[0.99]"
+    >
+      <div className="flex items-center gap-3">
+        {/* Colored pill bar */}
+        <div className="w-1 self-stretch rounded-full bg-pink-400 shrink-0 min-h-[40px]" />
 
-        {/* Text */}
-        <div className={`min-w-0 flex-1 ${firstImg ? "pr-16" : ""}`}>
-          <div className="text-sm font-semibold text-zinc-900">{petName}</div>
-          <div className="mt-1 text-sm text-zinc-600 line-clamp-2">
+        {/* Pet avatar */}
+        {avatarUrl && (
+          <div className="relative h-9 w-9 overflow-hidden rounded-full bg-zinc-100 shrink-0">
+            <Image src={avatarUrl} alt={petName} fill className="object-cover" />
+          </div>
+        )}
+
+        {/* Content */}
+        <div className="min-w-0 flex-1">
+          <div className="text-sm font-semibold text-zinc-900 leading-snug">
+            {petName}
+          </div>
+          <div className="mt-0.5 text-sm line-clamp-1">
             {note}
           </div>
         </div>
 
-        {/* Preview */}
+        {/* Thumbnail preview */}
         {firstImg && (
-          <div className="relative h-14 w-14 rounded-xl bg-zinc-100 overflow-hidden border border-zinc-200 shrink-0">
+          <div className="relative h-10 w-10 rounded-lg bg-zinc-100 overflow-hidden border border-zinc-200 shrink-0">
             <Image src={firstImg} alt="" fill className="object-cover" />
             {restCount > 0 && (
               <div className="absolute inset-0 bg-black/35 flex items-center justify-center">
-                <span className="text-white text-xs font-semibold">
-                  +{restCount}
-                </span>
+                <span className="text-white text-[10px] font-semibold">+{restCount}</span>
               </div>
             )}
           </div>
