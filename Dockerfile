@@ -5,10 +5,10 @@
 
 # --- Stage 1: Build the Vite application ----------------------
 FROM oven/bun:debian AS builder
-WORKDIR /app
+WORKDIR /petlite
 
 # Copy dependency definition
-COPY package.json bun.lock ./
+COPY package.json bun.lockb ./
 
 # Install all dependencies (needed to build frontend)
 RUN bun install --frozen-lockfile
@@ -24,28 +24,29 @@ RUN bun run build
 
 # --- Stage 2: Minimal production runtime ----------------------
 FROM oven/bun:debian AS runner
-WORKDIR /app
+WORKDIR /petlite
 
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Grant bun user access to /app
-RUN chown bun:bun /app
+# Grant bun user access to /petlite
+USER root
+RUN mkdir -p /petlite && chown -R bun:bun /petlite
 
 # Run as non-root
 USER bun
 
 # Copy package info and lockfile
-COPY --chown=bun:bun package.json bun.lock ./
+COPY --chown=bun:bun package.json bun.lockb ./
 
 # Install only production dependencies (Hono, AWS SDK, etc)
 RUN bun install --production --frozen-lockfile
 
 # Copy built static files
-COPY --from=builder --chown=bun:bun /app/dist ./dist
+COPY --from=builder --chown=bun:bun /petlite/dist ./dist
 
 # Copy the server entrypoint
-COPY --from=builder --chown=bun:bun /app/server.ts ./
+COPY --from=builder --chown=bun:bun /petlite/server.ts ./
 
 EXPOSE 3000
 
