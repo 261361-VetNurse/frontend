@@ -29,11 +29,14 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
+# Grant bun user access to /app
+RUN chown bun:bun /app
+
 # Run as non-root
 USER bun
 
 # Copy package info and lockfile
-COPY package.json bun.lock ./
+COPY --chown=bun:bun package.json bun.lock ./
 
 # Install only production dependencies (Hono, AWS SDK, etc)
 RUN bun install --production --frozen-lockfile
