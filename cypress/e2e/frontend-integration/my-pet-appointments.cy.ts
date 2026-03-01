@@ -66,12 +66,89 @@ runForMobileViewports('My pet appointments flow (integration)', () => {
     });
   });
 
-  it.skip('TC-MYPETAPT-04: opens appointment detail from list card', () => {
-    // TODO: click appointment card and assert detail dialog content
+  it('TC-MYPETAPT-04: opens appointment detail from list card', () => {
+    fiFreeze('2026-02-10T12:00:00Z');
+    cy.fiEnsureOwnerProfile();
+    cy.fiCreatePet({ name: fiUnique('MyPetAptDetail') }).then(({ petId }) => {
+      const location = fiUnique('CY-FI-MYPET-APT-DETAIL');
+      const note = fiUnique('CY-FI-MYPET-APT-DETAIL-NOTE');
+      cy.fiCreateAppointment(petId, {
+        location,
+        note,
+        appointment_date: '2026-02-11T10:15:00',
+        status: 'Upcoming',
+      }).then(() => {
+        cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/appointments`);
+        cy.get('button[aria-label="Open appointment detail"]', { timeout: 20000 }).first().click();
+
+        fiDialog().contains('Appointment').should('exist');
+        fiDialog().within(() => {
+          cy.contains('Location').should('exist');
+          cy.contains(location).should('exist');
+          cy.contains('Note').should('exist');
+          cy.contains(note).should('exist');
+          cy.contains('button', /^Edit$/).should('exist');
+          cy.contains('button', /^Delete$/).should('exist');
+        });
+      });
+    });
   });
 
-  it.skip('TC-MYPETAPT-05: changes tabs and reflects Upcoming/Completed/Canceled grouping for selected pet', () => {
-    // TODO: seed mixed-status/mixed-date appointments and assert tab filtering/grouping
+  it('TC-MYPETAPT-05: changes tabs and reflects Upcoming/Completed/Canceled grouping for selected pet', () => {
+    fiFreeze('2026-02-10T12:00:00Z');
+    cy.fiEnsureOwnerProfile();
+    cy.fiCreatePet({ name: fiUnique('MyPetAptGrouping') }).then(({ petId }) => {
+      const upcomingOne = fiUnique('CY-FI-MYPET-APT-UP-1');
+      const upcomingTwo = fiUnique('CY-FI-MYPET-APT-UP-2');
+      const completedLoc = fiUnique('CY-FI-MYPET-APT-COMP');
+      const canceledLoc = fiUnique('CY-FI-MYPET-APT-CAN');
+
+      cy.fiCreateAppointment(petId, {
+        location: upcomingOne,
+        appointment_date: '2026-02-11T09:00:00',
+        status: 'Upcoming',
+      });
+      cy.fiCreateAppointment(petId, {
+        location: upcomingTwo,
+        appointment_date: '2026-02-12T14:00:00',
+        status: 'Upcoming',
+      });
+      cy.fiCreateAppointment(petId, {
+        location: completedLoc,
+        appointment_date: '2026-02-09T09:00:00',
+        status: 'Upcoming',
+      });
+      cy.fiCreateAppointment(petId, {
+        location: canceledLoc,
+        appointment_date: '2026-02-11T16:30:00',
+        status: 'Canceled',
+      });
+
+      cy.fiVisitAuthed(`/pet-owners/my-pets-page/${petId}/appointments`);
+
+      cy.contains('Wed, 11/02/2026', { timeout: 20000 }).should('exist');
+      cy.contains('Thu, 12/02/2026', { timeout: 20000 }).should('exist');
+      cy.contains(upcomingOne).should('exist');
+      cy.contains(upcomingTwo).should('exist');
+      cy.contains(completedLoc).should('not.exist');
+      cy.contains(canceledLoc).should('not.exist');
+
+      cy.contains('button', /^Completed$/).click();
+      cy.location('search').should('include', 'tab=completed');
+      cy.contains(completedLoc, { timeout: 20000 }).should('exist');
+      cy.contains(upcomingOne).should('not.exist');
+      cy.contains(canceledLoc).should('not.exist');
+
+      cy.contains('button', /^Canceled$/).click();
+      cy.location('search').should('include', 'tab=canceled');
+      cy.contains(canceledLoc, { timeout: 20000 }).should('exist');
+      cy.contains(completedLoc).should('not.exist');
+
+      cy.contains('button', /^Upcoming$/).click();
+      cy.location('search').should('include', 'tab=upcoming');
+      cy.contains(upcomingOne, { timeout: 20000 }).should('exist');
+      cy.contains(upcomingTwo).should('exist');
+    });
   });
 
   it('TC-APP-05: filters appointments by status tabs (Upcoming / Completed / Canceled)', () => {
