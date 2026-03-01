@@ -29,16 +29,16 @@ export default function AppointmentCard({
       {/* Main info */}
       <div className="mt-2 text-sm text-zinc-900 space-y-1 pr-10">
         <div>
-          <span className="font-medium">Pet Name :</span> {petName}
+          <span className="font-semibold">Pet Name :</span> {petName}
         </div>
         <div>
-          <span className="font-medium">Date :</span> {date}
+          <span className="font-semibold">Date :</span> {date}
         </div>
         <div>
-          <span className="font-medium">Time :</span> {time}
+          <span className="font-semibold">Time :</span> {time}
         </div>
         <div className="truncate">
-          <span className="font-medium">Location :</span> {location}
+          <span className="font-semibold">Location :</span> {location}
         </div>
       </div>
 

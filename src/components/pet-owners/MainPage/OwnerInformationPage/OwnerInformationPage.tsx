@@ -1,7 +1,8 @@
 'use client';
 
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+// SVG icon wrappers replacing MUI icons
+const ArrowBackIosNewIcon = () => <img src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
+const InfoOutlinedIcon = () => <img src="/info.svg" alt="info" style={{ width: 20, height: 20 }} />;
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {

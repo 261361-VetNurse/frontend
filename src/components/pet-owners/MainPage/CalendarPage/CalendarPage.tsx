@@ -51,9 +51,15 @@ import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
 import { exportICS } from "@/utils/exportICS";
 
-import AddIcon from "@mui/icons-material/Add";
-import EventNoteIcon from "@mui/icons-material/EventNote";
-import AssignmentIcon from "@mui/icons-material/Assignment";
+// SVG icon wrappers replacing MUI icons
+const AddIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
+const EventNoteIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) => (
+    <img src="/note.svg" alt="note" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
+);
+const AssignmentIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) => (
+    <img src="/record.svg" alt="record" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
+);
+import { theme } from "@/styles/tokens/theme";
 
 /* ─────────────── helpers ─────────────── */
 function pad2(n: number) {
@@ -128,7 +134,7 @@ function SpeedDial({
                                 padding: "3px 10px",
                                 fontSize: 12,
                                 fontWeight: 600,
-                                color: "#0ea5e9",
+                                color: theme.colors.appoint,
                                 whiteSpace: "nowrap",
                             }}
                         >
@@ -141,7 +147,7 @@ function SpeedDial({
                                 width: 44,
                                 height: 44,
                                 borderRadius: "50%",
-                                background: "#0ea5e9",
+                                background: theme.colors.appoint,
                                 border: "none",
                                 cursor: "pointer",
                                 display: "flex",
@@ -175,7 +181,7 @@ function SpeedDial({
                                 padding: "3px 10px",
                                 fontSize: 12,
                                 fontWeight: 600,
-                                color: "#ec4899",
+                                color: theme.colors.record,
                                 whiteSpace: "nowrap",
                             }}
                         >
@@ -188,13 +194,13 @@ function SpeedDial({
                                 width: 44,
                                 height: 44,
                                 borderRadius: "50%",
-                                background: "#ec4899",
+                                background: theme.colors.record,
                                 border: "none",
                                 cursor: "pointer",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                boxShadow: "0 3px 10px rgba(236,72,153,0.45)",
+                                boxShadow: `0 3px 10px ${theme.colors.record}70`,
                                 flexShrink: 0,
                                 transition: "transform 0.15s",
                             }}
@@ -215,13 +221,13 @@ function SpeedDial({
                     width: 46,
                     height: 46,
                     borderRadius: "50%",
-                    background: "#09BFF8",
+                    background: theme.colors.primary,
                     border: "none",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    boxShadow: "0 4px 12px rgba(9,191,248,0.5)",
+                    boxShadow: `0 4px 12px ${theme.colors.primary}80`,
                     transition: "transform 0.2s ease, filter 0.2s ease",
                     flexShrink: 0,
                 }}
@@ -639,11 +645,11 @@ function UnifiedCalendarPageContent() {
                 {/* ── Legend ── */}
                 <div className="flex justify-end items-center gap-4 px-1">
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-sky-600 inline-block" />
+                        <span className="h-2 w-2 rounded-full inline-block" style={{ background: theme.colors.appoint }} />
                         <span className="text-xs text-zinc-500">Appointment</span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <span className="h-2 w-2 rounded-full bg-pink-500 inline-block" />
+                        <span className="h-2 w-2 rounded-full inline-block" style={{ background: theme.colors.record }} />
                         <span className="text-xs text-zinc-500">Record</span>
                     </div>
                 </div>

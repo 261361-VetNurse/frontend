@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { PetLite } from "@/types/domain/pet";
@@ -19,7 +19,10 @@ import { AddSymptomPayload } from "@/types/api/record.dto";
 import type { SymptomRecord } from "@/types/domain/symptom";
 
 // UI
-import { Add } from "@mui/icons-material";
+// SVG icon wrapper replacing MUI icon
+const Add = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/add-new.svg" alt="add" style={{ width: 32, height: 32, ...style }} />
+);
 import Button from "@/components/pet-owners/shared/Button";
 import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";

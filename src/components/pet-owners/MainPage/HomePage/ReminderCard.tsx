@@ -1,10 +1,13 @@
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Profile from "../../shared/Profile";
 import { ReminderCardStyle } from "@/styles/components/homepage.styled";
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import React from 'react';
+
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = () => <img src="/complete.svg" alt="taken" style={{ width: 20, height: 20 }} />;
+const AccessTimeIcon = () => <img src="/clock.svg" alt="time" style={{ width: 20, height: 20 }} />;
+const CalendarMonthIcon = () => <img src="/calendar.svg" alt="calendar" style={{ width: 20, height: 20 }} />;
 import { DashboardNotification } from '@/types/domain/dashboard';
 import { getFrequencyLabel } from '@/components/pet-owners/MainPage/HomePage/MedicationDetailPopup';
 

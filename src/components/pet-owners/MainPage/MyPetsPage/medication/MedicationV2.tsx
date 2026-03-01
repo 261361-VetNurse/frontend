@@ -12,7 +12,8 @@ import { Medicine } from '@/types/domain/medication';
 
 import { authStorage, getMedicinesByPet, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+// SVG icon wrapper replacing MUI icon
+const AddRoundedIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 import { CardList } from "@/styles/components/medication.styled";
 import { QuickDialButton } from '@/components/shared';
 

@@ -22,7 +22,7 @@ export default function AppointmentCard({
     <Card
       onClick={onClick}
       headerRight={timeStr}
-      pillColor="bg-sky-500"
+      pillColor="bg-purple-400"
       className={["w-full text-left transition hover:bg-zinc-50 active:scale-[0.99]", className].join(" ")}
     >
       <div className="flex items-center gap-3">

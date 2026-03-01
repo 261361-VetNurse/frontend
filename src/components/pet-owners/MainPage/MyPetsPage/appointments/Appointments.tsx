@@ -18,7 +18,8 @@ import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
 import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
 import AddAppointmentPopup from "@/components/pet-owners/shared/appointment/AddAppointmentPopup";
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+// SVG icon wrapper replacing MUI icon
+const AddRoundedIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 
 import { QuickDialButton } from "@/components/shared";
 import { AddAppointmentPayload } from "@/types/api/appointment.dto";

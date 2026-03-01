@@ -1,15 +1,21 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
 import { ReminderSlot } from '@/types/domain/medication';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-import MedicationIcon from '@mui/icons-material/Medication';
 import { getMedicationStatus } from '@/utils/medicationStatus';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+);
+const MedicationIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/medication.svg" alt="medication" style={{ width: 24, height: 24, ...style }} />
+);
 
 interface MedicationDetailPopupProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

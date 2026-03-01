@@ -1,12 +1,19 @@
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-import MedicationIcon from '@mui/icons-material/Medication';
+import React from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
+
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+);
+const MedicationIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/medication.svg" alt="medication" style={{ width: 24, height: 24, ...style }} />
+);
 
 interface MedicationDetailPopupProps {
   noti: DashboardNotification;

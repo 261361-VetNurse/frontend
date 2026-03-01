@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+// SVG icon wrapper replacing MUI icon
+const ArrowBackIosNewIcon = () => <img src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
 import { useRouter } from 'next/navigation';
 import {
   Container,

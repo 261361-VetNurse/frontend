@@ -262,7 +262,10 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { Add } from "@mui/icons-material";
+// SVG icon wrapper replacing MUI icon
+const Add = ({ fontSize, className }: { fontSize?: string; className?: string }) => (
+  <img src="/add-new.svg" alt="add" className={className} style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+);
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
 import { uploadImage, authStorage } from "@/services/api/client";

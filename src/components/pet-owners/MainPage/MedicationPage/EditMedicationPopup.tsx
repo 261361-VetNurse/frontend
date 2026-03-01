@@ -6,7 +6,11 @@ import { TextInput } from '../../shared/form/TextInput';
 
 import { theme } from '@/styles/tokens/theme';
 import { Medicine } from '@/types/domain/medication';
-import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+// SVG icon wrapper replacing MUI icon
+const Add = ({ fontSize }: { fontSize?: string }) => (
+  <img src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+);
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import type { Pet } from '@/types/domain/pet';

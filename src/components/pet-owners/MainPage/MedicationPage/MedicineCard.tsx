@@ -2,12 +2,20 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
+
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <img src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+);
+const EditIcon = ({ fontSize }: { fontSize?: string }) => (
+  <img src="/edit.svg" alt="edit" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20 }} />
+);
+const DeleteIcon = ({ fontSize, sx }: { fontSize?: string; sx?: React.CSSProperties }) => (
+  <img src="/delete.svg" alt="delete" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20, ...sx }} />
+);
 import { theme } from '@/styles/tokens/theme';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';

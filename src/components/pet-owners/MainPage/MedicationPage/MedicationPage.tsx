@@ -11,7 +11,8 @@ import { theme } from '@/styles/tokens/theme';
 import { Tabs } from '@/components/pet-owners/shared/Tabs';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+// SVG icon wrapper replacing MUI icon
+const AddRoundedIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 import { GroupedMedicineNotification } from '@/types/domain/medication';
 import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';

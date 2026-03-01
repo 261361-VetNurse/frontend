@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
-import { Add, Remove, CheckBox, CheckBoxOutlineBlank, PhotoCamera } from '@mui/icons-material';
+import { Remove, CheckBox, CheckBoxOutlineBlank, PhotoCamera } from '@mui/icons-material';
+// SVG icon wrapper replacing MUI icon
+const Add = ({ fontSize }: { fontSize?: string }) => (
+  <img src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+);
 import { theme } from '@/styles/tokens/theme';
 
 

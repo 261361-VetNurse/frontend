@@ -1,9 +1,12 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { uploadImage } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import EditIcon from '@mui/icons-material/Edit';
+// SVG icon wrapper replacing MUI icon
+const EditIcon = ({ style }: { style?: React.CSSProperties }) => (
+    <img src="/edit.svg" alt="edit" style={{ width: 32, height: 32, ...style, filter: 'brightness(0) invert(1)' }} />
+);
 
 
 interface ImageUploadProps {

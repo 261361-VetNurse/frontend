@@ -230,14 +230,12 @@ function PetRow({
     >
       <div className="min-w-0 flex items-center gap-3">
         {isAll ? (
-          <div className="relative h-11 w-11 rounded-full bg-zinc-100 overflow-hidden">
-            <Image
-              src="https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp"
-              alt="All pets"
-              fill
-              className="object-contain p-2"
-            />
-          </div>
+          <Profile
+            imageUrl="https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_profile_1x.webp"
+            alt="All pets"
+            size="44px"
+            isPet={true}
+          />
 
         ) : (
           <Profile

@@ -8,6 +8,8 @@ export const theme = {
     textPrimary: '#000000',
     textSecondary: '#666666',
     error: '#D32F2F',
-    border: "#E5E7EB"
+    border: "#E5E7EB",
+    appoint: '#c27bff',
+    record: '#fc64b6'
   }
 };
