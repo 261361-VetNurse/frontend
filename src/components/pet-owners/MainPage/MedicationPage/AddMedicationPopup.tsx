@@ -215,8 +215,6 @@ export default function CreateMedicationPopup({
 
   if (!open) return null;
 
-
-
   const addReminder = () => {
     const newId = `r${reminders.length + 1}`;
     setReminders([...reminders, { id: newId, time: '08:00', status: 'pending' }]);
@@ -294,7 +292,7 @@ export default function CreateMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload: AddMedicationPayload = {
-        pet_id: Number(selectedPet.pet_id),
+        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -334,7 +332,6 @@ export default function CreateMedicationPopup({
 
       if (data.name) setMedicineName(data.name);
       if (data.dosage) setDosage(data.dosage);
-
       if (data.reminder_time?.length) {
         setReminders(
           data.reminder_time.map((time: string, i: number) => ({
