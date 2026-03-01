@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+import type { Pet } from '../../src/types/domain/pet';
+
 declare global {
   namespace Cypress {
     interface Chainable {
@@ -13,7 +15,7 @@ declare global {
         options?: { failOnStatusCode?: boolean; qs?: Record<string, any> }
       ): Chainable<any>;
       fiEnsureOwnerProfile(): Chainable<any>;
-      fiGetMyPets(): Chainable<any>;
+      fiGetMyPets(): Chainable<Pet[]>;
       fiCreatePet(overrides?: Record<string, unknown>): Chainable<any>;
       fiCreateAppointment(
         petId: number,

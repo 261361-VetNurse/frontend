@@ -1,5 +1,7 @@
 /// <reference types="cypress" />
 
+import type { Pet } from '../../src/types/domain/pet';
+
 const DEFAULT_BACKEND_BASE_URL = 'http://localhost:8000';
 const DEFAULT_FRONTEND_BASE_URL = 'http://localhost:3000';
 
@@ -182,7 +184,7 @@ Cypress.Commands.add('fiEnsureOwnerProfile', () => {
 });
 
 Cypress.Commands.add('fiGetMyPets', () => {
-  return cy.fiApi('GET', '/v1/pets').then((res) => {
+  return cy.fiApi('GET', '/v1/pets').then((res): Pet[] => {
     const raw = unwrapData<any[]>(res.body);
     return (Array.isArray(raw) ? raw : []).map((pet) => ({
       ...pet,

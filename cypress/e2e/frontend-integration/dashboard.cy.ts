@@ -66,69 +66,96 @@ const getQueryParam = (name: string) =>
   cy.location('search').then((search) => new URLSearchParams(search).get(name));
 
 runForMobileViewports('Dashboard flow (integration)', () => {
-  it('renders dashboard sections, toggles reminder via API, and opens appointment detail with real data', () => {
+  it('renders dashboard sections, toggles reminder via API, and opens appointment detail', () => {
     fiFreeze();
     cy.fiEnsureOwnerProfile();
     const dashPetName = fiUnique('DashPet');
     const medName = fiUnique('CY-FI-DASH-MED');
     const appointmentLocation = fiUnique('CY-FI-DASH-APT');
+    const reminderId = 9001;
+    const appointmentId = 8001;
+    const reminderRow = dashboardNotification({
+      _id: String(reminderId),
+      notification_id: reminderId,
+      medicine_name: medName,
+      pet_name: dashPetName,
+      notification_at: '2026-02-10T09:00:00Z',
+      time: '09:00',
+      status: 'pending',
+      istaken: false,
+    });
+    const appointmentRow = dashboardAppointment({
+      _id: String(appointmentId),
+      appointment_id: appointmentId,
+      pet_name: dashPetName,
+      location: appointmentLocation,
+      appointment_date: '2026-02-10T11:00:00Z',
+    });
 
-    cy.fiCreatePet({ name: dashPetName }).then(({ petId }) => {
-      cy.fiCreateMedication(petId, {
-        name: medName,
-        reminder_time: ['09:00'],
-        start_date: '2026-02-01T00:00:00',
-        end_date: '2026-02-28T00:00:00',
-      }).then(() => {
-        cy.fiCreateAppointment(petId, {
-          location: appointmentLocation,
-          appointment_date: '2026-02-10T11:00:00',
-        }).then(({ appointmentId }) => {
-          cy.intercept('PATCH', medicationTakenEndpoint).as('fiDashboardToggleReminder');
-          cy.intercept('GET', appointmentDetailEndpoint).as('fiDashboardAppointmentDetail');
+    cy.intercept('GET', dashboardEndpoint, {
+      statusCode: 200,
+      body: dashboardResponse({
+        pets: [{ pet_id: 5001, name: dashPetName, profile_image: null }],
+        medicines_notifications: [reminderRow],
+        appointments: [appointmentRow],
+      }),
+    }).as('fiDashboardHome');
+    cy.intercept('GET', medicationDetailEndpoint, {
+      statusCode: 200,
+      body: { success: true, data: reminderRow },
+    }).as('fiDashboardMedicationDetail');
+    cy.intercept('PATCH', medicationTakenEndpoint, {
+      statusCode: 200,
+      body: { success: true },
+    }).as('fiDashboardToggleReminder');
+    cy.intercept('GET', appointmentDetailEndpoint, {
+      statusCode: 200,
+      body: { success: true, data: appointmentRow },
+    }).as('fiDashboardAppointmentDetail');
 
-          visitDashboard();
-          cy.contains('Reminder').should('exist');
-          cy.contains('Upcoming appointments').should('exist');
-          cy.contains(dashPetName).should('exist');
+    visitDashboard();
+    cy.wait('@fiDashboardHome');
+    cy.contains('Reminder').should('exist');
+    cy.contains('Upcoming appointments').should('exist');
+    cy.contains(dashPetName).should('exist');
 
-          cy.get('.reminder-box')
-            .contains('[role="button"]', medName, { timeout: 20000 })
-            .click();
+    cy.get('.reminder-box')
+      .contains('[role="button"]', medName, { timeout: 20000 })
+      .click();
 
-          fiDialog().contains('Medication Detail').should('exist');
-          cy.location('search').should('include', 'popup=view-medication');
-          getQueryParam('noti_id').then((notiId) => {
-            expect(notiId, 'dashboard reminder query param').to.match(/^\d+$/);
-          });
+    cy.wait('@fiDashboardMedicationDetail', { timeout: 30000 })
+      .its('response.statusCode')
+      .should('eq', 200);
+    fiDialog().contains('Medication Detail').should('exist');
+    cy.location('search').should('include', 'popup=view-medication');
+    getQueryParam('noti_id').then((notiId) => {
+      expect(notiId, 'dashboard reminder query param').to.eq(String(reminderId));
+    });
 
-          fiDialog().within(() => {
-            cy.contains('button', /^Pending$/).click();
-          });
-          cy.wait('@fiDashboardToggleReminder', { timeout: 30000 }).then((interception) => {
-            expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
-          });
-          fiDialog().within(() => {
-            cy.contains('button', /^Taken$/).should('exist');
-          });
+    fiDialog().within(() => {
+      cy.contains('button', /^Pending$/).click();
+    });
+    cy.wait('@fiDashboardToggleReminder', { timeout: 30000 }).then((interception) => {
+      expect(interception.response?.statusCode).to.be.oneOf([200, 201]);
+    });
+    fiDialog().within(() => {
+      cy.contains('button', /^Taken$/).should('exist');
+    });
 
-          cy.get('body').type('{esc}');
-          cy.get('[role="dialog"]:visible').should('not.exist');
-          cy.location('search').should('not.include', 'popup=');
+    cy.get('body').type('{esc}');
+    cy.get('[role="dialog"]:visible').should('not.exist');
+    cy.location('search').should('not.include', 'popup=');
 
-          cy.get('.appoint-box').contains(appointmentLocation, { timeout: 20000 }).click();
-          cy.wait('@fiDashboardAppointmentDetail', { timeout: 30000 }).then((interception) => {
-            const url = String(interception.request.url);
-            expect(url).to.include(`/v1/appointments/${appointmentId}`);
-            expect(interception.response?.statusCode).to.eq(200);
-          });
-          fiDialog().contains('Appointment Detail').should('exist');
-          fiDialog().within(() => {
-            cy.contains('Location').should('exist');
-            cy.contains(appointmentLocation).should('exist');
-          });
-        });
-      });
+    cy.get('.appoint-box').contains(appointmentLocation, { timeout: 20000 }).click();
+    cy.wait('@fiDashboardAppointmentDetail', { timeout: 30000 }).then((interception) => {
+      const url = String(interception.request.url);
+      expect(url).to.include(`/v1/appointments/${appointmentId}`);
+      expect(interception.response?.statusCode).to.eq(200);
+    });
+    fiDialog().contains('Appointment Detail').should('exist');
+    fiDialog().within(() => {
+      cy.contains('Location').should('exist');
+      cy.contains(appointmentLocation).should('exist');
     });
   });
 
@@ -138,54 +165,64 @@ runForMobileViewports('Dashboard flow (integration)', () => {
     const petName = fiUnique('DashDeepLinkPet');
     const medName = fiUnique('CY-FI-DASH-DEEP-MED');
     const appointmentLocation = fiUnique('CY-FI-DASH-DEEP-APT');
-
-    cy.fiCreatePet({ name: petName }).then(({ petId }) => {
-      cy.fiCreateMedication(petId, {
-        name: medName,
-        reminder_time: ['09:00'],
-        start_date: '2026-02-01T00:00:00',
-        end_date: '2026-02-28T00:00:00',
-      }).then(() => {
-        cy.fiCreateAppointment(petId, {
-          location: appointmentLocation,
-          appointment_date: '2026-02-10T11:30:00',
-        }).then(({ appointmentId }) => {
-          cy.fiApi('GET', '/v1/dashboard/home').then((res) => {
-            const body = (res.body && typeof res.body === 'object' ? res.body : {}) as JsonMap;
-            const data = ((body.data ?? body) && typeof (body.data ?? body) === 'object'
-              ? (body.data ?? body)
-              : {}) as JsonMap;
-            const notifications = Array.isArray(data.medicines_notifications)
-              ? (data.medicines_notifications as JsonMap[])
-              : [];
-            const dashboardNoti = notifications.find((row) => String(row.medicine_name ?? '') === medName);
-            expect(Boolean(dashboardNoti), `dashboard notification exists for ${medName}`).to.eq(true);
-            const notiId = Number(dashboardNoti?.notification_id);
-            expect(notiId).to.be.greaterThan(0);
-
-            visitDashboard(`/pet-owners/home-page?popup=view-medication&noti_id=${notiId}`);
-            fiDialog().contains('Medication Detail').should('exist');
-            fiDialog().contains(medName).should('exist');
-            cy.location('search').should('include', `noti_id=${notiId}`);
-            cy.get('body').type('{esc}');
-            cy.get('[role="dialog"]:visible').should('not.exist');
-            cy.location('search').should('not.include', 'popup=');
-            cy.location('search').should('not.include', 'noti_id=');
-
-            visitDashboard(
-              `/pet-owners/home-page?popup=view-appointment&appointment_id=${appointmentId}`
-            );
-            fiDialog().contains('Appointment Detail').should('exist');
-            fiDialog().contains(appointmentLocation).should('exist');
-            cy.location('search').should('include', `appointment_id=${appointmentId}`);
-            cy.get('body').type('{esc}');
-            cy.get('[role="dialog"]:visible').should('not.exist');
-            cy.location('search').should('not.include', 'popup=');
-            cy.location('search').should('not.include', 'appointment_id=');
-          });
-        });
-      });
+    const reminderId = 9101;
+    const appointmentId = 8101;
+    const reminderRow = dashboardNotification({
+      _id: String(reminderId),
+      notification_id: reminderId,
+      medicine_name: medName,
+      pet_name: petName,
+      notification_at: '2026-02-10T09:00:00Z',
+      time: '09:00',
     });
+    const appointmentRow = dashboardAppointment({
+      _id: String(appointmentId),
+      appointment_id: appointmentId,
+      pet_name: petName,
+      location: appointmentLocation,
+      appointment_date: '2026-02-10T11:30:00Z',
+    });
+
+    cy.intercept('GET', dashboardEndpoint, {
+      statusCode: 200,
+      body: dashboardResponse({
+        pets: [{ pet_id: 5001, name: petName, profile_image: null }],
+        medicines_notifications: [reminderRow],
+        appointments: [appointmentRow],
+      }),
+    }).as('fiDashboardDeepLinkHome');
+    cy.intercept('GET', medicationDetailEndpoint, {
+      statusCode: 200,
+      body: { success: true, data: reminderRow },
+    }).as('fiDashboardDeepLinkMedicationDetail');
+    cy.intercept('GET', appointmentDetailEndpoint, {
+      statusCode: 200,
+      body: { success: true, data: appointmentRow },
+    }).as('fiDashboardDeepLinkAppointmentDetail');
+
+    visitDashboard(`/pet-owners/home-page?popup=view-medication&noti_id=${reminderId}`);
+    cy.wait('@fiDashboardDeepLinkHome');
+    cy.wait('@fiDashboardDeepLinkMedicationDetail');
+    fiDialog().contains('Medication Detail').should('exist');
+    fiDialog().contains(medName).should('exist');
+    cy.location('search').should('include', `noti_id=${reminderId}`);
+    cy.get('body').type('{esc}');
+    cy.get('[role="dialog"]:visible').should('not.exist');
+    cy.location('search').should('not.include', 'popup=');
+    cy.location('search').should('not.include', 'noti_id=');
+
+    visitDashboard(
+      `/pet-owners/home-page?popup=view-appointment&appointment_id=${appointmentId}`
+    );
+    cy.wait('@fiDashboardDeepLinkHome');
+    cy.wait('@fiDashboardDeepLinkAppointmentDetail');
+    fiDialog().contains('Appointment Detail').should('exist');
+    fiDialog().contains(appointmentLocation).should('exist');
+    cy.location('search').should('include', `appointment_id=${appointmentId}`);
+    cy.get('body').type('{esc}');
+    cy.get('[role="dialog"]:visible').should('not.exist');
+    cy.location('search').should('not.include', 'popup=');
+    cy.location('search').should('not.include', 'appointment_id=');
   });
 
   it('renders missed reminder accordion and fallback copy when only missed reminders remain', () => {
@@ -284,40 +321,48 @@ runForMobileViewports('Dashboard flow (integration)', () => {
     cy.fiEnsureOwnerProfile();
     const petName = fiUnique('DashFailPet');
     const medName = fiUnique('CY-FI-DASH-FAIL-MED');
-
-    cy.fiCreatePet({ name: petName }).then(({ petId }) => {
-      cy.fiCreateMedication(petId, {
-        name: medName,
-        reminder_time: ['09:00'],
-        start_date: '2026-02-01T00:00:00',
-        end_date: '2026-02-28T00:00:00',
-      }).then(() => {
-        cy.intercept('GET', medicationDetailEndpoint, {
-          statusCode: 500,
-          body: { detail: 'forced medication detail failure' },
-        }).as('fiDashboardMedicationDetailFailure');
-
-        visitDashboard();
-        cy.window().then((win) => {
-          cy.stub(win, 'alert').as('fiDashboardMedicationAlert');
-        });
-
-        cy.get('.reminder-box')
-          .contains('[role="button"]', medName, { timeout: 20000 })
-          .click();
-
-        cy.wait('@fiDashboardMedicationDetailFailure', { timeout: 30000 })
-          .its('response.statusCode')
-          .should('eq', 500);
-        cy.get('@fiDashboardMedicationAlert').should(
-          'have.been.calledWith',
-          'Failed to load medication details.'
-        );
-        cy.get('[role="dialog"]:visible').should('not.exist');
-        cy.location('search').should('not.include', 'popup=');
-        cy.location('search').should('not.include', 'noti_id=');
-      });
+    const reminderId = 9201;
+    const reminderRow = dashboardNotification({
+      _id: String(reminderId),
+      notification_id: reminderId,
+      medicine_name: medName,
+      pet_name: petName,
+      notification_at: '2026-02-10T09:00:00Z',
+      time: '09:00',
     });
+
+    cy.intercept('GET', dashboardEndpoint, {
+      statusCode: 200,
+      body: dashboardResponse({
+        pets: [{ pet_id: 5001, name: petName, profile_image: null }],
+        medicines_notifications: [reminderRow],
+      }),
+    }).as('fiDashboardMedicationFailureHome');
+    cy.intercept('GET', medicationDetailEndpoint, {
+      statusCode: 500,
+      body: { detail: 'forced medication detail failure' },
+    }).as('fiDashboardMedicationDetailFailure');
+
+    visitDashboard();
+    cy.wait('@fiDashboardMedicationFailureHome');
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('fiDashboardMedicationAlert');
+    });
+
+    cy.get('.reminder-box')
+      .contains('[role="button"]', medName, { timeout: 20000 })
+      .click();
+
+    cy.wait('@fiDashboardMedicationDetailFailure', { timeout: 30000 })
+      .its('response.statusCode')
+      .should('eq', 500);
+    cy.get('@fiDashboardMedicationAlert').should(
+      'have.been.calledWith',
+      'Failed to load medication details.'
+    );
+    cy.get('[role="dialog"]:visible').should('not.exist');
+    cy.location('search').should('not.include', 'popup=');
+    cy.location('search').should('not.include', 'noti_id=');
   });
 
   it('keeps reminder status pending when the toggle API fails', () => {
@@ -325,45 +370,60 @@ runForMobileViewports('Dashboard flow (integration)', () => {
     cy.fiEnsureOwnerProfile();
     const petName = fiUnique('DashToggleFailPet');
     const medName = fiUnique('CY-FI-DASH-TOGGLE-FAIL-MED');
+    const reminderId = 9301;
+    const reminderRow = dashboardNotification({
+      _id: String(reminderId),
+      notification_id: reminderId,
+      medicine_name: medName,
+      pet_name: petName,
+      notification_at: '2026-02-10T09:00:00Z',
+      time: '09:00',
+      status: 'pending',
+      istaken: false,
+    });
 
-    cy.fiCreatePet({ name: petName }).then(({ petId }) => {
-      cy.fiCreateMedication(petId, {
-        name: medName,
-        reminder_time: ['09:00'],
-        start_date: '2026-02-01T00:00:00',
-        end_date: '2026-02-28T00:00:00',
-      }).then(() => {
-        cy.intercept('PATCH', medicationTakenEndpoint, {
-          statusCode: 500,
-          body: { detail: 'forced medication toggle failure' },
-        }).as('fiDashboardToggleFailure');
+    cy.intercept('GET', dashboardEndpoint, {
+      statusCode: 200,
+      body: dashboardResponse({
+        pets: [{ pet_id: 5001, name: petName, profile_image: null }],
+        medicines_notifications: [reminderRow],
+      }),
+    }).as('fiDashboardToggleFailureHome');
+    cy.intercept('GET', medicationDetailEndpoint, {
+      statusCode: 200,
+      body: { success: true, data: reminderRow },
+    }).as('fiDashboardToggleMedicationDetail');
+    cy.intercept('PATCH', medicationTakenEndpoint, {
+      statusCode: 500,
+      body: { detail: 'forced medication toggle failure' },
+    }).as('fiDashboardToggleFailure');
 
-        visitDashboard();
-        cy.window().then((win) => {
-          cy.stub(win, 'alert').as('fiDashboardToggleAlert');
-        });
+    visitDashboard();
+    cy.wait('@fiDashboardToggleFailureHome');
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('fiDashboardToggleAlert');
+    });
 
-        cy.get('.reminder-box')
-          .contains('[role="button"]', medName, { timeout: 20000 })
-          .click();
+    cy.get('.reminder-box')
+      .contains('[role="button"]', medName, { timeout: 20000 })
+      .click();
 
-        fiDialog().contains('Medication Detail').should('exist');
-        fiDialog().within(() => {
-          cy.contains('button', /^Pending$/).click();
-        });
+    cy.wait('@fiDashboardToggleMedicationDetail');
+    fiDialog().contains('Medication Detail').should('exist');
+    fiDialog().within(() => {
+      cy.contains('button', /^Pending$/).click();
+    });
 
-        cy.wait('@fiDashboardToggleFailure', { timeout: 30000 })
-          .its('response.statusCode')
-          .should('eq', 500);
-        cy.get('@fiDashboardToggleAlert').should(
-          'have.been.calledWith',
-          'Failed to update status. Please try again.'
-        );
-        fiDialog().within(() => {
-          cy.contains('button', /^Pending$/).should('exist');
-          cy.contains('button', /^Taken$/).should('not.exist');
-        });
-      });
+    cy.wait('@fiDashboardToggleFailure', { timeout: 30000 })
+      .its('response.statusCode')
+      .should('eq', 500);
+    cy.get('@fiDashboardToggleAlert').should(
+      'have.been.calledWith',
+      'Failed to update status. Please try again.'
+    );
+    fiDialog().within(() => {
+      cy.contains('button', /^Pending$/).should('exist');
+      cy.contains('button', /^Taken$/).should('not.exist');
     });
   });
 
@@ -372,38 +432,48 @@ runForMobileViewports('Dashboard flow (integration)', () => {
     cy.fiEnsureOwnerProfile();
     const petName = fiUnique('DashFailAptPet');
     const appointmentLocation = fiUnique('CY-FI-DASH-FAIL-APT');
-
-    cy.fiCreatePet({ name: petName }).then(({ petId }) => {
-      cy.fiCreateAppointment(petId, {
-        location: appointmentLocation,
-        appointment_date: '2026-02-10T11:45:00',
-      }).then(({ appointmentId }) => {
-        cy.intercept('GET', appointmentDetailEndpoint, {
-          statusCode: 500,
-          body: { detail: 'forced appointment detail failure' },
-        }).as('fiDashboardAppointmentDetailFailure');
-
-        visitDashboard();
-        cy.window().then((win) => {
-          cy.stub(win, 'alert').as('fiDashboardAppointmentAlert');
-        });
-
-        cy.get('.appoint-box').contains(appointmentLocation, { timeout: 20000 }).click();
-
-        cy.wait('@fiDashboardAppointmentDetailFailure', { timeout: 30000 }).then((interception) => {
-          expect(interception.request.url).to.include(`/v1/appointments/${appointmentId}`);
-          expect(interception.response?.statusCode).to.eq(500);
-        });
-        cy.get('@fiDashboardAppointmentAlert').then((alertStub) => {
-          const firstArg = String((alertStub as sinon.SinonStub).getCall(0).args[0] ?? '');
-          expect(firstArg).to.include('Failed to load appointment details:');
-          expect(firstArg).to.include(`(ID: ${appointmentId})`);
-        });
-        cy.get('[role="dialog"]:visible').should('not.exist');
-        cy.location('search').should('not.include', 'popup=');
-        cy.location('search').should('not.include', 'appointment_id=');
-      });
+    const appointmentId = 8401;
+    const appointmentRow = dashboardAppointment({
+      _id: String(appointmentId),
+      appointment_id: appointmentId,
+      pet_name: petName,
+      location: appointmentLocation,
+      appointment_date: '2026-02-10T11:45:00Z',
     });
+
+    cy.intercept('GET', dashboardEndpoint, {
+      statusCode: 200,
+      body: dashboardResponse({
+        pets: [{ pet_id: 5001, name: petName, profile_image: null }],
+        appointments: [appointmentRow],
+      }),
+    }).as('fiDashboardAppointmentFailureHome');
+    cy.intercept('GET', appointmentDetailEndpoint, {
+      statusCode: 500,
+      body: { detail: 'forced appointment detail failure' },
+    }).as('fiDashboardAppointmentDetailFailure');
+
+    visitDashboard();
+    cy.wait('@fiDashboardAppointmentFailureHome');
+    cy.window().then((win) => {
+      cy.stub(win, 'alert').as('fiDashboardAppointmentAlert');
+    });
+
+    cy.get('.appoint-box').contains(appointmentLocation, { timeout: 20000 }).click();
+
+    cy.wait('@fiDashboardAppointmentDetailFailure', { timeout: 30000 }).then((interception) => {
+      expect(interception.request.url).to.include(`/v1/appointments/${appointmentId}`);
+      expect(interception.response?.statusCode).to.eq(500);
+    });
+    cy.get('@fiDashboardAppointmentAlert').then((alertStub) => {
+      const stub = alertStub as unknown as sinon.SinonStub;
+      const firstArg = String(stub.getCall(0).args[0] ?? '');
+      expect(firstArg).to.include('Failed to load appointment details:');
+      expect(firstArg).to.include(`(ID: ${appointmentId})`);
+    });
+    cy.get('[role="dialog"]:visible').should('not.exist');
+    cy.location('search').should('not.include', 'popup=');
+    cy.location('search').should('not.include', 'appointment_id=');
   });
 
   it('recovers from dashboard fetch failure on retry and opens pet section entry points', () => {

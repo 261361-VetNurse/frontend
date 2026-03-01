@@ -22,7 +22,8 @@ runForMobileViewports('Appointment flow (integration)', () => {
     cy.fiVisitAuthed('/pet-owners/calendar-page?tab=appointment');
     cy.contains('Appointment', { timeout: 20000 }).should('exist');
   };
-
+  
+//เทสต์ของหน้า calendar appointment
   it('handles unauthenticated access on calendar appointment page', () => {
     cy.visit('/pet-owners/calendar-page?tab=appointment');
     cy.location('pathname', { timeout: 20000 }).should((pathname) => {
