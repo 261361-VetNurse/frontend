@@ -4,7 +4,7 @@
 # ============================================================
 
 # --- Stage 1: Build the Vite application ----------------------
-FROM oven/bun:alpine AS builder
+FROM oven/bun:debian AS builder
 WORKDIR /app
 
 # Copy dependency definition
@@ -23,7 +23,7 @@ ENV NODE_ENV=production
 RUN bun run build
 
 # --- Stage 2: Minimal production runtime ----------------------
-FROM oven/bun:alpine AS runner
+FROM oven/bun:debian AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
