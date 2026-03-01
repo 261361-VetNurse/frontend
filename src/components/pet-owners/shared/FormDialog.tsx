@@ -1,4 +1,4 @@
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from '@/hooks/use-next-routing';
 import React from "react";
 import { Modal } from "./Modal";
 import Button from "./Button";

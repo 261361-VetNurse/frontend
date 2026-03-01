@@ -219,7 +219,7 @@ type EditMedicationPopupProps = {
 import { editMedicine } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 export default function EditMedicationPopup({
   open,
   onClose,

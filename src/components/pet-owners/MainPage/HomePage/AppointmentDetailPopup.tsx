@@ -3,7 +3,7 @@ import { Appointment } from '@/types/domain/appointment';
 import { PetSection } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 
 const LocationOnIcon = ({ sx }: { sx?: object }) => (
     <Image src="/location.svg" alt="location" width={24} height={24} style={{ ...(sx as React.CSSProperties) }} />

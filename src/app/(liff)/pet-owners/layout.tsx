@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname } from '@/hooks/use-next-routing';
 import Container from "@/components/pet-owners/layout/Container";
 import NavBar from "@/components/pet-owners/layout/NavBar";
 

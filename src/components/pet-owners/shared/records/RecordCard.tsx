@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
-import { usePathname } from "next/navigation";
+import Image from '@/components/shared/Image';
+import { usePathname } from '@/hooks/use-next-routing';
 import { Card } from "@/components/ui/card";
 
 type Props = {

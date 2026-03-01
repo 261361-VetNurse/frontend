@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from '@/hooks/use-next-routing';
 
 import dayjs from "dayjs";
 import { usePets } from "@/hooks/usePets";

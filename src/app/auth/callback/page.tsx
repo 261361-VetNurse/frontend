@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from '@/hooks/use-next-routing';
 import { exchangeLineToken, authStorage } from '@/services/api/client';
 import { Suspense } from 'react';
 

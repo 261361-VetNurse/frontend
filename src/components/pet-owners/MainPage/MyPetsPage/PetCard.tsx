@@ -1,9 +1,9 @@
 "use client";
 
 import Profile from "@/components/pet-owners/shared/Profile";
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 import { Pet } from "@/types/domain/pet";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 
 function formatAge(birthDateISO: string) {
   const birth = new Date(birthDateISO);

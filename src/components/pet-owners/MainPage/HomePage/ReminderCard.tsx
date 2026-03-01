@@ -10,7 +10,7 @@ const CalendarMonthIcon = () => <Image width={24} height={24} src="/calendar.svg
 import { DashboardNotification } from '@/types/domain/dashboard';
 import { getFrequencyLabel } from '@/components/pet-owners/MainPage/HomePage/MedicationDetailPopup';
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 export type OccurrenceStatus = "pending" | "taken" | "missed";
 
 const getStatusIcon = (status: string) => {

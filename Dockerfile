@@ -1,59 +1,50 @@
 # ============================================================
 # VetNurse Frontend — Production Dockerfile
-# Multi-stage build: deps → builder → runner
+# Multi-stage build for Bun + Vite
 # ============================================================
 
-# --- Stage 1: Install production dependencies only ----------
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+# --- Stage 1: Build the Vite application ----------------------
+FROM oven/bun:alpine AS builder
 WORKDIR /app
 
-COPY package.json yarn.lock ./
-# Install only production dependencies (excludes devDependencies)
-RUN yarn install --frozen-lockfile --production --ignore-engines
+# Copy dependency definition
+COPY package.json bun.lock ./
 
-# --- Stage 2: Build the application -------------------------
-FROM node:20-alpine AS builder
-WORKDIR /app
+# Install all dependencies (needed to build frontend)
+RUN bun install --frozen-lockfile
 
-# Copy ALL deps (including dev) just for the build step
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --ignore-engines
-
-# Copy source
+# Copy source code
 COPY . .
 
-# Disable Next.js telemetry in CI/build
-ENV NEXT_TELEMETRY_DISABLED=1
+# Set environment
 ENV NODE_ENV=production
 
-RUN yarn build
+# Build the Vite static assets to dist/
+RUN bun run build
 
-# --- Stage 3: Minimal production runtime --------------------
-FROM node:20-alpine AS runner
+# --- Stage 2: Minimal production runtime ----------------------
+FROM oven/bun:alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-# Cap heap to 512MB — adjust up if your server has more RAM dedicated to this process
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV PORT=3000
 
-# Run as non-root for security
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser  --system --uid 1001 nextjs
+# Run as non-root
+USER bun
 
-# Copy standalone output — only files needed to run the server
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/public ./public
+# Copy package info and lockfile
+COPY package.json bun.lock ./
 
-# Set correct ownership
-RUN chown -R nextjs:nodejs /app
+# Install only production dependencies (Hono, AWS SDK, etc)
+RUN bun install --production --frozen-lockfile
 
-USER nextjs
+# Copy built static files
+COPY --from=builder --chown=bun:bun /app/dist ./dist
+
+# Copy the server entrypoint
+COPY --from=builder --chown=bun:bun /app/server.ts ./
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
-CMD ["node", "server.js"]
+# Start the Hono server using Bun
+CMD ["bun", "run", "server.ts"]

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
+import { useRouter } from '@/hooks/use-next-routing';
+import Image from '@/components/shared/Image';
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";

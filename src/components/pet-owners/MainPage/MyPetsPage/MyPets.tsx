@@ -4,7 +4,7 @@ import OwnerHeaderCard from "@/components/pet-owners/MainPage/MyPetsPage/OwnerHe
 import StatCard from "@/components/pet-owners/MainPage/MyPetsPage/StatCard";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 
 import { getUserProfile, getPets, authStorage } from "@/services/api/client";
 import { useState, useEffect } from "react";

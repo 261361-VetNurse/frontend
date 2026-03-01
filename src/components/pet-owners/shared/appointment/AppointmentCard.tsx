@@ -3,7 +3,7 @@
 import { Card } from "@/components/ui/card";
 import { LocationOn, CalendarToday } from "@mui/icons-material";
 import type { Appointment } from "@/types/domain/appointment";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 
 export type AppointmentCardProps = {
   appointment: Appointment;

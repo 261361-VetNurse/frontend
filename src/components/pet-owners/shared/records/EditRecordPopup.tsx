@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import { uploadImage, authStorage } from "@/services/api/client";
 import { SymptomRecord } from "@/types/domain/symptom";
 import { FormDialog } from "../FormDialog";

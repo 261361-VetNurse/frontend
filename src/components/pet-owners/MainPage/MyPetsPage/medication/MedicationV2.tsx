@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter } from '@/hooks/use-next-routing';
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 import { Medicine } from '@/types/domain/medication';
 
 import { authStorage, getMedicinesByPet, deleteMedicine } from '@/services/api/client';

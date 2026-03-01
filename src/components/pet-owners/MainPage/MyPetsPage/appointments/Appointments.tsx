@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from '@/hooks/use-next-routing';
 import TopBar from "@/components/pet-owners/layout/TopBar";
 
 import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector";
@@ -18,7 +18,7 @@ import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
 import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
 import AddAppointmentPopup from "@/components/pet-owners/shared/appointment/AddAppointmentPopup";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 const AddRoundedIcon = () => <Image src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 
 import { QuickDialButton } from "@/components/shared";

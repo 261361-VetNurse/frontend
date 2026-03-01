@@ -18,7 +18,7 @@ import { scanMedication } from '@/services/api/client';
 
 
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 const Row = styled.div`
   display: flex;
   gap: 12px;

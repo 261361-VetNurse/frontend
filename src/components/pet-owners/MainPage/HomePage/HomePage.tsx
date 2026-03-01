@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { HomePageStyled } from "@/styles/components/homepage.styled";
 import AppointmentCard from "./AppointmentCard";
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
 const HelpOutlineIcon = ({ sx, onClick }: { sx?: React.CSSProperties & { ml?: string; fontSize?: number; color?: string; cursor?: string }; onClick?: () => void }) => (
@@ -22,7 +22,7 @@ import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotifi
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { getMedicationStatus } from "@/utils/medicationStatus";
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);

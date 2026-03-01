@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import type { PetLite } from "@/types/domain/pet";
 
 export type AddMedicationPayloadV2 = {

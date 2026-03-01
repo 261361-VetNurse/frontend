@@ -1,13 +1,13 @@
 # VetNurse Frontend
 
-This is the frontend application for the VetNurse project, built with [Next.js](https://nextjs.org/).
+This is the frontend application for the VetNurse project, built with [Vite](https://vitejs.dev/) and [Bun](https://bun.sh/).
 
 ---
 
 ## Prerequisites
 
-- [Node.js](https://nodejs.org/) v20 or higher
-- [Yarn](https://yarnpkg.com/) (`npm install -g yarn`) OR [npm](https://www.npmjs.com/)
+- [Bun](https://bun.sh/) (v1.x or higher)
+- [Node.js](https://nodejs.org/) (optional, for some dev scripts)
 - [Docker](https://www.docker.com/) (for containerized deployment)
 
 ---
@@ -16,14 +16,10 @@ This is the frontend application for the VetNurse project, built with [Next.js](
 
 ### 1. Install Dependencies
 
-You can use either Yarn (recommended as per our `package.json` packageManager) or NPM:
+You should use Bun for installation:
 
 ```bash
-# Using Yarn
-yarn install
-
-# Or using NPM
-npm install
+bun install
 ```
 
 ### 2. Configure Environment Variables
@@ -43,11 +39,7 @@ Ensure the backend is running on `http://localhost:8000` before starting the fro
 ### 4. Run the Dev Server
 
 ```bash
-# Using Yarn
-yarn dev
-
-# Or using NPM
-npm run dev
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). The page hot-reloads on save.
@@ -116,29 +108,21 @@ docker run -d \
 
 ---
 
-### Option C — Node.js Direct (No Docker)
+### Option C — Bun Direct (No Docker)
 
 **1. Build**
 
 ```bash
-# Using Yarn
-yarn build
-
-# Or using NPM
-npm run build
+bun run build
 ```
 
-**2. Start**
+**2. Start the Production Server**
 
 ```bash
-# Using Yarn
-yarn start
-
-# Or using NPM
-npm start
+bun run start
 ```
 
-The production server runs on port 3000 by default.
+The production server runs on port 3000 by default (customizable via `PORT`).
 
 ---
 
@@ -146,17 +130,17 @@ The production server runs on port 3000 by default.
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_API_URL` | ✅ | Backend API base URL (e.g. `https://api.yourserver.com`) |
-| `NEXT_PUBLIC_LINE_CLIENT_ID` | ✅ | LINE Login client ID — same value as `LOGIN_CLIENT_ID` on the backend |
-| `NEXT_PUBLIC_WEB_URL` | ✅ | Base URL of this web app, no trailing slash (e.g. `https://bdb682332f94.ngrok-free.app`) |
-| `NEXT_PUBLIC_LINE_REDIRECT_PATH` | ✅ | Path portion of your LINE `REDIRECT_URI` (e.g. `/auth/callback`) |
-| `NEXT_PUBLIC_R2_PUBLIC_URL` | ✅ | Cloudflare R2 public CDN URL (browser-safe) |
+| `VITE_API_URL` | ✅ | Backend API base URL (e.g. `https://api.yourserver.com`) |
+| `VITE_LINE_CLIENT_ID` | ✅ | LINE Login client ID — same value as `LOGIN_CLIENT_ID` on the backend |
+| `VITE_WEB_URL` | ✅ | Base URL of this web app, no trailing slash (e.g. `https://bdb682332f94.ngrok-free.app`) |
+| `VITE_LINE_REDIRECT_PATH` | ✅ | Path portion of your LINE `REDIRECT_URI` (e.g. `/auth/callback`) |
+| `VITE_R2_PUBLIC_URL` | ✅ | Cloudflare R2 public CDN URL (browser-safe) |
 | `R2_ACCOUNT_ID` | ✅ | Cloudflare account ID — **server-only** |
 | `R2_ACCESS_KEY_ID` | ✅ | R2 API access key — **server-only** |
 | `R2_SECRET_ACCESS_KEY` | ✅ | R2 API secret key — **server-only** |
 | `R2_BUCKET_NAME` | ✅ | R2 bucket name — **server-only** |
 
-> **How LINE redirect URI works:** The full redirect URL is assembled as `NEXT_PUBLIC_WEB_URL` + `NEXT_PUBLIC_LINE_REDIRECT_PATH`. For example if your ngrok URL is `https://bdb682332f94.ngrok-free.app` and your callback path is `/auth/callback`, set both vars accordingly.
+> **How LINE redirect URI works:** The full redirect URL is assembled as `VITE_WEB_URL` + `VITE_LINE_REDIRECT_PATH`. For example if your ngrok URL is `https://bdb682332f94.ngrok-free.app` and your callback path is `/auth/callback`, set both vars accordingly.
 
 > **Backend-only vars:** `CHANNEL_ID`, `KEY_ID`, `LOGIN_CLIENT_SECRET` are consumed by the **backend** during the token exchange step — the frontend proxies this call and never reads those values itself. Do **not** add them to this project's `.env` file.
 
@@ -164,9 +148,9 @@ The production server runs on port 3000 by default.
 
 ## Additional Commands
 
-| Description | Yarn Command | NPM Command |
-|---|---|---|
-| Start development server with hot-reload | `yarn dev` | `npm run dev` |
-| Build optimised production bundle | `yarn build` | `npm run build` |
-| Start production server (requires build first) | `yarn start` | `npm start` |
-| Run ESLint | `yarn lint` | `npm run lint` |
+| Description | Bun Command |
+|---|---|
+| Start development server with hot-reload | `bun run dev` |
+| Build optimised production bundle | `bun run build` |
+| Start production server (requires build first) | `bun run start` |
+| Run ESLint | `bun run lint` |

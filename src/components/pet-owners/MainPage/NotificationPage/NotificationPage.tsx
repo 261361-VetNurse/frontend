@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 
 import { useEffect, useState, useMemo } from "react";
 import { authStorage, getAllNotifications, markNotificationAsRead } from "@/services/api/client";

@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from '@/hooks/use-next-routing';
 
 import { PetLite } from "@/types/domain/pet";
 
@@ -28,7 +28,7 @@ import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";
 
 // API
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 import {
   getSymptomRecordsCalendar,
   createSymptomRecord,

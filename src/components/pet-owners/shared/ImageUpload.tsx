@@ -3,7 +3,7 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import { theme } from "@/styles/tokens/theme";
 
 interface ImageUploadProps {

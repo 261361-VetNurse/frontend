@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/hooks/use-next-routing';
 import { FormField } from '@/components/pet-owners/shared/form/FormField';
 import { TextInput } from '@/components/pet-owners/shared/form/TextInput';
 import { SelectInput } from '@/components/pet-owners/shared/form/SelectInput';

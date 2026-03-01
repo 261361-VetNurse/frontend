@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { FormField } from "../../../shared/form/FormField";
 import { TextInput } from "../../../shared/form/TextInput";
 import { PrimaryButton } from "../../../shared/form/PrimaryButton";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 const Pets = ({ style }: { style?: React.CSSProperties }) => (
   <Image src="/pet-paw.svg" alt="pet" style={{ width: 40, height: 40, ...style }} />
 );
