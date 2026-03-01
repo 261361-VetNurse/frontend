@@ -8,7 +8,7 @@ FROM oven/bun:debian AS builder
 WORKDIR /petlite
 
 # Copy dependency definition
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # Install all dependencies (needed to build frontend)
 RUN bun install --frozen-lockfile
@@ -37,7 +37,7 @@ RUN mkdir -p /petlite && chown -R bun:bun /petlite
 USER bun
 
 # Copy package info and lockfile
-COPY --chown=bun:bun package.json bun.lockb ./
+COPY --chown=bun:bun package.json bun.lock ./
 
 # Install only production dependencies (Hono, AWS SDK, etc)
 RUN bun install --production --frozen-lockfile
