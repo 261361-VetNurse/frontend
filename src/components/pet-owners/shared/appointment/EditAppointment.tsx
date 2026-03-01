@@ -46,8 +46,7 @@ export default function EditAppointment({
       appointment?.appointment_id &&
       date &&
       time &&
-      location.trim() &&
-      note.trim()
+      location.trim()
     );
   }, [appointment?.appointment_id, date, time, location, note]);
 
