@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import IconButton from "@mui/material/IconButton";
 // SVG icon wrapper replacing MUI icon
 const AddIcon = ({ sx }: { sx?: { fontSize?: number } }) => (
-    <img src="/add-new.svg" alt="add" style={{ width: sx?.fontSize || 28, height: sx?.fontSize || 28, filter: 'brightness(0) invert(1)' }} />
+    <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: sx?.fontSize || 28, height: sx?.fontSize || 28, filter: 'brightness(0) invert(1)' }} />
 );
 import { theme } from "@/styles/tokens/theme";
 
+import Image from 'next/image';
 export default function NewPetButton() {
     const router = useRouter();
 

@@ -21,13 +21,14 @@ import type { SymptomRecord } from "@/types/domain/symptom";
 // UI
 // SVG icon wrapper replacing MUI icon
 const Add = ({ style }: { style?: React.CSSProperties }) => (
-  <img src="/add-new.svg" alt="add" style={{ width: 32, height: 32, ...style }} />
+  <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: 32, height: 32, ...style }} />
 );
 import Button from "@/components/pet-owners/shared/Button";
 import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";
 
 // API
+import Image from 'next/image';
 import {
   getSymptomRecordsCalendar,
   createSymptomRecord,

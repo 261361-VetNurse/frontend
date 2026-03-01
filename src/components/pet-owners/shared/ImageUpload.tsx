@@ -3,7 +3,7 @@
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
+import Image from "next/image";
 import { theme } from "@/styles/tokens/theme";
 
 interface ImageUploadProps {
@@ -228,7 +228,7 @@ export default function ImageUpload({
                             }}
                             size="small"
                         >
-                            <DeleteIcon />
+                            <Image src="/delete.svg" alt="delete" width={16} height={16} />
                         </IconButton>
                     </Box>
                 )}

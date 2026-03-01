@@ -2,9 +2,9 @@
 
 import React from "react";
 import Button from "./Button";
-// SVG icon wrapper replacing MUI icon
+import Image from "next/image";
 const Close = ({ className }: { className?: string }) => (
-    <img src="/cancel.svg" alt="close" className={className} style={{ width: 16, height: 16 }} />
+    <Image src="/cancel.svg" alt="close" className={className} style={{ width: 16, height: 16 }} />
 );
 
 type ModalProps = {

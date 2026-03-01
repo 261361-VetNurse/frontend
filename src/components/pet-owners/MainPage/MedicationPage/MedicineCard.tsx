@@ -8,13 +8,13 @@ import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 
 // SVG icon wrappers replacing MUI icons
 const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
-  <img src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+  <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
 );
 const EditIcon = ({ fontSize }: { fontSize?: string }) => (
-  <img src="/edit.svg" alt="edit" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20 }} />
+  <Image width={24} height={24} src="/edit.svg" alt="edit" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20 }} />
 );
 const DeleteIcon = ({ fontSize, sx }: { fontSize?: string; sx?: React.CSSProperties }) => (
-  <img src="/delete.svg" alt="delete" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20, ...sx }} />
+  <Image width={24} height={24} src="/delete.svg" alt="delete" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20, ...sx }} />
 );
 import { theme } from '@/styles/tokens/theme';
 import Menu from '@mui/material/Menu';
@@ -24,6 +24,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { NotificationItem } from '@/types/domain/medication';
 import { Profile } from '@/components/shared';
 
+import Image from 'next/image';
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 export interface ValidatedTimeSlot {

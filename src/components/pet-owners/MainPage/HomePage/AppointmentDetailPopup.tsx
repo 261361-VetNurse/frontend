@@ -3,15 +3,16 @@ import { Appointment } from '@/types/domain/appointment';
 import { PetSection } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-// SVG icon wrappers replacing MUI icons
+import Image from 'next/image';
+
 const LocationOnIcon = ({ sx }: { sx?: object }) => (
-    <img src="/location.svg" alt="location" style={{ width: 24, height: 24, ...(sx as React.CSSProperties) }} />
+    <Image src="/location.svg" alt="location" width={24} height={24} style={{ ...(sx as React.CSSProperties) }} />
 );
 const AccessTimeIcon = ({ sx }: { sx?: object }) => (
-    <img src="/clock.svg" alt="time" style={{ width: 24, height: 24, ...(sx as React.CSSProperties) }} />
+    <Image src="/clock.svg" alt="time" width={24} height={24} style={{ ...(sx as React.CSSProperties) }} />
 );
 const CalendarTodayIcon = ({ sx }: { sx?: object }) => (
-    <img src="/calendar.svg" alt="calendar" style={{ width: 24, height: 24, ...(sx as React.CSSProperties) }} />
+    <Image src="/calendar.svg" alt="calendar" style={{ width: 24, height: 24, ...(sx as React.CSSProperties) }} />
 );
 import styled from 'styled-components';
 import { theme } from '@/styles/tokens/theme';

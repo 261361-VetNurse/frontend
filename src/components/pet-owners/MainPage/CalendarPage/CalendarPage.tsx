@@ -51,16 +51,16 @@ import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
 import { exportICS } from "@/utils/exportICS";
 
-// SVG icon wrappers replacing MUI icons
-const AddIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
+const AddIcon = () => <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 const EventNoteIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) => (
-    <img src="/note.svg" alt="note" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
+    <Image width={24} height={24} src="/note.svg" alt="note" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
 );
 const AssignmentIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) => (
-    <img src="/record.svg" alt="record" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
+    <Image width={24} height={24} src="/record.svg" alt="record" style={{ width: sx?.fontSize || 20, height: sx?.fontSize || 20, filter: sx?.color === '#fff' ? 'brightness(0) invert(1)' : undefined }} />
 );
 import { theme } from "@/styles/tokens/theme";
 
+import Image from 'next/image';
 /* ─────────────── helpers ─────────────── */
 function pad2(n: number) {
     return String(n).padStart(2, "0");

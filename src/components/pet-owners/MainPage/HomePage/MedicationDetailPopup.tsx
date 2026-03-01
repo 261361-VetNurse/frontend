@@ -7,12 +7,13 @@ import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import React from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
 
+import Image from 'next/image';
 // SVG icon wrappers replacing MUI icons
 const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
-  <img src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+  <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
 );
 const MedicationIcon = ({ style }: { style?: React.CSSProperties }) => (
-  <img src="/medication.svg" alt="medication" style={{ width: 24, height: 24, ...style }} />
+  <Image width={24} height={24} src="/medication.svg" alt="medication" style={{ width: 24, height: 24, ...style }} />
 );
 
 interface MedicationDetailPopupProps {

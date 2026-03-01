@@ -1,7 +1,7 @@
 "use client";
 
 import { BackButton } from '@/styles/components/shared-component.styled';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import Image from 'next/image';
 
 export default function PetInfoTopBar({
   title,
@@ -16,7 +16,7 @@ export default function PetInfoTopBar({
     <div className="relative pt-4 w-full flex items-center">
       {/* Back button */}
       <BackButton onClick={onBack} aria-label="back">
-        <ArrowBackIosNewIcon />
+        <Image src="/back-arrow.svg" alt="back" width={32} height={32} />
       </BackButton>
 
       {/* Center title */}

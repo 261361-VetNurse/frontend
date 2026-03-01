@@ -1,8 +1,8 @@
 'use client';
 
-// SVG icon wrappers replacing MUI icons
-const ArrowBackIosNewIcon = () => <img src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
-const InfoOutlinedIcon = () => <img src="/info.svg" alt="info" style={{ width: 20, height: 20 }} />;
+import Image from "next/image";
+const ArrowBackIosNewIcon = () => <Image src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
+const InfoOutlinedIcon = () => <Image src="/info.svg" alt="info" style={{ width: 20, height: 20 }} />;
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {

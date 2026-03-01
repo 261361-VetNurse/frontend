@@ -6,9 +6,9 @@ import styled from "styled-components";
 import { FormField } from "../../../shared/form/FormField";
 import { TextInput } from "../../../shared/form/TextInput";
 import { PrimaryButton } from "../../../shared/form/PrimaryButton";
-// SVG icon wrapper replacing MUI icon
+import Image from "next/image";
 const Pets = ({ style }: { style?: React.CSSProperties }) => (
-  <img src="/pet-paw.svg" alt="pet" style={{ width: 40, height: 40, ...style }} />
+  <Image src="/pet-paw.svg" alt="pet" style={{ width: 40, height: 40, ...style }} />
 );
 import { theme } from "@/styles/tokens/theme";
 

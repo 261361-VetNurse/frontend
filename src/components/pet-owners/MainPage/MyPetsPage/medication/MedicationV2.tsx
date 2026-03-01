@@ -7,16 +7,13 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
-
+import Image from 'next/image';
 import { Medicine } from '@/types/domain/medication';
 
 import { authStorage, getMedicinesByPet, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
-// SVG icon wrapper replacing MUI icon
-const AddRoundedIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 import { CardList } from "@/styles/components/medication.styled";
 import { QuickDialButton } from '@/components/shared';
-
 // Types
 
 
@@ -210,7 +207,7 @@ export default function MedicationPageV2() {
       <QuickDialButton
         iconColor="#fff"
         position="bottom-right"
-        icon={<AddRoundedIcon />}
+        icon={<Image src="/add-new.svg" alt="add" width={24} height={24} style={{ filter: 'brightness(0) invert(1)' }} />}
         color="#09BFF8"
         onClickAction={handleAdd}
       />

@@ -6,12 +6,11 @@ import AppointmentCard from "./AppointmentCard";
 import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
-// SVG icon wrappers replacing MUI icons
 const HelpOutlineIcon = ({ sx, onClick }: { sx?: React.CSSProperties & { ml?: string; fontSize?: number; color?: string; cursor?: string }; onClick?: () => void }) => (
-  <img src="/help.svg" alt="help" onClick={onClick} style={{ width: sx?.fontSize || 22, height: sx?.fontSize || 22, cursor: sx?.cursor, marginLeft: sx?.ml }} />
+  <Image width={24} height={24} src="/help.svg" alt="help" onClick={onClick} style={{ width: sx?.fontSize || 22, height: sx?.fontSize || 22, cursor: sx?.cursor, marginLeft: sx?.ml }} />
 );
 const ArrowForwardIosIcon = ({ sx }: { sx?: React.CSSProperties & { ml?: string; fontSize?: number; color?: string; cursor?: string; transform?: string; transition?: string } }) => (
-  <img src="/next-icon.svg" alt="next" style={{ width: sx?.fontSize || 16, height: sx?.fontSize || 16, cursor: sx?.cursor, transform: sx?.transform, transition: sx?.transition }} />
+  <Image width={24} height={24} src="/next-icon.svg" alt="next" style={{ width: sx?.fontSize || 16, height: sx?.fontSize || 16, cursor: sx?.cursor, transform: sx?.transform, transition: sx?.transition }} />
 );
 import { theme } from "@/styles/tokens/theme";
 import ReminderCard from "./ReminderCard";
@@ -23,6 +22,7 @@ import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotifi
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { getMedicationStatus } from "@/utils/medicationStatus";
 
+import Image from 'next/image';
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);

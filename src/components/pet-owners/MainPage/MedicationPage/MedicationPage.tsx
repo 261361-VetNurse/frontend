@@ -12,7 +12,7 @@ import { Tabs } from '@/components/pet-owners/shared/Tabs';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
 // SVG icon wrapper replacing MUI icon
-const AddRoundedIcon = () => <img src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
+const AddRoundedIcon = () => <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 import { GroupedMedicineNotification } from '@/types/domain/medication';
 import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
@@ -25,6 +25,7 @@ import { getMedicationStatus } from "@/utils/medicationStatus";
 import { usePets } from '@/hooks';
 
 // API
+import Image from 'next/image';
 import {
   authStorage,
   getMedications,

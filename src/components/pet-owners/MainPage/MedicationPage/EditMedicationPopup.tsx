@@ -9,7 +9,7 @@ import { Medicine } from '@/types/domain/medication';
 import { Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
 // SVG icon wrapper replacing MUI icon
 const Add = ({ fontSize }: { fontSize?: string }) => (
-  <img src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+  <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
 );
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
@@ -219,6 +219,7 @@ type EditMedicationPopupProps = {
 import { editMedicine } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 
+import Image from 'next/image';
 export default function EditMedicationPopup({
   open,
   onClose,
