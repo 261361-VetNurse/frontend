@@ -103,7 +103,7 @@ export default function RecordPage() {
           selectedPetId
         );
 
-      let allRecords: any[] = [];
+      let allRecords: SymptomRecord[] = [];
 
       if (
         response &&
@@ -113,7 +113,7 @@ export default function RecordPage() {
         allRecords = Object.entries(response).flatMap(
           ([dateKey, records]) =>
             Array.isArray(records)
-              ? records.map((r: any) => ({
+              ? records.map((r: SymptomRecord) => ({
                 ...r,
                 __dateFromKey: dateKey,
               }))
@@ -126,13 +126,12 @@ export default function RecordPage() {
       }
 
       const mappedItems: SymptomRecord[] =
-        allRecords.map((r: any) => {
+        allRecords.map((r: SymptomRecord) => {
           const hasISO =
             typeof r.time_added === "string" &&
             r.time_added.includes("T");
 
           const dateKey =
-            r.__dateFromKey ||
             r.date_added ||
             (hasISO
               ? r.time_added.split("T")[0]
@@ -280,7 +279,7 @@ export default function RecordPage() {
       <PetFilterSelector
         mode="filter"
         allowAllPets={false}
-        pets={petOptions as any}
+        pets={petOptions}
         value={Number(selectedPetId)}
         onChange={(v) =>
           setSelectedPetId(String(v))

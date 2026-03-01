@@ -48,7 +48,7 @@ export default function EditAppointment({
       time &&
       location.trim()
     );
-  }, [appointment?.appointment_id, date, time, location, note]);
+  }, [appointment?.appointment_id, date, time, location]);
 
   // guard
   if (!open || !appointment) return null;

@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Card } from "@/components/ui/card";
-import { ChevronRight } from "@mui/icons-material";
 
 type Props = {
   petName: string;
@@ -21,6 +21,9 @@ export default function RecordCard({
   imageUrls = [],
   onClick,
 }: Props) {
+  const pathname = usePathname();
+  const pillColor = pathname === "/pet-owners/calendar-page" ? "bg-pink-400" : undefined;
+
   const firstImg = imageUrls[0];
   const restCount = Math.max(0, imageUrls.length - 1);
 
@@ -28,12 +31,10 @@ export default function RecordCard({
     <Card
       headerRight={time}
       onClick={onClick}
+      pillColor={pillColor}
       className="w-full text-left transition hover:bg-zinc-50 active:scale-[0.99]"
     >
       <div className="flex items-center gap-3">
-        {/* Colored pill bar */}
-        <div className="w-1 self-stretch rounded-full bg-pink-400 shrink-0 min-h-[40px]" />
-
         {/* Pet avatar */}
         {avatarUrl && (
           <div className="relative h-9 w-9 overflow-hidden rounded-full bg-zinc-100 shrink-0">
@@ -43,10 +44,10 @@ export default function RecordCard({
 
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-semibold text-zinc-900 leading-snug">
+          <div className="text-sm font-bold text-zinc-900 leading-snug">
             {petName}
           </div>
-          <div className="mt-0.5 text-sm line-clamp-1">
+          <div className="mt-0.5 text-sm font-light line-clamp-1">
             {note}
           </div>
         </div>
