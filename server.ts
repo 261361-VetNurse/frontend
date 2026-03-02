@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { serveStatic } from 'hono/bun';
 import { compress } from 'hono/compress';
+import { cors } from 'hono/cors';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
@@ -8,6 +9,15 @@ const app = new Hono();
 
 // Enable compression
 app.use('*', compress());
+
+// CORS — allow browser requests from any origin (needed for Edge/Chrome preflight)
+app.use('*', cors({
+    origin: '*',
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    exposeHeaders: ['Content-Length'],
+    maxAge: 3600,
+}));
 
 // S3 Client Setup
 const {
@@ -33,6 +43,39 @@ const s3Client =
         : null;
 
 const ALLOWED_FOLDERS = ['pets', 'users', 'records'] as const;
+
+// ── Backend reverse proxy ────────────────────────────────────────────────────
+const BACKEND_URL = process.env.BACKEND_URL || 'http://backend:8000';
+
+async function proxyToBackend(c: any) {
+    const url = new URL(c.req.url);
+    const targetUrl = `${BACKEND_URL}${url.pathname}${url.search}`;
+
+    const headers = new Headers(c.req.raw.headers);
+    headers.delete('host');
+
+    const body = ['GET', 'HEAD'].includes(c.req.method) ? undefined : c.req.raw.body;
+
+    try {
+        const response = await fetch(targetUrl, {
+            method: c.req.method,
+            headers,
+            body,
+        });
+        return new Response(response.body, {
+            status: response.status,
+            headers: response.headers,
+        });
+    } catch (err) {
+        console.error('[proxy] Backend unreachable:', err);
+        return c.json({ detail: 'Backend unavailable' }, 502);
+    }
+}
+
+app.all('/v1/*', proxyToBackend);
+app.all('/auth/line/*', proxyToBackend);
+app.all('/auth/me', proxyToBackend);
+app.all('/auth/notify/*', proxyToBackend);
 
 // Basic health check
 app.get('/api/health', (c) => {
@@ -85,8 +128,48 @@ app.use('/assets/*', async (c, next) => {
     await next();
 });
 app.use('/assets/*', serveStatic({ root: './dist' }));
-app.use('/vite.svg', serveStatic({ root: './dist' }));
-app.use('/*.*', serveStatic({ root: './dist' }));
+
+// Serve all other static files (SVG, PNG, ICO, JS, CSS, etc.) directly via Bun.file
+// Hono's /*.*  wildcard does not serve file content correctly on Bun runtime
+app.get('/*', async (c, next) => {
+    const url = new URL(c.req.url);
+    const pathname = url.pathname;
+
+    // Only handle paths that look like files (have an extension)
+    if (!pathname.match(/\.[a-zA-Z0-9]+$/)) {
+        return next();
+    }
+
+    try {
+        const file = Bun.file(`./dist${pathname}`);
+        if (await file.exists()) {
+            // Set correct Content-Type based on extension
+            const ext = pathname.split('.').pop()?.toLowerCase();
+            const mimeTypes: Record<string, string> = {
+                svg: 'image/svg+xml',
+                png: 'image/png',
+                jpg: 'image/jpeg',
+                jpeg: 'image/jpeg',
+                gif: 'image/gif',
+                webp: 'image/webp',
+                ico: 'image/x-icon',
+                js: 'application/javascript',
+                css: 'text/css',
+                json: 'application/json',
+                woff: 'font/woff',
+                woff2: 'font/woff2',
+                ttf: 'font/ttf',
+            };
+            const contentType = ext && mimeTypes[ext] ? mimeTypes[ext] : 'application/octet-stream';
+            return new Response(file, {
+                headers: { 'Content-Type': contentType },
+            });
+        }
+    } catch (_) {
+        // fall through to SPA
+    }
+    return next();
+});
 
 // SPA fallback: Send all other requests to index.html for client-side routing
 app.get('*', async (c) => {
