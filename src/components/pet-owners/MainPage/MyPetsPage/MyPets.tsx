@@ -60,7 +60,8 @@ export default function MyPets() {
       setLoading(false);
     };
     init();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — router is a new object every render so must NOT be a dep
 
   const allPetsCount = pets.length;
   const inMedicalCount = pets.filter((pet) => pet.in_medical).length;

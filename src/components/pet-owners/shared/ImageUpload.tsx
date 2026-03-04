@@ -1,4 +1,3 @@
-"use client";
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
@@ -81,7 +80,6 @@ export default function ImageUpload({
                 setPreview(dataUrl);
 
                 // Simulate successful upload with data URL
-                console.log('[MOCK] Image uploaded:', file.name, file.size, 'bytes');
                 onImageUploaded(dataUrl);
                 setUploading(false);
             };

@@ -1,6 +1,21 @@
 /**
  * API Client for VetNurse Backend
  */
+
+/**
+ * Typed API error that preserves the HTTP status code.
+ * Callers can do: `if (err instanceof ApiError && err.status === 401) logout()`
+ */
+export class ApiError extends Error {
+    constructor(
+        public readonly status: number,
+        message: string
+    ) {
+        super(message);
+        this.name = 'ApiError';
+    }
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : 'http://localhost:8000';
 // Mock Helper
 /**
@@ -420,8 +435,10 @@ export async function getAppointmentDetail(token: string, appointmentId: number)
     });
     if (!response.ok) {
         const error = await response.json();
-        console.error(`❌ Failed to get appointment detail: ${response.status}`, error);
-        throw new Error(error.detail || 'Failed to get appointment detail');
+        if (import.meta.env.DEV) {
+            console.error(`❌ Failed to get appointment detail: ${response.status}`, error);
+        }
+        throw new ApiError(response.status, error.detail || 'Failed to get appointment detail');
     }
     const json = await response.json();
     return json.data || json;
