@@ -3,8 +3,9 @@ import killPort from "kill-port";
 import kill from "tree-kill";
 
 // Pre-flight check
-console.log("🧹 Clearing ports 3001 and 5173...");
+console.log("🧹 Clearing ports 3000, 3001, and 5173...");
 try {
+    await killPort(3000, 'tcp');
     await killPort(3001, 'tcp');
     await killPort(5173, 'tcp');
 } catch (e) {
@@ -16,6 +17,7 @@ console.log("🚀 Starting Hono backend on port 3001...");
 const backend = spawn("bun", ["run", "server.ts"], {
     stdio: "inherit",
     shell: true,
+    env: { ...process.env, PORT: "3001" }
 });
 
 // Start Frontend (Vite)
