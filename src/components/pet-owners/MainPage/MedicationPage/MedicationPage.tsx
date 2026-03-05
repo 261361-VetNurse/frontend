@@ -144,7 +144,7 @@ export default function MedicationPage() {
     setShowCreatePopup(true);
     const params = new URLSearchParams(searchParams.toString());
     params.set('popup', 'add-medication');
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`);
   };
 
   const closePopup = () => {
@@ -156,7 +156,7 @@ export default function MedicationPage() {
     params.delete('popup');
     params.delete('noti_id');
     params.delete('med_id');
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`);
   };
 
   // Fetch medication data when tab, pet, or date changes
@@ -184,7 +184,7 @@ export default function MedicationPage() {
     } else {
       params.set('pet_id', petId?.toString() || '');
     }
-    router.push(`?${params.toString()}`, { scroll: false });
+    router.push(`?${params.toString()}`);
   };
 
   const handleAdd = () => {
@@ -204,7 +204,7 @@ export default function MedicationPage() {
       params.set('popup', 'view-medication');
       params.set('noti_id', notiId.toString());
       params.set('med_id', medId.toString());
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
 
     } catch (e) {
       console.error("Failed to load detail", e);
@@ -220,7 +220,7 @@ export default function MedicationPage() {
       const params = new URLSearchParams(searchParams.toString());
       params.set('popup', 'edit-medication');
       params.set('med_id', medId.toString());
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
     } catch (e) {
       console.error(e);
     }
@@ -241,7 +241,7 @@ export default function MedicationPage() {
       if (selectedReminder.medicineReminder?.medicine_id) {
         params.set('med_id', selectedReminder.medicineReminder.medicine_id.toString());
       }
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
     }
   };
 

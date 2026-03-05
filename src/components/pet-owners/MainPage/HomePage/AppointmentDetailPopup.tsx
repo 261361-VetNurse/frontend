@@ -63,12 +63,13 @@ export default function AppointmentDetailPopup({
     const dateStr = d.toLocaleDateString("en-US", { day: '2-digit', month: '2-digit', year: 'numeric' });
     const timeStr = appointment.appointment_time || d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false });
 
-    // Dynamically computed status
+    // Dynamically computed status - extract date part first since appointment_date may be a full ISO string
     let displayStatus = appointment.status;
-    if (displayStatus !== "Canceled") {
-        const apptDate = appointment.appointment_time
-            ? new Date(`${appointment.appointment_date}T${appointment.appointment_time}`)
-            : new Date(appointment.appointment_date);
+    if (displayStatus === "Upcoming") {
+        const datePart = new Date(appointment.appointment_date).toISOString().split("T")[0];
+        const [hour, minute] = (appointment.appointment_time ?? "00:00").split(":").map(Number);
+        const [year, month, day] = datePart.split("-").map(Number);
+        const apptDate = new Date(year, month - 1, day, hour, minute, 0, 0);
         if (apptDate < new Date()) {
             displayStatus = "Completed";
         }

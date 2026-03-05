@@ -88,7 +88,6 @@ export function ImageUpload({
                     src={displayImage}
                     fill
                     className="object-cover transition-opacity duration-300"
-                    unoptimized
                 />
 
                 {/* Overlay for dimming and centering button */}

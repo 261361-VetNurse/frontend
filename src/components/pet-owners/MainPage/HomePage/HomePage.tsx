@@ -97,7 +97,7 @@ export default function HomePage() {
     params.delete('appointment_id');
 
     // Use replace to avoid building up history
-    router.replace(`?${params.toString()}`, { scroll: false });
+    router.replace(`?${params.toString()}`);
   };
 
   const fetchDashboard = async () => {
@@ -146,7 +146,7 @@ export default function HomePage() {
       const params = new URLSearchParams(window.location.search);
       params.set('popup', 'view-medication');
       params.set('noti_id', noti.toString());
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
 
     } catch (err) {
       console.error("Failed to load medication detail:", err);
@@ -166,7 +166,7 @@ export default function HomePage() {
       const params = new URLSearchParams(window.location.search);
       params.set('popup', 'view-appointment');
       params.set('appointment_id', apt.toString());
-      router.push(`?${params.toString()}`, { scroll: false });
+      router.push(`?${params.toString()}`);
 
     } catch (err) {
       console.error("Failed to load appointment detail:", err);
@@ -514,7 +514,15 @@ export default function HomePage() {
         ) : (
           data?.appointments && data.appointments.length > 0 ? (
             data.appointments
-              .filter((apt) => apt.status === "Upcoming")
+              .filter((apt) => {
+                if (apt.status !== "Upcoming") return false;
+                // Exclude appointments that have already passed in local time
+                const datePart = new Date(apt.appointment_date).toISOString().split("T")[0];
+                const [year, month, day] = datePart.split("-").map(Number);
+                const [hour, minute] = (apt.appointment_time ?? "00:00").split(":").map(Number);
+                const apptDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+                return apptDate >= new Date();
+              })
               .slice(0, 3)
               .map((apt) => {
                 return (

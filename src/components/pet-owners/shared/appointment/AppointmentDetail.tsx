@@ -36,8 +36,10 @@ export default function AppointmentDetail({
     ? appointment.appointment_time.slice(0, 5)
     : dateObj.format("HH:mm");
 
-  const isPast = dayjs(`${appointment.appointment_date} ${appointment.appointment_time || "00:00"}`).isBefore(dayjs());
-  const displayStatus = (appointment.status !== "Canceled" && isPast) ? "Completed" : appointment.status;
+  // Extract only the date part (YYYY-MM-DD) in case appointment_date is a full ISO string
+  const datePart = dayjs(appointment.appointment_date).format("YYYY-MM-DD");
+  const isPast = dayjs(`${datePart}T${appointment.appointment_time || "00:00"}`).isBefore(dayjs());
+  const displayStatus = (appointment.status === "Upcoming" && isPast) ? "Completed" : appointment.status;
 
   return (
     <FormDialog

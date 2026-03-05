@@ -93,7 +93,9 @@ export default function MyPetsAppointments() {
     return allAppointments.filter((a) => {
       let status = a.status;
       if (status === "Upcoming") {
-        const [year, month, day] = a.appointment_date.split("-").map(Number);
+        // appointment_date may be a full ISO string, extract date part safely
+        const datePart = new Date(a.appointment_date).toISOString().split("T")[0];
+        const [year, month, day] = datePart.split("-").map(Number);
         const [hour, minute] = (a.appointment_time ?? "00:00")
           .split(":")
           .map(Number);
