@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import Image from "next/image";
+
 import dayjs from "dayjs";
 import { usePets } from "@/hooks/usePets";
 import { Pet } from "@/types/domain/pet";

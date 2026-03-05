@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import Image from "next/image"
+const ArrowBackIosNewIcon = () => <Image src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
 import { useRouter } from 'next/navigation';
 import {
   Container,
@@ -57,7 +58,7 @@ const EditOwnerInformationPage = () => {
           setProfilePicture(user.picture_url);
         }
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Failed to fetch user profile:', err);
         setError('Failed to load user information.');
       } finally {
@@ -97,9 +98,9 @@ const EditOwnerInformationPage = () => {
       await updateUserProfile(token, updateData);
       router.back();
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to update profile:', err);
-      setError(err.message || "Failed to update profile");
+      setError(err instanceof Error ? err.message : 'Failed to update profile');
     } finally {
       setSubmitting(false);
     }

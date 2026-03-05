@@ -2,13 +2,20 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CloseIcon from '@mui/icons-material/Close';
+
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+);
+const EditIcon = ({ fontSize }: { fontSize?: string }) => (
+  <Image width={24} height={24} src="/edit.svg" alt="edit" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20 }} />
+);
+const DeleteIcon = ({ fontSize, sx }: { fontSize?: string; sx?: React.CSSProperties }) => (
+  <Image width={24} height={24} src="/delete.svg" alt="delete" style={{ width: fontSize === 'small' ? 18 : 20, height: fontSize === 'small' ? 18 : 20, ...sx }} />
+);
 import { theme } from '@/styles/tokens/theme';
 import Menu from '@mui/material/Menu';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,6 +24,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { NotificationItem } from '@/types/domain/medication';
 import { Profile } from '@/components/shared';
 
+import Image from 'next/image';
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 export interface ValidatedTimeSlot {
@@ -98,8 +106,9 @@ export default function MedicineCard({
   const displayTimes = groupedTimes || (data.reminder_time || []).map((t) => ({
     id: `${data.notification_id}_${t}`,
     timeLabel: t,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     status: (data.istaken || (data as any).status === 'sent') ? 'taken' : 'pending'
-  } as any));
+  } as unknown as ValidatedTimeSlot));
 
   return (
     <Card
@@ -178,7 +187,7 @@ export default function MedicineCard({
 
       <TimesGrid>
         {displayTimes.map((slot) => {
-          const { label, Icon, color } = getStatusMeta(slot.status);
+          const { Icon } = getStatusMeta(slot.status);
 
           return (
             <TimeChip
@@ -230,16 +239,6 @@ const Left = styled.div`
   align-items: center;
   gap: 12px;
   min-width: 0;
-`;
-
-const Avatar = styled.img`
-  width: 48px;
-  height: 48px;
-  border-radius: 9999px;
-  object-fit: cover;
-  flex: 0 0 auto;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 `;
 
 const Info = styled.div`

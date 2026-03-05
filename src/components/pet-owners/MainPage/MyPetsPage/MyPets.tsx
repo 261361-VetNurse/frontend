@@ -27,7 +27,7 @@ export default function MyPets() {
       setPetsError(null);
       const petsData = await getPets(token);
       setPets(petsData);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to load pets", e);
       setPetsError("Failed to load pets");
     }
@@ -38,7 +38,7 @@ export default function MyPets() {
       setUserError(null);
       const userData = await getUserProfile(token);
       setUser(userData);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error("Failed to load user", e);
       setUserError("Failed to load profile");
     }
@@ -60,7 +60,7 @@ export default function MyPets() {
       setLoading(false);
     };
     init();
-  }, []);
+  }, [router]);
 
   const allPetsCount = pets.length;
   const inMedicalCount = pets.filter((pet) => pet.in_medical).length;
@@ -107,7 +107,7 @@ export default function MyPets() {
           ) : (
             pets.length === 0 ? (
               <div className="rounded-2xl border border-zinc-100 bg-white p-6 text-center text-sm text-zinc-500">
-                No pets yet. Click "New Pet" to add one.
+                No pets yet. Click &quot;New Pet&quot; to add one.
               </div>
             ) : (
               pets.map((pet) => <PetCard key={pet.pet_id} pet={pet} />)

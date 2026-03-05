@@ -11,10 +11,10 @@ import { theme } from '@/styles/tokens/theme';
 import { Tabs } from '@/components/pet-owners/shared/Tabs';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { QuickDialButton } from '@/components/pet-owners/shared/QuickDialButton';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import { PetId } from '@/types/domain/pet';
-import { Medicine, NotificationDetail, NotificationItem, GroupedMedicineNotification } from '@/types/domain/medication';
-import MedicineCard, { ValidatedTimeSlot } from './MedicineCard';
+// SVG icon wrapper replacing MUI icon
+const AddRoundedIcon = () => <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
+import { GroupedMedicineNotification } from '@/types/domain/medication';
+import MedicineCard from './MedicineCard';
 import CreateMedicationPopup from './AddMedicationPopup';
 import EditMedicationPopup from './EditMedicationPopup';
 import MedicationDetailPopup from './MedicationDetailPopup';
@@ -25,12 +25,11 @@ import { getMedicationStatus } from "@/utils/medicationStatus";
 import { usePets } from '@/hooks';
 
 // API
+import Image from 'next/image';
 import {
   authStorage,
   getMedications,
   getMedicationNotificationDetail,
-  getMedicineDetail,
-  createMedicine,
   deleteMedicine,
   markMedicationTaken
 } from '@/services/api/client';
@@ -43,7 +42,6 @@ export default function MedicationPage() {
 
   // State
   const [medicineNoti, setMedicinesNoti] = useState<GroupedMedicineNotification[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch pets
@@ -63,11 +61,13 @@ export default function MedicationPage() {
   ];
 
   const [selectedReminder, setSelectedReminder] = useState<{
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     medicineReminder: any; // Medicine or detailed object
     highlightedReminderId?: number;
   } | null>(null);
 
-  const [editingReminder, setEditingReminder] = useState<Medicine | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [editingReminder, setEditingReminder] = useState<any | null>(null);
 
   // Helper: Get Date for Tab
   const getDateForTab = (tab: TabType): Date => {
@@ -88,6 +88,7 @@ export default function MedicationPage() {
       setError(null);
       const petIdParam = selectedPetId === 0 ? undefined : selectedPetId;
       const data = await getMedications(token, petIdParam, date);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setMedicinesNoti(data as any); // Cast as any because getMedications return type might still be inferred as NotificationItem[] until we update client.ts
     } catch (error) {
       console.error('Error fetching medicine notifications:', error);
@@ -139,18 +140,6 @@ export default function MedicationPage() {
     handleDeepLink();
   }, [searchParams]);
 
-  const openViewPopup = (notiId: number, medId: number) => {
-    // Optimistic set? Or fetch first? 
-    // Existing logic fetches first. We can keep that or move fetch to effect.
-    // Let's trigger the URL update and let the effect handle fetching (Deep Linking) OR fetch then update URL.
-    // Fetching first is better for UX (no empty popup).
-    handleReminderClick(notiId, medId);
-  };
-
-  const openEditPopup = (medId: number) => {
-    handleEditFromCard(medId);
-  };
-
   const openCreatePopup = () => {
     setShowCreatePopup(true);
     const params = new URLSearchParams(searchParams.toString());
@@ -178,6 +167,7 @@ export default function MedicationPage() {
     const date = baseDate.toISOString().split('T')[0];
     const petIdParam = selectedPetId === 0 ? undefined : selectedPetId;
     fetchMedicineNotiData(token, petIdParam, date);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPetId, baseDate]);
 
   // Grouping Logic Removed - API returns grouped data
@@ -290,7 +280,7 @@ export default function MedicationPage() {
     return `${dayName}, ${day}/${month}/${year}`;
   };
 
-  const pageLoading = loading || petsLoading;
+  const pageLoading = petsLoading;
 
   return (
     <Page>

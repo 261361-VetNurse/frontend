@@ -2,9 +2,9 @@ import type { MarkerColorKey } from "@/components/pet-owners/shared/CalendarModu
 import { styled } from "styled-components";
 
 export const CALENDAR_MARKER_PALETTE: Record<MarkerColorKey, string> = {
-  appointment: "bg-sky-600",
+  appointment: "bg-[#c27bff]",
   medication: "bg-emerald-500",
-  record: "bg-pink-500",
+  record: "bg-[#fc64b6]",
 };
 
 export const Page = styled.div`

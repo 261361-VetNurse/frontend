@@ -1,6 +1,7 @@
 "use client";
 
 import dayjs from "dayjs";
+import Image from "next/image";
 import InfoRow from "./InfoRow";
 import { Pet } from "@/types/domain/pet";
 import { formatAge } from "@/lib/pets/age";
@@ -27,9 +28,11 @@ export default function BasicInfoCard({
         <div className="flex items-center gap-2">
           {/* info icon */}
           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full ">
-            <img
+            <Image
               src="/info.svg"
               alt=""
+              width={16}
+              height={16}
               className="h-4 w-4"
             />
           </span>

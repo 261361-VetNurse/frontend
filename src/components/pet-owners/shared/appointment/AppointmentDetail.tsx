@@ -5,6 +5,7 @@ import { LocationOn, AccessTime, CalendarToday, Note } from "@mui/icons-material
 import { FormDialog } from "@/components/pet-owners/shared/FormDialog";
 import type { Appointment } from "@/types/domain/appointment";
 import Profile from "../Profile";
+import Button from "@/components/pet-owners/shared/Button";
 
 type Props = {
   open?: boolean;
@@ -12,6 +13,7 @@ type Props = {
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
   onDelete?: (id: number) => void;
+  onAddToCalendar?: (appt: Appointment) => void;
   triggerParam?: string;
   triggerValue?: string;
 };
@@ -24,6 +26,7 @@ export default function AppointmentDetail({
   onDelete,
   triggerParam,
   triggerValue,
+  onAddToCalendar,
 }: Props) {
   if (!open || !appointment) return null;
 
@@ -48,7 +51,7 @@ export default function AppointmentDetail({
       onSecondary={() => onDelete?.(appointment.appointment_id)}
     >
       {/* Pet row */}
-      <div className="flex items-center gap-3 pb-4 border-b border-zinc-100">
+      <div className="flex flex-row items-center gap-3 pb-4 border-b border-zinc-100 w-full">
         <div className="relative h-12 w-12 overflow-hidden rounded-full bg-zinc-100 shrink-0">
           <Profile
             imageUrl={appointment.pet_image}
@@ -56,7 +59,6 @@ export default function AppointmentDetail({
             size="small"
           />
         </div>
-
         <div className="min-w-0">
           <div className="text-sm font-semibold text-zinc-900 truncate">
             {appointment.pet_name}
@@ -68,7 +70,7 @@ export default function AppointmentDetail({
       </div>
 
       {/* Body */}
-      <div className="space-y-4 pt-2">
+      <div className="space-y-4 pt-2 w-full">
         {/* Date & Time */}
         <div className="grid grid-cols-2 gap-3 text-sm text-zinc-800">
           <div>
@@ -123,8 +125,20 @@ export default function AppointmentDetail({
             </div>
           </div>
         ) : null}
+
+        {/* Add to Calendar */}
+        {onAddToCalendar && (
+          <Button
+            variant="secondary"
+            shape="pill"
+            fullWidth
+            onClick={() => onAddToCalendar(appointment)}
+          >
+            Add to Calendar
+          </Button>
+        )}
       </div>
-    </FormDialog>
+    </FormDialog >
   );
 }
 

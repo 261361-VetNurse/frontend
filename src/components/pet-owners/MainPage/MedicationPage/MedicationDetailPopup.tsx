@@ -1,16 +1,25 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { formatTimeForDisplay } from '@/utils/reminder-utils';
-import { Medicine, ReminderSlot } from '@/types/domain/medication';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { ReminderSlot } from '@/types/domain/medication';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-import MedicationIcon from '@mui/icons-material/Medication';
 import { getMedicationStatus } from '@/utils/medicationStatus';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+
+import Image from 'next/image';
+// SVG icon wrappers replacing MUI icons
+const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
+);
+const MedicationIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <Image width={24} height={24} src="/medication.svg" alt="medication" style={{ width: 24, height: 24, ...style }} />
+);
 
 interface MedicationDetailPopupProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   medicineReminder: any;
   occurrences: ReminderSlot[]; // Strongly typed now
   highlightedReminderId?: number;
@@ -53,7 +62,6 @@ const getFrequencyLabel = (freq: string | number): string => {
 export default function MedicationDetailPopup({
   medicineReminder,
   occurrences,
-  highlightedReminderId,
   onClose,
   onToggleReminder,
   onEdit,
@@ -146,7 +154,7 @@ export default function MedicationDetailPopup({
         </ScheduleSection>
 
         <RemindersSection >
-          <div className="section-title">Today's Reminders</div>
+          <div className="section-title">Today&apos;s Reminders</div>
           {localOccurrences.map((reminder) => {
             // Use utility for status if not explicitly taken
             // If API says 'taken', trust it. If not, calculate pending/missed based on time.

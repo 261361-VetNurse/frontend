@@ -1,23 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { HomePageStyled } from "@/styles/components/homepage.styled";
 import AppointmentCard from "./AppointmentCard";
 import { useRouter } from "next/navigation";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import Profile from "@/components/pet-owners/shared/Profile";
-import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+const HelpOutlineIcon = ({ sx, onClick }: { sx?: React.CSSProperties & { ml?: string; fontSize?: number; color?: string; cursor?: string }; onClick?: () => void }) => (
+  <Image width={24} height={24} src="/help.svg" alt="help" onClick={onClick} style={{ width: sx?.fontSize || 22, height: sx?.fontSize || 22, cursor: sx?.cursor, marginLeft: sx?.ml }} />
+);
+const ArrowForwardIosIcon = ({ sx }: { sx?: React.CSSProperties & { ml?: string; fontSize?: number; color?: string; cursor?: string; transform?: string; transition?: string } }) => (
+  <Image width={24} height={24} src="/next-icon.svg" alt="next" style={{ width: sx?.fontSize || 16, height: sx?.fontSize || 16, cursor: sx?.cursor, transform: sx?.transform, transition: sx?.transition }} />
+);
 import { theme } from "@/styles/tokens/theme";
 import ReminderCard from "./ReminderCard";
 import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail, exchangeLineToken } from "@/services/api/client";
+import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { getMedicationStatus } from "@/utils/medicationStatus";
 
+import Image from 'next/image';
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -32,64 +37,9 @@ export default function HomePage() {
   // Missing reminders state
   const [showMissingReminders, setShowMissingReminders] = useState(false);
 
-  /* Auth Logic: Check for LINE Login Code */
   useEffect(() => {
-    const handleLineLogin = async () => {
-      // 1. Check for 'code' in URL
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get("code");
-      const error = params.get("error");
-
-      if (error) {
-        setError("LINE Login failed. Please try again.");
-        return;
-      }
-
-      if (code) {
-        try {
-          setLoading(true);
-          console.log("🔄 Exchanging LINE code for token...");
-
-          // 2. Exchange code for token
-          const response = await exchangeLineToken(code);
-
-          if (response.access_token) {
-            console.log("✅ Token received!");
-
-            // 3. Store token & user
-            authStorage.setToken(response.access_token);
-            // We can also store the user object if needed, but AuthContext will fetch it
-            // authStorage.setUser(response.user); 
-
-            // 4. Clear URL parameters
-            window.history.replaceState({}, "", window.location.pathname);
-
-            // 5. Handle New User Redirection
-            if (response.is_new_user) {
-              console.log("🆕 New user detected! Redirecting to register...");
-              router.push("/pet-owners/register-page");
-              return;
-            }
-
-            // 6. Existing User -> Load Dashboard
-            // Refresh dashboard after the new token is stored
-            await fetchDashboard();
-          }
-        } catch (err) {
-          console.error("❌ Token exchange failed:", err);
-          setError("Failed to log in with LINE. Please try again.");
-          alert("Login Failed: " + (err instanceof Error ? err.message : "Unknown error"));
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        // No code, just load dashboard if token exists
-        fetchDashboard();
-      }
-    };
-
-    handleLineLogin();
-  }, [router]);
+    fetchDashboard();
+  }, []);
 
   // Deep linking for Home Page
   useEffect(() => {
@@ -232,7 +182,6 @@ export default function HomePage() {
         const token = authStorage.getToken() || "";
         // 1. Send API Request
         await markMedicationTaken(token, Number(reminderId));
-        console.log(`[API] Medication ${reminderId} marked as ${isTaken ? 'taken' : 'pending'}`);
 
         // 2. Update local state ONLY after successful API response
         if (selectedNotification && selectedNotification._id === reminderId) {
@@ -318,7 +267,27 @@ export default function HomePage() {
       </div>
 
       <div className="head-section">
-        <div className="head-right">Reminder</div>
+        <div
+          className="head-right"
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={theme.colors.textSecondary}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+
+          <span>Medication Reminder</span>
+        </div>
+
         <div
           className="head-left"
           onClick={() => router.push("/pet-owners/medication-page")}
@@ -487,8 +456,38 @@ export default function HomePage() {
         </div>
       )}
 
+      <div
+        style={{
+          height: 1,
+          backgroundColor: theme.colors.border || "#E5E7EB",
+          margin: "24px 0",
+        }}
+      />
+
       <div className="head-section">
-        <div className="head-right">Upcoming appointments</div>
+        <div
+          className="head-right"
+          style={{ display: "flex", alignItems: "center", gap: 6 }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={theme.colors.textSecondary}
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+
+          Upcoming appointments
+        </div>
+
         <div
           className="head-left"
           onClick={() => router.push("/pet-owners/calendar-page?tab=appointment")}

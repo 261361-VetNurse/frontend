@@ -1,14 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo } from "react";
-
-type PetLite = {
-  id: string;
-  name: string;
-  pid: string;
-  avatarUrl?: string;
-};
+import type { PetLite } from "@/types/domain/pet";
 
 type MedicationRecordV2 = {
   id: string;
@@ -66,13 +59,13 @@ export default function MedicationDetailPopupV2({
         {/* Petss row */}
         <div className="px-6 pb-4 flex items-center gap-4">
           <div className="relative h-14 w-14 overflow-hidden rounded-full bg-zinc-100 shrink-0">
-            {pet.avatarUrl ? (
-              <Image src={pet.avatarUrl} alt={pet.name} fill className="object-cover" />
+            {pet.profile_image ? (
+              <Image src={pet.profile_image} alt={pet.name} fill className="object-cover" />
             ) : null}
           </div>
           <div className="min-w-0">
             <div className="text-base font-semibold text-zinc-900 truncate">{pet.name}</div>
-            <div className="text-sm text-zinc-500 truncate">{`PID: ${pet.pid}`}</div>
+            <div className="text-sm text-zinc-500 truncate">{`PID: ${pet.pet_id}`}</div>
           </div>
         </div>
 

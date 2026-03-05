@@ -2,7 +2,10 @@
 
 import React from "react";
 import Button from "./Button";
-import { Close } from "@mui/icons-material";
+import Image from "next/image";
+const Close = ({ className }: { className?: string }) => (
+    <Image src="/cancel.svg" alt="close" className={className} style={{ width: 16, height: 16 }} />
+);
 
 type ModalProps = {
     open: boolean;
@@ -54,6 +57,7 @@ export function Modal({
     scroll = "inside",
     radius = "lg",
     header = "titleWithClose",
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     footer = "actionsSticky",
     closeButton = "on",
     dismissable = "backdrop",

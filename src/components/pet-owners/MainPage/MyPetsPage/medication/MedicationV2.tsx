@@ -7,17 +7,13 @@ import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector'
 import CreateMedicationPopup from '../../MedicationPage/AddMedicationPopup';
 import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
-
+import Image from 'next/image';
 import { Medicine } from '@/types/domain/medication';
-import {
-  formatTimeForDisplay,
-} from '@/utils/reminder-utils';
-import { authStorage, getMedicinesByPet, markMedicationTaken, deleteMedicine } from '@/services/api/client';
+
+import { authStorage, getMedicinesByPet, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import { CardList } from "@/styles/components/medication.styled";
 import { QuickDialButton } from '@/components/shared';
-
 // Types
 
 
@@ -27,7 +23,6 @@ export default function MedicationPageV2() {
 
   const [medicineReminders, setMedicineReminders] = useState<Medicine[]>([]);
   const [remindersLoading, setRemindersLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   // Fetch pets - Use API hook
   const { pets: apiPets, loading: petsLoading } = usePets();
@@ -63,10 +58,10 @@ export default function MedicationPageV2() {
       const token = authStorage.getToken();
       if (!token) return;
       setRemindersLoading(true);
-      setError(null);
 
       try {
-        const data: any[] = await getMedicinesByPet(token, selectedPetId.toString());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data: any[] = (await getMedicinesByPet(token, selectedPetId.toString())) as any[];
 
         const mappedData: Medicine[] = data.map((item) => ({
           medicine_id: item.medicine_id,
@@ -84,13 +79,11 @@ export default function MedicationPageV2() {
         }));
 
         setMedicineReminders(mappedData);
-      } catch (apiErr: any) {
+      } catch (apiErr: unknown) {
         console.error('API failed:', apiErr);
-        setError(apiErr.message || 'Failed to load medication reminders');
       }
     } catch (err) {
       console.error('Error fetching medicine reminders:', err);
-      setError('Failed to load medicine reminders');
     } finally {
       setRemindersLoading(false);
     }
@@ -129,8 +122,9 @@ export default function MedicationPageV2() {
             setMedicineReminders(prev => prev.filter(mr => mr.medicine_id !== reminder.medicine_id));
           }
         }
-      } catch (err) {
+      } catch (err: unknown) {
         alert("Failed to delete medication");
+        console.error(err);
       }
     }
   };
@@ -213,7 +207,7 @@ export default function MedicationPageV2() {
       <QuickDialButton
         iconColor="#fff"
         position="bottom-right"
-        icon={<AddRoundedIcon />}
+        icon={<Image src="/add-new.svg" alt="add" width={24} height={24} style={{ filter: 'brightness(0) invert(1)' }} />}
         color="#09BFF8"
         onClickAction={handleAdd}
       />

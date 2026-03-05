@@ -2,12 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { ImageUpload } from "@/components/shared/ImageUpload";
 import { formatAge } from "@/lib/pets/age";
 import TopBar from "@/components/pet-owners/layout/TopBar";
 import Button from "@/components/pet-owners/shared/Button";
 import { createPet, authStorage } from "@/services/api/client";
-import { CreatePetDTO, Pet } from "@/types";
+import { CreatePetDTO } from "@/types";
 
 type Sex = "Male" | "Female" | "Unknown" | "";
 
@@ -25,7 +26,7 @@ export default function RegisterNewPetPage() {
   const [dob, setDob] = useState("");
 
   const [sex, setSex] = useState<Sex>(""); // ยังไม่เลือก
-  const [infecund, setInfecund] = useState<boolean | null>(false); // ยังไม่เลือก
+  const [infecund] = useState<boolean | null>(false); // ยังไม่เลือก
   const [inMedical, setInMedical] = useState<boolean>(false);
 
   const [weight, setWeight] = useState<string>("");
@@ -54,10 +55,7 @@ export default function RegisterNewPetPage() {
     if (!canSubmit) return;
     setIsSubmitting(true);
 
-    const allergiesArray = allergiesInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean);
+
 
     const payload: CreatePetDTO = {
       name: name.trim(),
@@ -189,9 +187,11 @@ export default function RegisterNewPetPage() {
                 </select>
 
                 {/* dropdown icon */}
-                <img
+                <Image
                   src="/down-icon.svg"
                   alt=""
+                  width={16}
+                  height={16}
                   className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-60"
                 />
               </div>

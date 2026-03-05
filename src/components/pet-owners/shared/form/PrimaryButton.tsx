@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyledButton, Spinner, SpinnerCircle, ButtonText } from '@/styles/components/form/PrimaryButton.styles';
-import { is } from 'date-fns/locale';
 
 interface PrimaryButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   size?: 'lg' | 'md' | 'sm';

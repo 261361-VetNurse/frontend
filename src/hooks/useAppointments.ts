@@ -1,47 +1,33 @@
-import { useState, useEffect } from 'react';
-import { authStorage } from '@/services/api/client';
+import useSWR from 'swr';
+import { authStorage, getAppointments } from '@/services/api/client';
+import type { Appointment } from '@/types/domain/appointment';
 
-interface UseAppointmentsReturn {
-    appointments: any[];
-    loading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
+function appointmentsFetcher(status?: string): Promise<Appointment[]> {
+    const token = authStorage.getToken();
+    if (!token) return Promise.resolve([]);
+    return getAppointments(token, status);
 }
 
 /**
- * Custom hook to fetch appointments
- * @param status - Optional status filter ("Upcoming", "Completed", "Canceled")
+ * Fetch appointments, optionally filtered by status.
+ * SWR caches per-status so "Upcoming" and "Completed" are stored separately.
  */
-export function useAppointments(status?: string): UseAppointmentsReturn {
-    const [appointments, setAppointments] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+export function useAppointments(status?: string) {
+    const swrKey = ['appointments', status ?? null] as const;
 
-    const fetchAppointments = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const token = authStorage.getToken();
-            if (!token) return;
-
-            // Dynamic import to avoid circular dependency
-            const { getAppointments } = await import('@/services/api/client');
-
-            const data = await getAppointments(token, status);
-
-            setAppointments(data);
-        } catch (err) {
-            console.error('Error loading appointments:', err);
-            setError('Failed to load appointments');
-        } finally {
-            setLoading(false);
+    const { data, error, isLoading, mutate } = useSWR<Appointment[]>(
+        swrKey,
+        () => appointmentsFetcher(status),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 30_000,
         }
+    );
+
+    return {
+        appointments: data ?? [],
+        loading: isLoading,
+        error: error ? (error instanceof Error ? error.message : 'Failed to load appointments') : null,
+        refetch: mutate,
     };
-
-    useEffect(() => {
-        fetchAppointments();
-    }, [status]);
-
-    return { appointments, loading, error, refetch: fetchAppointments };
 }

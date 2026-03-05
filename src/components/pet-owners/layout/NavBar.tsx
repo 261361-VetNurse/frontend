@@ -3,7 +3,7 @@
 import styled from "styled-components";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, CalendarMonth, Pets, Medication, Notifications } from "@mui/icons-material";
+import Image from "next/image";
 
 const NavBarStyle = styled.div`
   position: fixed;
@@ -50,11 +50,11 @@ const NavItem = styled(Link)`
 `;
 
 const navItems = [
-  { label: "Home", icon: Home, href: "/pet-owners/home-page" },
-  { label: "Calendar", icon: CalendarMonth, href: "/pet-owners/calendar-page" },
-  { label: "My pets", icon: Pets, href: "/pet-owners/my-pets-page" },
-  { label: "Medication", icon: Medication, href: "/pet-owners/medication-page" },
-  { label: "Notifications", icon: Notifications, href: "/pet-owners/notification-page" },
+  { label: "Home", icon: "/home-navbar.svg", activeIcon: "/home-blue-navbar.svg", href: "/pet-owners/home-page" },
+  { label: "Calendar", icon: "/calendar-navbar.svg", activeIcon: "/calendar-blue-navbar.svg", href: "/pet-owners/calendar-page" },
+  { label: "My pets", icon: "/mypets-navbar.svg", activeIcon: "/mypets-blue-navbar.svg", href: "/pet-owners/my-pets-page" },
+  { label: "Medication", icon: "/medication-navbar.svg", activeIcon: "/medication-blue-navbar.svg", href: "/pet-owners/medication-page" },
+  { label: "Notifications", icon: "/notifications-navbar.svg", activeIcon: "/notifications-blue-navbar.svg", href: "/pet-owners/notification-page" },
 ];
 
 export default function NavBar() {
@@ -62,17 +62,23 @@ export default function NavBar() {
   return (
     <NavBarStyle>
       <NavBarWrap>
-        {navItems.map((item) => (
-          <NavItem key={item.label} href={item.href}>
-            <item.icon
-              sx={{
-                fontSize: 24,
-                color: pathname === item.href ? '#2196F3' : '#C3C3C3'
-              }}
-            />
-            <span className="nav-text">{item.label}</span>
-          </NavItem>
-        ))}
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <NavItem key={item.label} href={item.href}>
+              <div className="relative" style={{ width: "24px", height: "24px" }}>
+                <Image
+                  src={isActive ? item.activeIcon : item.icon}
+                  alt={item.label}
+                  fill
+                  sizes="24px"
+                  objectFit="contain"
+                />
+              </div>
+              <span className="nav-text">{item.label}</span>
+            </NavItem>
+          );
+        })}
       </NavBarWrap>
     </NavBarStyle>
 

@@ -2,7 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
 import { TextInput } from '../../shared/form/TextInput';
-import { Add, Remove, CheckBox, CheckBoxOutlineBlank, PhotoCamera } from '@mui/icons-material';
+import { Remove, CheckBox, CheckBoxOutlineBlank, PhotoCamera } from '@mui/icons-material';
+const Add = ({ fontSize }: { fontSize?: string }) => (
+  <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+);
 import { theme } from '@/styles/tokens/theme';
 
 
@@ -15,6 +18,7 @@ import { scanMedication } from '@/services/api/client';
 
 
 
+import Image from 'next/image';
 const Row = styled.div`
   display: flex;
   gap: 12px;
@@ -192,7 +196,7 @@ export default function CreateMedicationPopup({
   const [dosage, setDosage] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  
+
   useEffect(() => {
     if (open && initialPetId) {
       setPetId(initialPetId);
@@ -210,8 +214,6 @@ export default function CreateMedicationPopup({
   ]);
 
   if (!open) return null;
-
-
 
   const addReminder = () => {
     const newId = `r${reminders.length + 1}`;
@@ -290,7 +292,7 @@ export default function CreateMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload: AddMedicationPayload = {
-        pet_id: Number(selectedPet.pet_id),
+        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -315,9 +317,9 @@ export default function CreateMedicationPopup({
       setReminders([{ id: 'r1', time: '08:00', status: 'pending' }]);
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(`Failed to create medication: ${err.message}`);
+      alert(`Failed to create medication: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -330,7 +332,6 @@ export default function CreateMedicationPopup({
 
       if (data.name) setMedicineName(data.name);
       if (data.dosage) setDosage(data.dosage);
-
       if (data.reminder_time?.length) {
         setReminders(
           data.reminder_time.map((time: string, i: number) => ({
@@ -375,7 +376,7 @@ export default function CreateMedicationPopup({
           value={petId || 0}
           onChange={(id) => setPetId(id)}
         />
-        
+
         <FormField label="Scan Medication">
           <input
             type="file"
@@ -408,34 +409,34 @@ export default function CreateMedicationPopup({
             }}
           >
             {isScanning ? (
-            <span style={{ color: theme.colors.primary, fontWeight: 500 }}>
-              <ScanningText>
-                Scanning
-                <Dot>.</Dot>
-                <Dot>.</Dot>
-                <Dot>.</Dot>
-              </ScanningText>
-            </span>
-          ) : (
-            <>
-              <PhotoCamera
-                sx={{
-                  fontSize: 42,
-                  color: theme.colors.primary
-                }}
-              />
-              <span
-                style={{
-                  marginTop: "8px",
-                  fontSize: "14px",
-                  color: theme.colors.primary,
-                  fontWeight: 500
-                }}
-              >
-                Tap to scan
+              <span style={{ color: theme.colors.primary, fontWeight: 500 }}>
+                <ScanningText>
+                  Scanning
+                  <Dot>.</Dot>
+                  <Dot>.</Dot>
+                  <Dot>.</Dot>
+                </ScanningText>
               </span>
-            </>
-          )}
+            ) : (
+              <>
+                <PhotoCamera
+                  sx={{
+                    fontSize: 42,
+                    color: theme.colors.primary
+                  }}
+                />
+                <span
+                  style={{
+                    marginTop: "8px",
+                    fontSize: "14px",
+                    color: theme.colors.primary,
+                    fontWeight: 500
+                  }}
+                >
+                  Tap to scan
+                </span>
+              </>
+            )}
           </div>
         </FormField>
 

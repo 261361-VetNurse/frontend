@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { FormField } from '../../shared/form/FormField';
@@ -5,7 +6,11 @@ import { TextInput } from '../../shared/form/TextInput';
 
 import { theme } from '@/styles/tokens/theme';
 import { Medicine } from '@/types/domain/medication';
-import { Add, Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+import { Remove, CheckBox, CheckBoxOutlineBlank } from '@mui/icons-material';
+// SVG icon wrapper replacing MUI icon
+const Add = ({ fontSize }: { fontSize?: string }) => (
+  <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
+);
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import type { Pet } from '@/types/domain/pet';
@@ -205,7 +210,7 @@ type ReminderTime = {
 type EditMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
-  medicineReminder?: Medicine | any | null; // Support Medicine or EachDayMedicine (MedicineReminderVM)
+  medicineReminder?: (Medicine & { medicine_name?: string; medicine_dosage?: string; medicine_frequency?: string; notification_id?: number; _id?: string }) | null;
   pets: Pet[];
   onSuccess: () => void;
 };
@@ -214,6 +219,7 @@ type EditMedicationPopupProps = {
 import { editMedicine } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 
+import Image from 'next/image';
 export default function EditMedicationPopup({
   open,
   onClose,
@@ -380,9 +386,9 @@ export default function EditMedicationPopup({
 
       alert('Medication updated successfully!');
       onSuccess();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      alert(`Failed to update medication: ${err.message}`);
+      alert(`Failed to update medication: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 

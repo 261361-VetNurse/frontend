@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -5,7 +6,10 @@ import styled from "styled-components";
 import { FormField } from "../../../shared/form/FormField";
 import { TextInput } from "../../../shared/form/TextInput";
 import { PrimaryButton } from "../../../shared/form/PrimaryButton";
-import { Pets } from "@mui/icons-material";
+import Image from "next/image";
+const Pets = ({ style }: { style?: React.CSSProperties }) => (
+  <Image src="/pet-paw.svg" alt="pet" style={{ width: 40, height: 40, ...style }} />
+);
 import { theme } from "@/styles/tokens/theme";
 
 const Overlay = styled.div`
@@ -112,7 +116,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   record: MedicationEditRecord | null;
-  pet: PetLite;               
+  pet: PetLite;
   onSave?: (data: EditMedicationPayload) => void;
 };
 

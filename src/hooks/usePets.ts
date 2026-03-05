@@ -1,85 +1,61 @@
-import { useState, useEffect } from 'react';
+import useSWR from 'swr';
 import type { Pet } from '@/types/domain/pet';
+import { authStorage, getPets, getPetDetail } from '@/services/api/client';
 
-interface UsePetsReturn {
-    pets: Pet[];
-    loading: boolean;
-    error: string | null;
-    refetch: () => Promise<void>;
+// ---------------------------------------------------------------------------
+// Shared SWR fetcher — reads token from authStorage at call time
+// ---------------------------------------------------------------------------
+function petsFetcher(): Promise<Pet[]> {
+    const token = authStorage.getToken();
+    if (!token) return Promise.resolve([]);
+    return getPets(token);
+}
+
+function petFetcher(petId: string): Promise<Pet | null> {
+    const token = authStorage.getToken();
+    if (!token) return Promise.resolve(null);
+    return getPetDetail(token, petId);
 }
 
 /**
- * Custom hook to fetch all pets for the current user
+ * Fetch all pets for the current user.
+ * SWR provides automatic deduplication — multiple components calling usePets()
+ * simultaneously will share a single in-flight request and a shared cache.
  */
-export function usePets(): UsePetsReturn {
-    const [pets, setPets] = useState<Pet[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // Get token from Auth Context
-    // We need to dynamically import or require useAuth to avoid circular deps if client uses it?
-    // client.ts uses authStorage not useAuth.
-    // But hooks can use hooks.
-
-    // Actually, let's just use authStorage for now to be safe, or import useAuth.
-    // Importing useAuth is fine.
-
-    const [token, setToken] = useState<string | null>(null);
-
-    useEffect(() => {
-        // We can't use useAuth inside the function if we didn't import it at top level.
-        // But let's assume valid token for now or check storage.
-        if (typeof window !== 'undefined') {
-            const { authStorage } = require('@/services/api/client');
-            const t = authStorage.getToken();
-            setToken(t);
+export function usePets() {
+    const { data, error, isLoading, mutate } = useSWR<Pet[]>(
+        'pets',
+        petsFetcher,
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 30_000, // 30 s — prevents duplicate fetches within window
         }
-    }, []);
+    );
 
-    const fetchPets = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            // If we are in real mode and have no token, we might fail.
-            // But fetchWithMock handles the mock case regardless of token if we pass a dummy one?
-            // client.getPets(token) needs a token string.
-
-            const { getPets, authStorage } = await import('@/services/api/client');
-
-            const currentToken = authStorage.getToken();
-            const tokenToUse = currentToken || '';
-
-            if (!tokenToUse) {
-                // If not mock and no token, we can't fetch.
-                // But maybe we just return empty or error.
-                // For now let's try to fetch, client will throw if 401.
-            }
-
-            const data = await getPets(tokenToUse);
-            setPets(data);
-
-        } catch (err) {
-            console.error('Error loading pets:', err);
-            setError(err instanceof Error ? err.message : 'Failed to load pets');
-        } finally {
-            setLoading(false);
-        }
+    return {
+        pets: data ?? [],
+        loading: isLoading,
+        error: error ? (error instanceof Error ? error.message : 'Failed to load pets') : null,
+        refetch: mutate,
     };
-
-    useEffect(() => {
-        fetchPets();
-    }, []);
-
-    return { pets, loading, error, refetch: fetchPets };
 }
 
 /**
- * Custom hook to fetch a single pet by ID
+ * Fetch a single pet by ID.
+ * Uses a dedicated SWR key so it does NOT load the full pet list.
+ * Falls back to searching the cached pets list if already available.
  */
-export function usePet(petId: number) {
-    const { pets, loading, error } = usePets();
-    const pet = pets.find((p) => p.pet_id === petId);
+export function usePet(petId: number | string | null) {
+    const id = petId ? String(petId) : null;
 
-    return { pet, loading, error, pets };
+    const { data, error, isLoading, mutate } = useSWR<Pet | null>(
+        id ? ['pet', id] : null, // null key = skip fetch
+        () => petFetcher(id!),
+        {
+            revalidateOnFocus: false,
+            dedupingInterval: 30_000,
+        }
+    );
+
+    return { pet: data ?? null, loading: isLoading, error, refetch: mutate };
 }

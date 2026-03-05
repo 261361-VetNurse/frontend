@@ -1,13 +1,16 @@
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Profile from "../../shared/Profile";
 import { ReminderCardStyle } from "@/styles/components/homepage.styled";
-import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import React from 'react';
+
+const CheckCircleIcon = () => <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 20, height: 20 }} />;
+const AccessTimeIcon = () => <Image width={24} height={24} src="/clock.svg" alt="time" style={{ width: 20, height: 20 }} />;
+const CalendarMonthIcon = () => <Image width={24} height={24} src="/calendar.svg" alt="calendar" style={{ width: 20, height: 20 }} />;
 import { DashboardNotification } from '@/types/domain/dashboard';
 import { getFrequencyLabel } from '@/components/pet-owners/MainPage/HomePage/MedicationDetailPopup';
 
+import Image from 'next/image';
 export type OccurrenceStatus = "pending" | "taken" | "missed";
 
 const getStatusIcon = (status: string) => {
@@ -59,8 +62,18 @@ export default function ReminderCard({
         <div className='flex flex-row gap-2 items-center'>
           <Profile imageUrl={datas.pet_image} size={petImageSize} isPet={true} />
           <div className="reminder-text">
-            <div className="med-name">{datas.medicine_name}</div>
-            <div className="med-dosage">{datas.dosage ? `${datas.dosage}` : ''}</div>
+            <div className="med-name">
+              {datas.medicine_name}
+              {datas.dosage && (
+                <span className="med-dosage-inline">
+                  {" "}
+                  {datas.dosage}
+                </span>
+              )}
+            </div>
+            <div className="pet-name">
+              {datas.pet_name}
+            </div>
           </div>
         </div>
         <div className="status-icon" aria-label={status}>

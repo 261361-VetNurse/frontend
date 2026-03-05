@@ -27,6 +27,6 @@ export interface UnifiedNotification {
     notification_at: string;
     is_read: boolean;
     status: string;
-    payload: any;
+    payload: { location?: string;[key: string]: unknown } | null;
     created_at: string;
 }

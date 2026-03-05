@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import Profile from "@/components/pet-owners/shared/Profile";
 import { DashboardAppointment } from "@/types";
+import Image from "next/image";
 
 const CardContainer = styled.div`
     width: 100%;
@@ -77,11 +78,11 @@ export default function AppointmentCard({
             <div className="name-location">
                 <div className="name">{datas.pet_name}</div>
                 <div className="data-row">
-                    <img className="data-icon" src="/location.svg" alt="location" />
+                    <Image className="data-icon" src="/location.svg" alt="location" width={16} height={16} />
                     <span className="data-text">{datas.location}</span>
                 </div>
                 <div className="data-row">
-                    <img className="data-icon" src="/calendar.svg" alt="calendar" />
+                    <Image className="data-icon" src="/calendar.svg" alt="calendar" width={16} height={16} />
                     <div className="data-text">{dateObj.toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: 'short',
@@ -89,7 +90,7 @@ export default function AppointmentCard({
                     })}</div>
                 </div>
                 <div className="data-row">
-                    <img className="data-icon" src="/clock.svg" alt="time" />
+                    <Image className="data-icon" src="/clock.svg" alt="time" width={16} height={16} />
                     <div className="data-text">{timeStr}</div>
                 </div>
             </div>

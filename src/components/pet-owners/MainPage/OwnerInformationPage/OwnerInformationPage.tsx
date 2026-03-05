@@ -1,7 +1,8 @@
 'use client';
 
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Image from "next/image";
+const ArrowBackIosNewIcon = () => <Image src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
+const InfoOutlinedIcon = () => <Image src="/info.svg" alt="info" style={{ width: 20, height: 20 }} />;
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import {
@@ -12,7 +13,6 @@ import {
   Header,
   Divider,
   AvatarWrapper,
-  AvatarImg,
   OwnerName,
   OwnerId,
   Section,
@@ -27,10 +27,6 @@ import {
 import { getUserProfile, authStorage } from '@/services/api/client';
 import SectionError from "@/components/pet-owners/shared/SectionError";
 import { Profile } from '@/components/shared';
-
-const DEFAULT_OWNER_PROFILE_IMAGE = '/Ava.svg';
-
-const DefaultImage = 'https://pub-3e437263844040f89f54d0fb123338fe.r2.dev/blank_pet_owner_profile_1x.webp';
 
 const OwnerInformationPage = () => {
   const router = useRouter();

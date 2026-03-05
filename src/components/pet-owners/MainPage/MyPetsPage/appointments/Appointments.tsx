@@ -18,7 +18,8 @@ import { usePets } from "@/hooks/usePets";
 import { useAppointments } from "@/hooks/useAppointments";
 import { getAppointmentDetail, createAppointment, authStorage } from "@/services/api/client";
 import AddAppointmentPopup from "@/components/pet-owners/shared/appointment/AddAppointmentPopup";
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import Image from "next/image";
+const AddRoundedIcon = () => <Image src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 
 import { QuickDialButton } from "@/components/shared";
 import { AddAppointmentPayload } from "@/types/api/appointment.dto";
@@ -102,7 +103,6 @@ export default function MyPetsAppointments() {
   const handleAdd = () => setShowCreatePopup(true);
   const handleClosePopup = () => setShowCreatePopup(false);
   const handleSubmitPopup = async (data: AddAppointmentPayload) => {
-    console.log("handleSubmitPopup called. Data:", data);
     try {
       const token = authStorage.getToken();
       if (!token) throw new Error("No token found");
@@ -194,13 +194,11 @@ export default function MyPetsAppointments() {
         open={!!detail}
         appointment={detail}
         onClose={() => setDetail(null)}
-        onEdit={(appt) => {
-          console.log("Edit clicked", appt);
+        onEdit={() => {
           setDetail(null);
           // implement edit if needed
         }}
-        onDelete={(id) => {
-          console.log("Delete clicked", id);
+        onDelete={() => {
           setDetail(null);
           // implement delete if needed
         }}
