@@ -54,7 +54,7 @@ export default function RecordDetailPopup({
           <Profile
             imageUrl={record.pet_image}
             alt={record.pet_name}
-            size="small"
+            size={50}
           />
         </div>
 

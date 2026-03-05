@@ -80,8 +80,10 @@ export default function MyPetsAppointments() {
       let status = a.status;
 
       // Check if "Upcoming" appointment is actually in the past
-      if (status === "Upcoming") {
-        const apptDate = new Date(a.appointment_date);
+      if (status !== "Canceled") {
+        const apptDate = a.appointment_time
+          ? new Date(`${a.appointment_date}T${a.appointment_time}`)
+          : new Date(a.appointment_date);
         if (apptDate < now) {
           status = "Completed";
         }

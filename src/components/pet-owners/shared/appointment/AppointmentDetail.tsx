@@ -36,6 +36,9 @@ export default function AppointmentDetail({
     ? appointment.appointment_time.slice(0, 5)
     : dateObj.format("HH:mm");
 
+  const isPast = dayjs(`${appointment.appointment_date} ${appointment.appointment_time || "00:00"}`).isBefore(dayjs());
+  const displayStatus = (appointment.status !== "Canceled" && isPast) ? "Completed" : appointment.status;
+
   return (
     <FormDialog
       open={open}
@@ -56,7 +59,7 @@ export default function AppointmentDetail({
           <Profile
             imageUrl={appointment.pet_image}
             alt={appointment.pet_name}
-            size="small"
+            size={50}
           />
         </div>
         <div className="min-w-0">
@@ -115,13 +118,13 @@ export default function AppointmentDetail({
         ) : null}
 
         {/* Status */}
-        {appointment.status ? (
+        {displayStatus ? (
           <div>
             <div className="text-sm font-medium text-zinc-800">
               Status
             </div>
             <div className="mt-1 text-sm text-zinc-700">
-              {appointment.status}
+              {displayStatus}
             </div>
           </div>
         ) : null}

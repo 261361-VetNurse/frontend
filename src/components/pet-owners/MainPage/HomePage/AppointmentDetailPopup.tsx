@@ -61,7 +61,18 @@ export default function AppointmentDetailPopup({
 }: AppointmentDetailPopupProps) {
     const d = new Date(appointment.appointment_date);
     const dateStr = d.toLocaleDateString("en-US", { day: '2-digit', month: '2-digit', year: 'numeric' });
-    const timeStr = d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false });
+    const timeStr = appointment.appointment_time || d.toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit', hour12: false });
+
+    // Dynamically computed status
+    let displayStatus = appointment.status;
+    if (displayStatus !== "Canceled") {
+        const apptDate = appointment.appointment_time
+            ? new Date(`${appointment.appointment_date}T${appointment.appointment_time}`)
+            : new Date(appointment.appointment_date);
+        if (apptDate < new Date()) {
+            displayStatus = "Completed";
+        }
+    }
     return (
         <FormDialog
             open={true}
@@ -111,12 +122,12 @@ export default function AppointmentDetailPopup({
                                 width: 12,
                                 height: 12,
                                 borderRadius: '50%',
-                                backgroundColor: appointment.status === 'Upcoming' ? '#4CAF50' : '#9E9E9E'
+                                backgroundColor: displayStatus === 'Upcoming' ? '#4CAF50' : '#9E9E9E'
                             }} />
                         </div>
                         <InfoText>
                             <span className="label">Status</span>
-                            <span className="value" style={{ textTransform: 'capitalize' }}>{appointment.status}</span>
+                            <span className="value" style={{ textTransform: 'capitalize' }}>{displayStatus}</span>
                         </InfoText>
                     </InfoRow>
                 </InfoSection>
