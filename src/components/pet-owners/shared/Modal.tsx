@@ -2,7 +2,7 @@
 
 import React from "react";
 import Button from "./Button";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 const Close = ({ className }: { className?: string }) => (
     <Image src="/cancel.svg" alt="close" className={className} style={{ width: 16, height: 16 }} />
 );

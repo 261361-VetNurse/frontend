@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/hooks/use-next-routing';
 
 export default function OwnersPage() {
   const router = useRouter();

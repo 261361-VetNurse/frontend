@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import Image from "next/image"
+import Image from '@/components/shared/Image'
 const ArrowBackIosNewIcon = () => <Image src="/back.svg" alt="back" style={{ width: 20, height: 20 }} />;
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/hooks/use-next-routing';
 import {
   Container,
   TopHeader,

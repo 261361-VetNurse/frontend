@@ -1,9 +1,9 @@
 "use client";
 
 import styled from "styled-components";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
+import { usePathname } from '@/hooks/use-next-routing';
+import { Link } from 'react-router-dom';
+import Image from '@/components/shared/Image';
 
 const NavBarStyle = styled.div`
   position: fixed;
@@ -65,7 +65,7 @@ export default function NavBar() {
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
-            <NavItem key={item.label} href={item.href}>
+            <NavItem key={item.label} to={item.href}>
               <div className="relative" style={{ width: "24px", height: "24px" }}>
                 <Image
                   src={isActive ? item.activeIcon : item.icon}

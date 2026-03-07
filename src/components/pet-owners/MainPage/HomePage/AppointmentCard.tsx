@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import Profile from "@/components/pet-owners/shared/Profile";
 import { DashboardAppointment } from "@/types";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 
 const CardContainer = styled.div`
     width: 100%;

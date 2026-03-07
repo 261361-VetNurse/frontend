@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from '@/hooks/use-next-routing';
 import dayjs from "dayjs";
 
 import { Page as CalendarPageLayout } from "@/styles/components/calendar.styled";
@@ -60,7 +60,7 @@ const AssignmentIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) 
 );
 import { theme } from "@/styles/tokens/theme";
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 /* ─────────────── helpers ─────────────── */
 function pad2(n: number) {
     return String(n).padStart(2, "0");

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 const Add = ({ fontSize, className }: { fontSize?: string; className?: string }) => (
   <Image src="/add-new.svg" alt="add" className={className} style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
 );

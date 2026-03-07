@@ -1,9 +1,8 @@
-"use client";
 
 import { useState, useRef, ChangeEvent, DragEvent } from "react";
 import { Box, Button, Typography, CircularProgress, IconButton } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import { theme } from "@/styles/tokens/theme";
 
 interface ImageUploadProps {
@@ -81,7 +80,6 @@ export default function ImageUpload({
                 setPreview(dataUrl);
 
                 // Simulate successful upload with data URL
-                console.log('[MOCK] Image uploaded:', file.name, file.size, 'bytes');
                 onImageUploaded(dataUrl);
                 setUploading(false);
             };

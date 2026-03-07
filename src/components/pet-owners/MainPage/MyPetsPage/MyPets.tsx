@@ -4,7 +4,7 @@ import OwnerHeaderCard from "@/components/pet-owners/MainPage/MyPetsPage/OwnerHe
 import StatCard from "@/components/pet-owners/MainPage/MyPetsPage/StatCard";
 import NewPetButton from "@/components/pet-owners/shared/NewPet";
 import PetCard from "@/components/pet-owners/MainPage/MyPetsPage/PetCard";
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 
 import { getUserProfile, getPets, authStorage } from "@/services/api/client";
 import { useState, useEffect } from "react";
@@ -60,7 +60,8 @@ export default function MyPets() {
       setLoading(false);
     };
     init();
-  }, [router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount — router is a new object every render so must NOT be a dep
 
   const allPetsCount = pets.length;
   const inMedicalCount = pets.filter((pet) => pet.in_medical).length;

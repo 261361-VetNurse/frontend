@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 import IconButton from "@mui/material/IconButton";
 // SVG icon wrapper replacing MUI icon
 const AddIcon = ({ sx }: { sx?: { fontSize?: number } }) => (
@@ -8,7 +8,7 @@ const AddIcon = ({ sx }: { sx?: { fontSize?: number } }) => (
 );
 import { theme } from "@/styles/tokens/theme";
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 export default function NewPetButton() {
     const router = useRouter();
 

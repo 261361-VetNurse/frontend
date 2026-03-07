@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/hooks/use-next-routing';
 import { PrimaryButton } from '@/components/pet-owners/shared/form/PrimaryButton';
 import {
     RegisterContainer,

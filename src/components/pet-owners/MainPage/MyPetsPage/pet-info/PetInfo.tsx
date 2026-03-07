@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter } from '@/hooks/use-next-routing';
 // import { usePet } from "@/hooks"; // Removed hook
 import { Pet } from "@/types/domain/pet";
 import TopBar from "@/components/pet-owners/layout/TopBar";

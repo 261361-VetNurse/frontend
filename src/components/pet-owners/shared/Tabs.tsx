@@ -1,7 +1,7 @@
 "use client"
 
 import styled from "styled-components";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from '@/hooks/use-next-routing';
 
 const TabStyled = styled.nav`
     width: 100%;

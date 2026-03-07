@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import Profile from "../Profile";
 import { FormDialog } from "../FormDialog";
 import { SymptomRecord } from "@/types/domain/symptom";

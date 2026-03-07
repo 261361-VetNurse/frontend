@@ -2,7 +2,7 @@
 
 import Profile from "@/components/pet-owners/shared/Profile";
 
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 
 type OwnerHeaderCardProps = {
   name: string;

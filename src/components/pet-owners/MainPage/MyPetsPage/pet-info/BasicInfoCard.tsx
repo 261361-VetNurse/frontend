@@ -1,7 +1,7 @@
 "use client";
 
 import dayjs from "dayjs";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import InfoRow from "./InfoRow";
 import { Pet } from "@/types/domain/pet";
 import { formatAge } from "@/lib/pets/age";

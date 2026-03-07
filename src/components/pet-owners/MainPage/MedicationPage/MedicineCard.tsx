@@ -24,7 +24,7 @@ import ListItemText from '@mui/material/ListItemText';
 import { NotificationItem } from '@/types/domain/medication';
 import { Profile } from '@/components/shared';
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 export type OccurrenceStatus = 'pending' | 'taken' | 'missed' | 'sent';
 
 export interface ValidatedTimeSlot {

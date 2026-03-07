@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="VetNurse — Pet health management for pet owners" />
+    <title>VetNurse App</title>
+
+    <!-- Preconnect to Google Fonts origins to reduce DNS + TLS overhead -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!--
+        Non-blocking font load:
+        - media="print" makes the browser load the stylesheet without blocking render.
+        - onload switches media to "all" once loaded, activating the font.
+        - <noscript> provides a blocking fallback for JS-disabled environments.
+    -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=K2D:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+        media="print"
+        onload="this.media='all'"
+    />
+    <noscript>
+        <link
+            href="https://fonts.googleapis.com/css2?family=K2D:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+    </noscript>
+</head>
+
+<body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

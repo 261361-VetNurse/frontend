@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams, useRouter } from '@/hooks/use-next-routing';
 import {
   Page,
   Header,
@@ -25,7 +25,7 @@ import { getMedicationStatus } from "@/utils/medicationStatus";
 import { usePets } from '@/hooks';
 
 // API
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 import {
   authStorage,
   getMedications,

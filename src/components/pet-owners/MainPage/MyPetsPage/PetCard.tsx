@@ -1,9 +1,9 @@
 "use client";
 
 import Profile from "@/components/pet-owners/shared/Profile";
-import { useRouter } from "next/navigation";
+import { useRouter } from '@/hooks/use-next-routing';
 import { Pet } from "@/types/domain/pet";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 
 function formatAge(birthDateISO: string) {
   const birth = new Date(birthDateISO);
@@ -43,7 +43,7 @@ export default function PetCard({ pet }: { pet: Pet }) {
             <Profile imageUrl={pet.profile_image} size={56} isPet={true} shape="circle" />
             {pet.in_medical && (
               <div className="absolute bottom-1 right-0 z-10 bg-white rounded-full">
-                <Image src="/medical-symbol red.svg" alt="Medical" width={20} height={20} />
+                <Image src="/medical-symbol-red.svg" alt="Medical" width={20} height={20} />
               </div>
             )}
           </div>

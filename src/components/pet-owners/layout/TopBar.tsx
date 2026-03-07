@@ -1,7 +1,7 @@
 "use client";
 
 import { BackButton } from '@/styles/components/shared-component.styled';
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 
 export default function PetInfoTopBar({
   title,

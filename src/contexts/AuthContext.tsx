@@ -1,5 +1,3 @@
-"use client";
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@/types/domain/user";
 import { getCurrentUser, authStorage } from "@/services/api/client";
@@ -14,54 +12,70 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// In dev (Vite dev server) we talk directly to the backend and keep the JWT in
+// localStorage — same as the original flow, no BFF required.
+// In production the Hono BFF is in front and we use HttpOnly cookies instead.
+const IS_PROD = import.meta.env.PROD;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Initialize from storage or dev fake auth
     useEffect(() => {
         const initAuth = async () => {
-            const storedToken = authStorage.getToken();
-
-            if (!storedToken) {
-                // No token in localStorage — clear any stale cookie and redirect to login
-                // (cookie may have outlived localStorage if user cleared DevTools storage)
-                document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
-                setIsLoading(false);
-                const isPublic = window.location.pathname.startsWith('/pet-owners/login-page')
-                    || window.location.pathname.startsWith('/auth');
-                if (!isPublic) {
-                    window.location.href = `/pet-owners/login-page?from=${encodeURIComponent(window.location.pathname)}`;
-                }
-                return;
-            }
-
-            // Backfill the auth cookie for users who logged in before middleware was introduced
-            setToken(storedToken);
-            document.cookie = `auth-token=${storedToken}; path=/; SameSite=Strict; max-age=${60 * 60 * 24 * 7}`;
             try {
-                const userData = await getCurrentUser(storedToken);
-                setUser(userData);
-            } catch (error) {
-                // Check if we're on the register page — new users have a valid token
-                // but no profile yet, so getCurrentUser will fail with 404/403.
-                // Don't clear token or redirect in that case.
-                const onRegisterPage = window.location.pathname.startsWith('/pet-owners/register-page');
-                if (onRegisterPage) {
-                    // Token is valid but profile not yet created — let register page proceed
-                    setIsLoading(false);
-                    return;
+                if (IS_PROD) {
+                    // ── Production: restore session from HttpOnly cookie via BFF ──
+                    const res = await fetch('/api/auth/session', { credentials: 'include' });
+                    if (!res.ok) {
+                        const isPublic =
+                            window.location.pathname.startsWith('/pet-owners/login-page') ||
+                            window.location.pathname.startsWith('/auth') ||
+                            window.location.pathname.startsWith('/pet-owners/register-page');
+                        if (!isPublic) {
+                            window.location.href = `/pet-owners/login-page?from=${encodeURIComponent(window.location.pathname)}`;
+                        }
+                        return;
+                    }
+                    const { user: userData, token: sessionToken } = await res.json();
+                    setUser(userData);
+                    setToken(sessionToken);
+                } else {
+                    // ── Development: restore session from localStorage ────────────
+                    const storedToken = authStorage.getToken();
+                    if (!storedToken) {
+                        const isPublic =
+                            window.location.pathname.startsWith('/pet-owners/login-page') ||
+                            window.location.pathname.startsWith('/auth');
+                        if (!isPublic) {
+                            window.location.href = `/pet-owners/login-page?from=${encodeURIComponent(window.location.pathname)}`;
+                        }
+                        return;
+                    }
+                    setToken(storedToken);
+                    try {
+                        const userData = await getCurrentUser(storedToken);
+                        setUser(userData);
+                    } catch {
+                        const onRegisterPage = window.location.pathname.startsWith('/pet-owners/register-page');
+                        if (onRegisterPage) return;
+                        authStorage.removeToken();
+                        setToken(null);
+                        window.location.href = '/pet-owners/login-page';
+                        return;
+                    }
                 }
-                console.error("Failed to restore user session:", error);
-                authStorage.removeToken();
-                document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
-                setToken(null);
-                // Token was invalid/expired — kick to login
-                window.location.href = '/pet-owners/login-page';
-                return;
+            } catch {
+                const isPublic =
+                    window.location.pathname.startsWith('/pet-owners/login-page') ||
+                    window.location.pathname.startsWith('/auth');
+                if (!isPublic) {
+                    window.location.href = '/pet-owners/login-page';
+                }
+            } finally {
+                setIsLoading(false);
             }
-            setIsLoading(false);
         };
 
         initAuth();
@@ -70,16 +84,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const login = async (newToken: string) => {
         setIsLoading(true);
         try {
-            authStorage.setToken(newToken);
-            setToken(newToken);
-            const userData = await getCurrentUser(newToken);
-            setUser(userData);
-            // Set auth cookie so the Edge middleware can gate routes
-            // (localStorage is not accessible server-side)
-            document.cookie = `auth-token=${newToken}; path=/; SameSite=Strict; max-age=${60 * 60 * 24 * 7}`; // 7 days
+            if (IS_PROD) {
+                // Production: BFF sets the HttpOnly cookie
+                const res = await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ token: newToken }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || 'Session creation failed');
+                }
+                const { user: userData } = await res.json();
+                setUser(userData);
+                setToken(newToken);
+            } else {
+                // Development: store token in localStorage, fetch user directly
+                authStorage.setToken(newToken);
+                setToken(newToken);
+                const userData = await getCurrentUser(newToken);
+                setUser(userData);
+            }
         } catch (error) {
-            console.error("Login failed:", error);
-            authStorage.removeToken();
+            if (!IS_PROD) authStorage.removeToken();
             setToken(null);
             setUser(null);
             throw error;
@@ -88,12 +116,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     };
 
-    const logout = () => {
-        authStorage.clear();
+    const logout = async () => {
+        if (IS_PROD) {
+            try {
+                await fetch('/api/auth/session', { method: 'DELETE', credentials: 'include' });
+            } catch { /* best-effort */ }
+        } else {
+            authStorage.clear();
+        }
         setToken(null);
         setUser(null);
-        // Clear the auth cookie
-        document.cookie = 'auth-token=; path=/; SameSite=Strict; max-age=0';
         window.location.href = '/pet-owners/login-page';
     };
 

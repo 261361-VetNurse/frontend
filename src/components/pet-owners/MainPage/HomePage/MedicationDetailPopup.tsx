@@ -7,7 +7,7 @@ import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import React from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
 
-import Image from 'next/image';
+import Image from '@/components/shared/Image';
 // SVG icon wrappers replacing MUI icons
 const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
   <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />

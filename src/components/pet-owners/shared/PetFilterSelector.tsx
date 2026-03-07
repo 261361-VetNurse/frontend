@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
+import Image from '@/components/shared/Image';
 import { PetLite } from "@/types/domain/pet";
 import Profile from "@/components/pet-owners/shared/Profile";
 
