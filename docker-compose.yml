@@ -3,14 +3,24 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_LINE_CLIENT_ID: ${VITE_LINE_CLIENT_ID}
+        VITE_WEB_URL: ${VITE_WEB_URL}
+        VITE_LINE_REDIRECT_PATH: ${VITE_LINE_REDIRECT_PATH:-/auth/callback}
+        VITE_R2_PUBLIC_URL: ${VITE_R2_PUBLIC_URL}
     image: vetnurse-frontend:latest
-    container_name: vetnurse-frontend
+    container_name: vetnurse-frontend-local
     restart: unless-stopped
+    env_file:
+      - ./.env
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:3000"
     environment:
       - NODE_ENV=production
+      - PORT=3000
       - NODE_OPTIONS=--max-old-space-size=512
+      - BACKEND_URL=${BACKEND_URL:-http://host.docker.internal:8000}
       # ── Backend API ──────────────────────────────────────────────
       - VITE_API_URL=${VITE_API_URL}
       # ── LINE Login ───────────────────────────────────────────────
@@ -23,6 +33,15 @@ services:
       - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
       - R2_BUCKET_NAME=${R2_BUCKET_NAME}
       - VITE_R2_PUBLIC_URL=${VITE_R2_PUBLIC_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     deploy:
       resources:
         limits:
