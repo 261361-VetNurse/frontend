@@ -8,7 +8,7 @@ const CheckCircleIcon = () => <Image width={24} height={24} src="/complete.svg" 
 const AccessTimeIcon = () => <Image width={24} height={24} src="/clock.svg" alt="time" style={{ width: 20, height: 20 }} />;
 const CalendarMonthIcon = () => <Image width={24} height={24} src="/calendar.svg" alt="calendar" style={{ width: 20, height: 20 }} />;
 import { DashboardNotification } from '@/types/domain/dashboard';
-import { getFrequencyLabel } from '@/components/pet-owners/MainPage/HomePage/MedicationDetailPopup';
+import { getFrequencyLabel } from '@/components/pet-owners/MainPage/MedicationPage/MedicationDetailPopup';
 
 import Image from '@/components/shared/Image';
 export type OccurrenceStatus = "pending" | "taken" | "missed";

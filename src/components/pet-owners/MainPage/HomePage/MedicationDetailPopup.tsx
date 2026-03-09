@@ -6,7 +6,7 @@ import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import React from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
-
+import { getFrequencyLabel } from '@/components/pet-owners/MainPage/MedicationPage/MedicationDetailPopup';
 import Image from '@/components/shared/Image';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -40,24 +40,6 @@ const getStatusMeta = (status: string) => {
       return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
   }
 };
-
-export const getFrequencyLabel = (freq: string | number): string => {
-  const f = String(freq).toLowerCase();
-  switch (f) {
-    case '-1':
-    case 'everyday':
-      return 'Everyday';
-    case '0': return 'Monday';
-    case '1': return 'Tuesday';
-    case '2': return 'Wednesday';
-    case '3': return 'Thursday';
-    case '4': return 'Friday';
-    case '5': return 'Saturday';
-    case '6': return 'Sunday';
-    default: return String(freq);
-  }
-};
-
 
 export default function MedicationDetailPopup({
   noti,

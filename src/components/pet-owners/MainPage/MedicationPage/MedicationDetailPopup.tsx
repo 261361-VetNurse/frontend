@@ -45,21 +45,27 @@ const getStatusMeta = (status: OccurrenceStatus) => {
       return { label: 'Take', Icon: RadioButtonUncheckedIcon };
   }
 };
-const getFrequencyLabel = (freq: string | number): string => {
-  const f = String(freq).toLowerCase();
-  switch (f) {
-    case '-1':
-    case 'everyday':
-      return 'Everyday';
-    case '0': return 'Monday';
-    case '1': return 'Tuesday';
-    case '2': return 'Wednesday';
-    case '3': return 'Thursday';
-    case '4': return 'Friday';
-    case '5': return 'Saturday';
-    case '6': return 'Sunday';
-    default: return String(freq);
-  }
+
+export const getFrequencyLabel = (freq: string | number): string => {
+  const freqString = String(freq).toLowerCase().trim();
+  if (!freqString) return '';
+
+  return freqString.split(',').map((f) => {
+    const trimmed = f.trim();
+    switch (trimmed) {
+      case '-1':
+      case 'everyday':
+        return 'Everyday';
+      case '0': return 'Mon';
+      case '1': return 'Tue';
+      case '2': return 'Wed';
+      case '3': return 'Thu';
+      case '4': return 'Fri';
+      case '5': return 'Sat';
+      case '6': return 'Sun';
+      default: return trimmed;
+    }
+  }).join(', ');
 };
 
 export default function MedicationDetailPopup({
@@ -137,7 +143,7 @@ export default function MedicationDetailPopup({
 
         <ScheduleSection>
           <div className='schedule-title'>Schedule Information</div>
-          <div className='px-4'>
+          <div className='px-2 gap-4'>
             <div className='schedule-info'>
               <div className='info-row'>
                 <div className='info-label'>Frequency:</div>
@@ -153,7 +159,6 @@ export default function MedicationDetailPopup({
               <div className='info-value'>{medicineReminder.created_at || medicineReminder.start_date}</div>
             </div>
           </div>
-
         </ScheduleSection>
 
         <RemindersSection >
