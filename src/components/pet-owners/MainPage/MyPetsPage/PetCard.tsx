@@ -5,22 +5,7 @@ import { useRouter } from '@/hooks/use-next-routing';
 import { Pet } from "@/types/domain/pet";
 import Image from '@/components/shared/Image';
 
-function formatAge(birthDateISO: string) {
-  const birth = new Date(birthDateISO);
-  const now = new Date();
-
-  if (Number.isNaN(birth.getTime())) return "-";
-
-  let months =
-    (now.getFullYear() - birth.getFullYear()) * 12 +
-    (now.getMonth() - birth.getMonth());
-
-  if (!Number.isFinite(months) || months < 0) months = 0;
-
-  if (months < 12) return `${months} months`;
-  const years = Math.floor(months / 12);
-  return `${years} years`;
-}
+import { formatAge } from "@/lib/pets/age";
 
 export default function PetCard({ pet }: { pet: Pet }) {
   const ageText = formatAge(pet.birth_date || "");

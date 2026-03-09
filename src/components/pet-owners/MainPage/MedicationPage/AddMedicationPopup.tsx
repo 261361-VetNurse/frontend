@@ -7,16 +7,12 @@ const Add = ({ fontSize }: { fontSize?: string }) => (
   <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: fontSize === 'small' ? 18 : 24, height: fontSize === 'small' ? 18 : 24 }} />
 );
 import { theme } from '@/styles/tokens/theme';
-
-
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import PetFilterSelector from '@/components/pet-owners/shared/PetFilterSelector';
 import { PetLite } from '@/types/domain/pet';
 import { createMedicine, authStorage } from '@/services/api/client';
 import { AddMedicationPayload } from '@/types/api/medication.dto';
 import { scanMedication } from '@/services/api/client';
-
-
 
 import Image from '@/components/shared/Image';
 const Row = styled.div`
@@ -377,7 +373,7 @@ export default function CreateMedicationPopup({
           onChange={(id) => setPetId(id)}
         />
 
-        <FormField label="Scan Medication">
+        {/* <FormField label="Scan Medication">
           <input
             type="file"
             accept="image/*"
@@ -438,7 +434,7 @@ export default function CreateMedicationPopup({
               </>
             )}
           </div>
-        </FormField>
+        </FormField> */}
 
         <Row>
           <FormField label="Medicine Name" htmlFor="medicine-name-input">

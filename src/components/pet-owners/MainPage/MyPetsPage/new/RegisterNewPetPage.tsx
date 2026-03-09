@@ -30,7 +30,7 @@ export default function RegisterNewPetPage() {
   const [inMedical, setInMedical] = useState<boolean>(false);
 
   const [weight, setWeight] = useState<string>("");
-  const [allergiesInput, setAllergiesInput] = useState("");
+  const [note, setNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ===== Computed =====
@@ -119,11 +119,21 @@ export default function RegisterNewPetPage() {
                 Species
               </label>
               <input
+                list="species-list-register"
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-                placeholder="cat"
+                placeholder="e.g. Cat, Dog"
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
               />
+              <datalist id="species-list-register">
+                <option value="Cat" />
+                <option value="Dog" />
+                <option value="Bird" />
+                <option value="Rabbit" />
+                <option value="Fish" />
+                <option value="Reptile" />
+                <option value="Small Rodent" />
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1.5">
@@ -224,13 +234,13 @@ export default function RegisterNewPetPage() {
           {/* Allergies */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1.5">
-              Allergies
+              Note
             </label>
             <input
               className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
               placeholder="e.g. Chicken, Beef, Dust (comma separated)"
-              value={allergiesInput}
-              onChange={(e) => setAllergiesInput(e.target.value)}
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
             />
           </div>
         </div>

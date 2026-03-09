@@ -8,6 +8,10 @@ import React from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
 
 import Image from '@/components/shared/Image';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
+
 // SVG icon wrappers replacing MUI icons
 const CheckCircleIcon = ({ style }: { style?: React.CSSProperties }) => (
   <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 16, height: 16, ...style }} />
@@ -65,9 +69,9 @@ export default function MedicationDetailPopup({
   const formatTakenTime = (updatedAt: string | undefined) => {
     // Assuming updated_at is the taken time if status is taken
     if (!updatedAt) return '';
-    const date = new Date(updatedAt);
+    const date = dayjs.utc(updatedAt).local();
     return `Taken at ${formatTimeForDisplay(
-      `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+      `${date.hour().toString().padStart(2, '0')}:${date.minute().toString().padStart(2, '0')}`
     )}`;
   };
 
@@ -76,8 +80,8 @@ export default function MedicationDetailPopup({
     const { label, Icon } = getStatusMeta(status);
 
     // const notifDate = new Date(notification._at);
-    const notiDate = new Date(noti.notification_at);
-    const timeStr = `${notiDate.getHours().toString().padStart(2, '0')}:${notiDate.getMinutes().toString().padStart(2, '0')}`;
+    const notiDate = dayjs(noti.notification_at);
+    const timeStr = `${notiDate.hour().toString().padStart(2, '0')}:${notiDate.minute().toString().padStart(2, '0')}`;
 
     return (
       <ReminderItem

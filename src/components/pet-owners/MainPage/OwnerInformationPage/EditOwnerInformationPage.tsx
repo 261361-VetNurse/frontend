@@ -30,7 +30,6 @@ const EditOwnerInformationPage = () => {
     gender: 'male',
     phone: '',
     email: '',
-    line_id: ''
   });
 
   const genderOptions = [
@@ -47,10 +46,9 @@ const EditOwnerInformationPage = () => {
         setFormData({
           firstName: user.fname || '',
           lastName: user.lname || '',
-          gender: user.gender || 'male',
+          gender: user.gender || '',
           phone: user.phone || '',
           email: user.email || '',
-          line_id: user.line_id || ''
         });
         if (user.picture_url) {
           setProfilePicture(user.picture_url);
@@ -89,7 +87,6 @@ const EditOwnerInformationPage = () => {
         gender: formData.gender,
         phone: formData.phone,
         email: formData.email,
-        line_id: formData.line_id,
         picture_url: profilePicture
       };
 
@@ -169,14 +166,6 @@ const EditOwnerInformationPage = () => {
             type="email"
             value={formData.email}
             onChange={(e) => handleInputChange('email', e.target.value)}
-          />
-        </FormField>
-
-        <FormField label="Line ID" htmlFor="line_id">
-          <TextInput
-            id="line_id"
-            value={formData.line_id}
-            onChange={(e) => handleInputChange('line_id', e.target.value)}
           />
         </FormField>
 

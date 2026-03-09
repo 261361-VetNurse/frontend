@@ -23,6 +23,8 @@ import SectionError from "@/components/pet-owners/shared/SectionError";
 import { getMedicationStatus } from "@/utils/medicationStatus";
 
 import Image from '@/components/shared/Image';
+import dayjs from "dayjs";
+
 export default function HomePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -336,11 +338,11 @@ export default function HomePage() {
 
               // PRIORITY: Use notification_at to get the LOCAL time
               if (noti.notification_at) {
-                const dateObj = new Date(noti.notification_at);
-                if (!isNaN(dateObj.getTime())) {
+                const dateObj = dayjs(noti.notification_at);
+                if (dateObj.isValid()) {
                   // Get local hours and minutes
-                  const hours = dateObj.getHours().toString().padStart(2, '0');
-                  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+                  const hours = dateObj.hour().toString().padStart(2, '0');
+                  const minutes = dateObj.minute().toString().padStart(2, '0');
                   timeStr = `${hours}:${minutes}`;
                 }
               }

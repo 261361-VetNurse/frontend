@@ -13,11 +13,13 @@ import NotificationCard from "./NotificationCard";
 import SectionError from "@/components/pet-owners/shared/SectionError";
 
 import isTomorrow from "dayjs/plugin/isTomorrow";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(relativeTime);
 dayjs.extend(isToday);
 dayjs.extend(isYesterday);
 dayjs.extend(isTomorrow);
+dayjs.extend(utc);
 
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<UnifiedNotification[]>([]);
@@ -102,10 +104,10 @@ export default function NotificationsPage() {
         const now = dayjs();
 
         // Sort by Date Desc
-        const sorted = [...notifications].sort((a, b) => dayjs(b.notification_at).diff(dayjs(a.notification_at)));
+        const sorted = [...notifications].sort((a, b) => dayjs.utc(b.notification_at).diff(dayjs.utc(a.notification_at)));
 
         sorted.forEach(n => {
-            const d = dayjs(n.notification_at);
+            const d = dayjs.utc(n.notification_at).local();
             const diffMinutes = d.diff(now, 'minute');
 
             if (diffMinutes > 15) {
@@ -128,11 +130,11 @@ export default function NotificationsPage() {
 
         // Group upcoming notifications (Group the future)
         // Usually upcoming shows nearest first.
-        const upcomingSorted = [...upcoming].sort((a, b) => dayjs(a.notification_at).diff(dayjs(b.notification_at)));
+        const upcomingSorted = [...upcoming].sort((a, b) => dayjs.utc(a.notification_at).diff(dayjs.utc(b.notification_at)));
 
         const upcomingGroupsMap: { [key: string]: UnifiedNotification[] } = {};
         upcomingSorted.forEach(n => {
-            const d = dayjs(n.notification_at);
+            const d = dayjs.utc(n.notification_at).local();
             let key = d.format("D MMM YYYY");
             if (d.isTomorrow()) key = "Tomorrow";
             if (d.isToday()) key = "Today"; // Should not happen for > 15 mins, but for 0-15 mins it is Today.
@@ -142,7 +144,7 @@ export default function NotificationsPage() {
         });
 
         const uniqueUpcomingKeys = Array.from(new Set(upcomingSorted.map(n => {
-            const d = dayjs(n.notification_at);
+            const d = dayjs.utc(n.notification_at).local();
             if (d.isTomorrow()) return "Tomorrow";
             if (d.isToday()) return "Today";
             return d.format("D MMM YYYY");
@@ -173,47 +175,6 @@ export default function NotificationsPage() {
                         />
                     ) : (
                         <>
-                            {/* Upcoming Section (Grouped) */}
-                            {upcomingGroups.length > 0 && (
-                                <section className="mt-6 mb-3 flex flex-col items-end w-full">
-                                    <button
-                                        onClick={() => setShowHistory(!showHistory)}
-                                        className="flex items-center text-gray-400 text-[12px] font-medium mb-3 ml-1 uppercase tracking-wider hover:text-gray-600 transition-colors"
-                                    >
-                                        Upcoming
-                                        <svg
-                                            className={`w-3 h-3 ml-1 transition-transform ${showHistory ? 'rotate-180' : ''}`}
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                        </svg>
-                                    </button>
-
-                                    {showHistory && (
-                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 w-full duration-200">
-                                            {upcomingGroups.map((group) => (
-                                                <div key={group.title}>
-                                                    <h3 className="text-gray-400 text-[11px] font-medium mb-2 ml-1 opacity-70">
-                                                        {group.title}
-                                                    </h3>
-                                                    <div className="space-y-3">
-                                                        {group.items.map((n, index) => (
-                                                            <NotificationCard
-                                                                key={`upcoming-${n.type}-${n.notification_id}-${index}`}
-                                                                item={n}
-                                                                onClick={() => handleNotificationClick(n)}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </section>
-                            )}
-
                             {/* Today Section */}
                             <section>
                                 <h2 className="flex items-center text-gray-400 text-[12px] font-medium mb-3 ml-1 uppercase tracking-wider hover:text-gray-600 transition-colors">
@@ -221,7 +182,7 @@ export default function NotificationsPage() {
                                 </h2>
                                 {todayNotifications.length === 0 ? (
                                     <div className="text-center text-gray-400 py-4 text-sm bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                        No notifications today
+                                        No Notification for Today
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
@@ -252,10 +213,6 @@ export default function NotificationsPage() {
                                         ))}
                                     </div>
                                 </section>
-                            )}
-
-                            {todayNotifications.length === 0 && upcomingGroups.length === 0 && historyNotifications.length === 0 && (
-                                <div className="text-center text-gray-400 mt-10">No notifications</div>
                             )}
                         </>
                     )}

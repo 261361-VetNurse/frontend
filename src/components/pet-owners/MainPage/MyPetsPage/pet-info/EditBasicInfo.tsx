@@ -47,7 +47,6 @@ export default function EditBasicInfo() {
   );
   const [sex, setSex] = useState<Sex>((currentPet?.gender as Sex) ?? "Unknown");
   const [weight, setWeight] = useState(currentPet?.weight_kg ?? "");
-  const [infecund, setInfecund] = useState<boolean>(currentPet?.infecund ?? false);
   const [inMedical, setInMedical] = useState<boolean>(currentPet?.in_medical ?? false);
   const [note, setNote] = useState(currentPet?.note ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,7 +68,6 @@ export default function EditBasicInfo() {
       setDob(currentPet.birth_date ? dayjs(currentPet.birth_date).format("YYYY-MM-DD") : "");
       setSex((currentPet.gender as Sex) ?? "Unknown");
       setWeight(currentPet.weight_kg ?? "");
-      setInfecund(currentPet.infecund ?? false);
       setInMedical(currentPet.in_medical ?? false);
       setNote(currentPet.note ?? "");
     }
@@ -96,7 +94,6 @@ export default function EditBasicInfo() {
       birth_date: dob,
       gender: sex,
       weight_kg: typeof weight === 'string' ? (weight.trim() === "" ? null : Number(weight)) : weight,
-      infecund: infecund,
       in_medical: inMedical,
       note: note,
       profile_image: avatarUrl,
@@ -166,10 +163,21 @@ export default function EditBasicInfo() {
                 Species
               </label>
               <input
+                list="species-list"
                 className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
                 value={species}
                 onChange={(e) => setSpecies(e.target.value)}
+                placeholder="e.g. Cat, Dog"
               />
+              <datalist id="species-list">
+                <option value="Cat" />
+                <option value="Dog" />
+                <option value="Bird" />
+                <option value="Rabbit" />
+                <option value="Fish" />
+                <option value="Reptile" />
+                <option value="Small Rodent" />
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-zinc-800 mb-1">
@@ -232,33 +240,6 @@ export default function EditBasicInfo() {
                 onChange={(e) => setWeight(e.target.value)}
                 placeholder="e.g. 4.5"
               />
-            </div>
-          </div>
-
-          {/* Infecund (Sterile) */}
-          <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-2">
-              Infecund
-            </label>
-            <div className="flex gap-6">
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input
-                  type="radio"
-                  checked={infecund === true}
-                  onChange={() => setInfecund(true)}
-                  className="accent-sky-500 w-4 h-4"
-                />
-                Yes
-              </label>
-              <label className="flex items-center gap-2 text-sm text-zinc-800 cursor-pointer">
-                <input
-                  type="radio"
-                  checked={infecund === false}
-                  onChange={() => setInfecund(false)}
-                  className="accent-sky-500 w-4 h-4"
-                />
-                No
-              </label>
             </div>
           </div>
 

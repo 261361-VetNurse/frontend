@@ -8,6 +8,9 @@ import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
 import { getMedicationStatus } from '@/utils/medicationStatus';
 import React, { useState, useEffect } from 'react';
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 
 import Image from '@/components/shared/Image';
 // SVG icon wrappers replacing MUI icons
@@ -100,9 +103,9 @@ export default function MedicationDetailPopup({
 
   const formatTakenTime = (takenAt?: string) => {
     if (!takenAt) return '';
-    const date = new Date(takenAt);
+    const date = dayjs.utc(takenAt).local();
     return `Taken at ${formatTimeForDisplay(
-      `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
+      `${date.hour().toString().padStart(2, '0')}:${date.minute().toString().padStart(2, '0')}`
     )}`;
   };
 

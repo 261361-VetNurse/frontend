@@ -25,6 +25,8 @@ const getStatusIcon = (status: string) => {
   }
 };
 
+import dayjs from "dayjs";
+
 export type ReminderBoxProps = {
   datas: DashboardNotification;
   petImageSize?: number;
@@ -36,9 +38,9 @@ export default function ReminderCard({
   petImageSize = 40,
   onClick,
 }: ReminderBoxProps) {
-  const dateObj = new Date(datas.notification_at);
-  const hours = dateObj.getHours().toString().padStart(2, '0');
-  const minutes = dateObj.getMinutes().toString().padStart(2, '0');
+  const dateObj = dayjs(datas.notification_at);
+  const hours = dateObj.hour().toString().padStart(2, '0');
+  const minutes = dateObj.minute().toString().padStart(2, '0');
   const timeStr = `${hours}:${minutes}`;
 
   const status = datas.status || 'pending';

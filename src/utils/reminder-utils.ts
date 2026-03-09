@@ -26,13 +26,11 @@ export function getTodayInLocalTimezone(): Date {
 }
 
 /**
- * Format time for display (HH:mm -> 12-hour)
+ * Format time for display (HH:mm -> 24-hour)
  */
 export function formatTimeForDisplay(timeStr: string): string {
   const [hours, minutes] = timeStr.split(":").map(Number);
-  const period = hours >= 12 ? "PM" : "AM";
-  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  return `${displayHours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 }
 
 export function buildOccurrencesForDate(
