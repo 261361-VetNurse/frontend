@@ -64,15 +64,12 @@ export default function AddAppointmentPopup({
     if (onSubmit && pet) {
       setIsSubmitting(true);
       try {
-        // Create date as UTC to prevent timezone shifting
-        const [y, m, d] = date.split("-").map(Number);
-        const [h, min] = time.split(":").map(Number);
-
-        const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
+        // Send Thai time directly with +07:00 offset — backend stores as-is
+        const appointmentDate = `${date}T${time}:00+07:00`;
 
         onSubmit({
           pet_id: Number(pet.pet_id),
-          appointment_date: appointmentDate.toISOString(),
+          appointment_date: appointmentDate,
           location: location.trim(),
           note: note.trim(),
           status: "Upcoming"
