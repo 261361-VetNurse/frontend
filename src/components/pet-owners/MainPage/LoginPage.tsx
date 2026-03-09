@@ -5,12 +5,8 @@ import { useRouter } from '@/hooks/use-next-routing';
 import { PrimaryButton } from '@/components/pet-owners/shared/form/PrimaryButton';
 import {
     RegisterContainer,
-    RegisterCard,
-    Header,
-    Title,
     Subtitle,
 } from '@/styles/components/register.styled';
-
 import { useAuth } from '@/contexts/AuthContext';
 import { redirectToLineLogin } from '@/services/line-liff';
 
@@ -104,13 +100,28 @@ export default function LoginPage() {
 
     return (
         <RegisterContainer>
-            <RegisterCard>
-                <Header>
-                    <Title>Authenticating</Title>
-                    <Subtitle>
-                        {loading ? 'Processing...' : error ? 'Error' : 'Redirecting...'}
-                    </Subtitle>
-                </Header>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '24px', gap: '16px' }}>
+                {!error && (
+                    <>
+                        <style>{`
+                            @keyframes spin {
+                                0% { transform: rotate(0deg); }
+                                100% { transform: rotate(360deg); }
+                            }
+                        `}</style>
+                        <div style={{
+                            width: '28px',
+                            height: '28px',
+                            border: '3px solid #e5e7eb',
+                            borderTop: '3px solid #6b7280',
+                            borderRadius: '50%',
+                            animation: 'spin 0.8s linear infinite',
+                        }} />
+                    </>
+                )}
+                <Subtitle style={{ textAlign: 'center' }}>
+                    {error ? 'Login failed' : 'Logging in...'}
+                </Subtitle>
 
                 {error && (
                     <div style={{
@@ -118,54 +129,28 @@ export default function LoginPage() {
                         padding: '12px',
                         borderRadius: '8px',
                         backgroundColor: '#fee2e2',
-                        marginBottom: '16px',
                         textAlign: 'center',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        width: '100%',
+                        maxWidth: '400px'
                     }}>
                         {error}
                     </div>
                 )}
 
                 {error && (
-                    <PrimaryButton
-                        size="md"
-                        type="button"
-                        onClick={handleLoginClick}
-                        disabled={loading}
-                    >
-                        {loading ? 'Processing...' : 'Try Again'}
-                    </PrimaryButton>
-                )}
-
-                {/* --- Dev Login Section --- */}
-                <div className="mt-6 pt-6 border-t border-zinc-100">
-                    <div className="text-xs text-center text-zinc-400 mb-3 uppercase tracking-wider font-medium">
-                        Developer Access
-                    </div>
-                    <div className="flex gap-2">
-                        <input
-                            type="text"
-                            placeholder="Enter Code / Token ex.DEV_TEST_CODE"
-                            className="flex-1 h-10 px-3 rounded-lg border border-zinc-200 text-sm outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
-                            value={devCode}
-                            onChange={(e) => setDevCode(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter' && devCode) {
-                                    handleDevLogin();
-                                }
-                            }}
-                        />
-                        <button
+                    <div style={{ width: '100%', maxWidth: '400px' }}>
+                        <PrimaryButton
+                            size="md"
                             type="button"
-                            onClick={handleDevLogin}
-                            disabled={loading || !devCode}
-                            className="h-10 px-4 rounded-lg bg-zinc-800 text-white text-sm font-medium hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            onClick={handleLoginClick}
+                            disabled={loading}
                         >
-                            Enter
-                        </button>
+                            {loading ? 'Processing...' : 'Try Again'}
+                        </PrimaryButton>
                     </div>
-                </div>
-            </RegisterCard>
-        </RegisterContainer >
+                )}
+            </div>
+        </RegisterContainer>
     );
 }

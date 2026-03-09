@@ -1,34 +1,13 @@
 import styled from 'styled-components';
 
 export const RegisterContainer = styled.div`
-  height: fit-content;
+  height: 100vh;
   width: 100%;
   background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-`;
-
-export const RegisterCard = styled.div`
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  padding: 24px;
-  gap: 36px;
-`;
-
-export const Header = styled.div`
-  text-align: center;
-  gap: 4px;
-`;
-
-export const Title = styled.h1`
-  font-size: 32px;
-  font-weight: 700;
-  color: #111827;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
 `;
 
 export const Subtitle = styled.p`

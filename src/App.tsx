@@ -3,6 +3,31 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 
 import PageSkeleton from '@/components/shared/PageSkeleton';
 
+function LoginFallback() {
+    return (
+        <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center',
+            justifyContent: 'center', height: '100vh', width: '100%',
+            backgroundColor: '#ffffff', fontFamily: 'K2D, system-ui, sans-serif', gap: '16px',
+        }}>
+            <style>{`
+                @keyframes login-spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
+            <div style={{
+                width: '28px', height: '28px',
+                border: '3px solid #e5e7eb', borderTop: '3px solid #6b7280',
+                borderRadius: '50%', animation: 'login-spin 0.8s linear infinite',
+            }} />
+            <p style={{ margin: 0, fontSize: '18px', color: '#6b7280', fontWeight: 400 }}>
+                Logging in...
+            </p>
+        </div>
+    );
+}
+
 // ── Layout (not lazy — small, always needed) ─────────────────────────────────
 import PetOwnersLayout from './app/(liff)/pet-owners/layout';
 
@@ -47,7 +72,7 @@ export default function App() {
                     <Route path="/pet-owners" element={<PetOwnersLayout><Outlet /></PetOwnersLayout>}>
                         <Route index element={<Navigate to="home-page" replace />} />
 
-                        <Route path="login-page" element={<LoginPage />} />
+                        <Route path="login-page" element={<Suspense fallback={<LoginFallback />}><LoginPage /></Suspense>} />
                         <Route path="register-page" element={<RegisterPage />} />
 
                         <Route path="home-page" element={<HomePage />} />
