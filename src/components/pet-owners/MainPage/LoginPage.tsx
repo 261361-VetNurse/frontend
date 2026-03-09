@@ -57,9 +57,16 @@ export default function LoginPage() {
 
         if (token && !authLoading) {
             handleTokenCallback(token);
+            return;
+        }
+
+        // Auto-login trigger
+        if (!user && !token && !authError && !authLoading && !pageLoading) {
+            setPageLoading(true);
+            redirectToLineLogin();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router, user, authLoading]);
+    }, [router, user, authLoading, pageLoading]);
 
     const handleTokenCallback = async (
         token: string,
@@ -99,9 +106,9 @@ export default function LoginPage() {
         <RegisterContainer>
             <RegisterCard>
                 <Header>
-                    <Title>Login</Title>
+                    <Title>Authenticating</Title>
                     <Subtitle>
-                        {loading ? 'Processing...' : error ? 'Error' : 'Welcome!'}
+                        {loading ? 'Processing...' : error ? 'Error' : 'Redirecting...'}
                     </Subtitle>
                 </Header>
 
@@ -119,14 +126,16 @@ export default function LoginPage() {
                     </div>
                 )}
 
-                <PrimaryButton
-                    size="md"
-                    type="button"
-                    onClick={handleLoginClick}
-                    disabled={loading}
-                >
-                    {loading ? 'Loading...' : 'Login With Line'}
-                </PrimaryButton>
+                {error && (
+                    <PrimaryButton
+                        size="md"
+                        type="button"
+                        onClick={handleLoginClick}
+                        disabled={loading}
+                    >
+                        {loading ? 'Processing...' : 'Try Again'}
+                    </PrimaryButton>
+                )}
 
                 {/* --- Dev Login Section --- */}
                 <div className="mt-6 pt-6 border-t border-zinc-100">
