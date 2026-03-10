@@ -9,7 +9,6 @@ import EditMedicationPopup from '../../MedicationPage/EditMedicationPopup';
 import MedicineCard from '../../MedicationPage/MedicineCard';
 import Image from '@/components/shared/Image';
 import { Medicine } from '@/types/domain/medication';
-
 import { authStorage, getMedicinesByPet, deleteMedicine } from '@/services/api/client';
 import { usePets } from '@/hooks';
 import { CardList } from "@/styles/components/medication.styled";
@@ -65,14 +64,15 @@ export default function MedicationPageV2() {
 
         const mappedData: Medicine[] = data.map((item) => ({
           medicine_id: item.medicine_id,
-          pet_id: item.pet_id,
+          pet_id: item.pet_id ?? selectedPetId, // backend by-pet endpoint doesn't always return pet_id
           name: item.name,
           dosage: item.dosage,
           frequency: item.frequency,
           reminder_time: item.reminder_time || [],
           start_date: item.start_date,
           end_date: item.end_date,
-          status: item.status === 'TAKE' ? 'active' : 'stopped',
+          // Map TAKE/STOP from backend to active/stopped; also treat is_deleted as stopped
+          status: (item.is_deleted === true || item.status === 'STOP') ? 'stopped' : 'active',
           properties: item.properties,
           image_urls: item.image_urls,
           notes: item.notes
@@ -170,6 +170,7 @@ export default function MedicationPageV2() {
             {medicineReminders.map((med) => (
               <MedicineCard
                 key={med.medicine_id}
+                isStopped={med.status === 'stopped'}
                 data={{
                   notification_id: med.medicine_id, // Use medicine_id as fallback
                   medicine_id: med.medicine_id,
@@ -192,8 +193,8 @@ export default function MedicationPageV2() {
                   setEditingReminder(med);
                 }}
                 onToggleTaken={() => { }} // Disable for general list
-                onEdit={() => setEditingReminder(med)}
-                onDelete={() => handleDeleteFromCard(String(med.medicine_id))}
+                onEdit={med.status === 'stopped' ? undefined : () => setEditingReminder(med)}
+                onDelete={med.status === 'stopped' ? undefined : () => handleDeleteFromCard(String(med.medicine_id))}
               />
             ))}
           </CardList>

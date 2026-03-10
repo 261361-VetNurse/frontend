@@ -173,8 +173,23 @@ export default function MedicationPage() {
   // Grouping Logic Removed - API returns grouped data
   const groupedMedicines = useMemo(() => {
     // Just filter by pet if needed
-    if (selectedPetId === 0) return medicineNoti;
-    return medicineNoti.filter(m => m.pet_id === selectedPetId);
+    let filtered = medicineNoti;
+
+    // Check if the API now returns status/is_deleted (we need them in the backend to filter here)
+    // Assuming backend returns status and is_deleted as part of GroupedMedicineNotification
+    filtered = filtered.filter(m => {
+      // @ts-ignore - Assuming these fields are added to the backend
+      const isDeleted = m.is_deleted === true;
+      // @ts-ignore - Assuming status is present
+      const isStopped = m.status === 'STOP';
+
+      return !isDeleted && !isStopped;
+    });
+
+    if (selectedPetId !== 0) {
+      filtered = filtered.filter(m => m.pet_id === selectedPetId);
+    }
+    return filtered;
   }, [medicineNoti, selectedPetId]);
   const handlePetSelect = (petId: number | null) => {
     setSelectedPetId(petId || 0);
@@ -353,7 +368,7 @@ export default function MedicationPage() {
                 handleToggleReminder(Number(reminderId))
               }
               onEdit={() => handleEditFromCard(med.medicine_id)}
-              onDelete={() => handleDelete(med.reminders[0]?.notification_id.toString() || '', med.medicine_id.toString())}
+              onDelete={() => handleDelete(med.reminders[0]?.notification_id?.toString() || '', med.medicine_id.toString())}
             />
           ))
         ) : (
