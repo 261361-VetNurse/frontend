@@ -190,7 +190,6 @@ const ReasonInput = styled.textarea`
   border: 1px solid #e0e0e0;
   padding: 8px;
   font-size: 14px;
-  margin-top: 8px;
   resize: vertical;
   
   &:focus {
@@ -210,7 +209,7 @@ type ReminderTime = {
 type EditMedicationPopupProps = {
   open: boolean;
   onClose: () => void;
-  medicineReminder?: (Medicine & { medicine_name?: string; medicine_dosage?: string; medicine_frequency?: string; notification_id?: number; _id?: string }) | null;
+  medicineReminder?: Medicine | null;
   pets: Pet[];
   onSuccess: () => void;
 };
@@ -243,12 +242,17 @@ export default function EditMedicationPopup({
   useEffect(() => {
     if (medicineReminder) {
       setPetId(medicineReminder.pet_id || null);
-      setMedicineName(medicineReminder.name || medicineReminder.medicine_name || '');
-      setDosage(medicineReminder.dosage || medicineReminder.medicine_dosage || '');
+
+      // medicineReminder could be a Medicine or a NotificationDetail
+      // Check for both 'name' and 'medicine_name'
+      const nameVal = medicineReminder.name || (medicineReminder as any).medicine_name || '';
+      setMedicineName(nameVal);
+
+      setDosage(medicineReminder.dosage || '');
 
       // Parse frequency
       // Frequency is likely "-1" (daily) or "0,1,2" (days)
-      const freqKey = String(medicineReminder.frequency || medicineReminder.medicine_frequency || '-1');
+      const freqKey = String(medicineReminder.frequency || (medicineReminder as any).medicine_frequency || '-1');
       if (freqKey === '-1' || freqKey === 'everyday') {
         setIsEveryday(true);
         setSelectedDays([]);
@@ -269,7 +273,7 @@ export default function EditMedicationPopup({
 
       // Reminders
       const currentReminders = (medicineReminder.reminder_time || []).map((t: string, idx: number) => ({
-        id: `${medicineReminder.notification_id || medicineReminder.medicine_id}_${t}_${idx}`, // Unique ID
+        id: `${(medicineReminder as any).notification_id || medicineReminder.medicine_id}_${t}_${idx}`, // Unique ID
         time: t,
         is_taken: false,
         taken_at: undefined,
@@ -279,10 +283,14 @@ export default function EditMedicationPopup({
 
       setReminders(currentReminders);
 
-      setIsStopped(medicineReminder.status === 'STOP');
-      // Notes or properties might store reason? Schema doesn't specify reason field clearly in Medicine type but might be in 'properties' or 'notes'.
-      // For now, leave empty
-      setStopReason('');
+      const isStatusStopped = medicineReminder.status === 'STOP' || medicineReminder.status === 'stopped';
+      setIsStopped(isStatusStopped);
+
+      if (isStatusStopped && medicineReminder.notes && medicineReminder.notes.length > 0) {
+        setStopReason(medicineReminder.notes[medicineReminder.notes.length - 1] || '');
+      } else {
+        setStopReason('');
+      }
     }
   }, [medicineReminder]);
 
@@ -368,7 +376,6 @@ export default function EditMedicationPopup({
       const token = authStorage.getToken() || "";
 
       const payload = {
-        pet_id: selectedPet.pet_id,
         name: medicineName,
         dosage: dosage,
         frequency: frequencyVal,
@@ -379,7 +386,11 @@ export default function EditMedicationPopup({
       };
 
       // Use medicine_id if available (EachDayMedicine), else _id (Medicine) for the medicine ID argument
-      const targetMedicineId = medicineReminder.medicine_id || medicineReminder._id;
+      const targetMedicineId = medicineReminder.medicine_id || (medicineReminder as any)._id || (medicineReminder as any).id;
+
+      if (!targetMedicineId) {
+        throw new Error("Unable to determine Medicine ID to edit.");
+      }
       await editMedicine(token, String(targetMedicineId), payload);
       // Note: usage of (token, notificationId, medicineId, data). 
       // Using _id for both notification and medicine ID as per prior assumption. However, for Edit, usually we edit the Medicine definition.

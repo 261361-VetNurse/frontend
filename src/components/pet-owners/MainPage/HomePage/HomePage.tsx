@@ -180,31 +180,41 @@ export default function HomePage() {
     }
   };
 
-  /* Handler: Toggle Reminder Status in Popup */
-  const handleToggleReminder = async (reminderId: string, isTaken: boolean) => {
-    // API Call Only (Pessimistic Update)
+  /* Handler: Mark Reminder as Taken (Optimistic Update) */
+  const handleToggleReminder = async (reminderId: string, _isTaken: boolean) => {
     try {
-      if (reminderId) {
+      if (reminderId && data) {
+        // Find the actual notification to get its true numeric ID
+        const notiObj = data.medicines_notifications.find(n => n.notification_id.toString() === reminderId);
+        if (!notiObj) return;
+
+        const nowIso = new Date().toISOString();
+
+        // --- 1. OPTIMISTIC UI UPDATE (Instant Feedback) ---
+        if (selectedNotification && selectedNotification.notification_id.toString() === reminderId) {
+          setSelectedNotification({ ...selectedNotification, istaken: true, status: 'taken', taken_at: nowIso });
+        }
+
+        const updatedNotifications = data.medicines_notifications.map(noti =>
+          noti.notification_id.toString() === reminderId
+            ? { ...noti, istaken: true, status: 'taken', taken_at: nowIso }
+            : noti
+        );
+        setData({ ...data, medicines_notifications: updatedNotifications });
+
+        // --- 2. API Call ---
         const token = authStorage.getToken() || "";
-        // 1. Send API Request
-        await markMedicationTaken(token, Number(reminderId));
+        // Try notification_id first, fallback to reminderId if notification_id is missing
+        const idToUpdate = notiObj.notification_id ? Number(notiObj.notification_id) : Number(reminderId);
 
-        // 2. Update local state ONLY after successful API response
-        if (selectedNotification && selectedNotification._id === reminderId) {
-          setSelectedNotification({ ...selectedNotification, istaken: isTaken, status: isTaken ? 'taken' : 'pending' });
-        }
+        await markMedicationTaken(token, idToUpdate);
 
-        if (data) {
-          const updatedNotifications = data.medicines_notifications.map(noti =>
-            noti._id === reminderId
-              ? { ...noti, istaken: isTaken, status: isTaken ? 'taken' : 'pending' }
-              : noti
-          );
-          setData({ ...data, medicines_notifications: updatedNotifications });
-        }
+        // --- 3. Refetch to guarantee sync (like MedicationPage) ---
+        await fetchDashboard();
       }
     } catch (err) {
       console.warn("[API] Failed to update medication status:", err);
+      // We could revert the optimistic update here if needed
       alert("Failed to update status. Please try again.");
     }
   };

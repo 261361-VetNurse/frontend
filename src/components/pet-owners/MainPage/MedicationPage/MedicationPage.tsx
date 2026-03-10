@@ -121,16 +121,15 @@ export default function MedicationPage() {
             });
             setEditingReminder(null);
           }
-        } else if (popupParam === 'edit-medication' && medicineId) {
-          // For editing, we might need medicine details directly or notification details. 
-          // The existing code used getMedicationNotificationDetail with medId which seems wrong if medId is passed.
-          // But let's assume getMedicationNotificationDetail can take a generic ID or we use the right API.
-          // Re-using existing logic: "getMedicationNotificationDetail(token, medId)" was used for edit.
-          // Let's verify existing logic: handleEditFromCard uses medId to fetch detail ??
-          const detail = await getMedicationNotificationDetail(token, Number(medicineId)); // Assuming API handles this
-          if (detail) {
-            setEditingReminder(detail);
-            setSelectedReminder(null);
+        } else if (popupParam === 'edit-medication' && (notificationId || medicineId)) {
+          // Editing requires getting detail. In the new logic, we prefer using notificationId to fetch the latest reminder detail
+          const detailId = notificationId || (medicineId ? Number(medicineId) : 0);
+          if (detailId) {
+            const detail = await getMedicationNotificationDetail(token, detailId);
+            if (detail) {
+              setEditingReminder(detail);
+              setSelectedReminder(null);
+            }
           }
         }
       } catch (e) {
@@ -226,15 +225,16 @@ export default function MedicationPage() {
     }
   };
 
-  const handleEditFromCard = async (medId: number) => {
+  const handleEditFromCard = async (notiId: number, medId: number) => {
     try {
       const token = authStorage.getToken() || "";
-      const detail = await getMedicationNotificationDetail(token, medId);
+      const detail = await getMedicationNotificationDetail(token, notiId);
       setEditingReminder(detail);
 
       const params = new URLSearchParams(searchParams.toString());
       params.set('popup', 'edit-medication');
       params.set('med_id', medId.toString());
+      params.set('noti_id', notiId.toString());
       router.push(`?${params.toString()}`);
     } catch (e) {
       console.error(e);
@@ -249,10 +249,11 @@ export default function MedicationPage() {
       // Transition to Edit URL
       const params = new URLSearchParams(searchParams.toString());
       params.set('popup', 'edit-medication');
-      // Assuming we have medicine ID from somewhere or use noti_id? 
-      // The previous logic used getMedicationNotificationDetail(token, medId) for edit 
-      // BUT `selectedReminder.medicineReminder` might be what we need.
-      // Ideally we need a medicine ID. Let's assume medicineReminder has it.
+      // Use noti_id to fetch detail if available, or fall back to medicine id. But since we use getMedicationNotificationDetail, noti_id is best.
+      const notiId = (selectedReminder.medicineReminder as any).notification_id;
+      if (notiId) {
+        params.set('noti_id', notiId.toString());
+      }
       if (selectedReminder.medicineReminder?.medicine_id) {
         params.set('med_id', selectedReminder.medicineReminder.medicine_id.toString());
       }
@@ -367,7 +368,10 @@ export default function MedicationPage() {
               onToggleTaken={(reminderId: string | number) =>
                 handleToggleReminder(Number(reminderId))
               }
-              onEdit={() => handleEditFromCard(med.medicine_id)}
+              onEdit={() => {
+                const firstId = med.reminders[0]?.notification_id;
+                if (firstId) handleEditFromCard(firstId, med.medicine_id);
+              }}
               onDelete={() => handleDelete(med.reminders[0]?.notification_id?.toString() || '', med.medicine_id.toString())}
             />
           ))
