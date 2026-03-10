@@ -67,7 +67,25 @@ export default function BasicInfoCard({
         <InfoRow label="Weight (kg)" value={petInfo.weight_kg ?? "-"} />
         <InfoRow label="In Medical" value={petInfo.in_medical ? "Yes" : "No"} />
         <div className="col-span-2">
-          <InfoRow label="Note" value={petInfo.note} />
+          <div className="text-xs text-zinc-500">Note</div>
+          <div className="mt-1">
+            {(() => {
+              const raw = Array.isArray(petInfo.note)
+                ? petInfo.note.join("\n")
+                : petInfo.note ?? "";
+              const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+              if (lines.length === 0) return <span className="text-sm font-medium text-zinc-900">-</span>;
+              return (
+                <div>
+                  {lines.map((line, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm font-medium text-zinc-900 ">
+                      <span>{line}</span>
+                    </div>
+                  ))}
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>

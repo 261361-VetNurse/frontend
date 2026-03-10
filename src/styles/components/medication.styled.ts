@@ -192,14 +192,14 @@ export const ScheduleSection = styled.div`
   .schedule-info {
     display: flex;
     flex-direction: row;
-    gap: 4px;
+    gap: 8px;
     justify-content: space-between; 
   }
 
   .info-row {
     display: flex;
     flex-direction: column; 
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: flex-start;
     font-size: 14px;
     .info-label {

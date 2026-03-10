@@ -143,7 +143,7 @@ export default function MedicationDetailPopup({
 
         <ScheduleSection>
           <div className='schedule-title'>Schedule Information</div>
-          <div className='px-4'>
+          <div className='px-2 gap-4'>
             <div className='schedule-info'>
               <div className='info-row'>
                 <div className='info-label'>Frequency:</div>
@@ -159,7 +159,6 @@ export default function MedicationDetailPopup({
               <div className='info-value'>{medicineReminder.created_at || medicineReminder.start_date}</div>
             </div>
           </div>
-
         </ScheduleSection>
 
         <RemindersSection >

@@ -574,6 +574,7 @@ function UnifiedCalendarPageContent() {
                 open={openAddRec}
                 onClose={closeAll}
                 allPets={petOptions}
+                initialDate={selectedIso}
                 initialPetId={selectedPetId || null}
                 onSubmit={handleCreateRec}
             />

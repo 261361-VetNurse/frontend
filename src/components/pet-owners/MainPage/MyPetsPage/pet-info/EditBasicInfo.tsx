@@ -275,8 +275,8 @@ export default function EditBasicInfo() {
             <label className="block text-sm font-medium text-zinc-800 mb-1">
               Note
             </label>
-            <input
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200"
+            <textarea
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 min-h-[80px]"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="e.g. allergies, medical conditions, notes"

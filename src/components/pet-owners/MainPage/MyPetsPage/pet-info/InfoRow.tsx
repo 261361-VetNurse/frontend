@@ -9,7 +9,7 @@ export default function InfoRow({
     <div>
       <div className="text-xs text-zinc-500">{label}</div>
       <div className="mt-1 text-sm font-medium text-zinc-900">
-        {value ?? "-"}
+        {Array.isArray(value) ? (value.length > 0 ? value.join(", ") : "-") : (value ?? "-")}
       </div>
     </div>
   );

@@ -49,6 +49,7 @@ type Props = {
 
   onEdit?: () => void;
   onDelete?: () => void;
+  isStopped?: boolean;
 };
 
 function getStatusMeta(status: OccurrenceStatus) {
@@ -70,6 +71,7 @@ export default function MedicineCard({
   onOpenDetail,
   onEdit,
   onDelete,
+  isStopped: isStoppedProp,
 }: Props) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -100,7 +102,7 @@ export default function MedicineCard({
   const petImageUrl = data.pet_image || undefined;
   const medicineName = data.medicine_name || 'Unknown Medicine';
   const dosage = data.dosage || '';
-  const isStopped = false; // NotificationDetail doesn't have a status field for stopped
+  const isStopped = isStoppedProp ?? false;
 
   // Use groupedTimes if available, otherwise fall back to original logic (though parent should provide groupedTimes now)
   const displayTimes = groupedTimes || (data.reminder_time || []).map((t) => ({
@@ -121,6 +123,11 @@ export default function MedicineCard({
       }}
       aria-label={`${petName} ${medicineName}`}
     >
+      {isStopped && (
+        <div style={{ position: 'absolute', top: 12, right: 16, zIndex: 1 }}>
+          <StoppedTag>Stopped</StoppedTag>
+        </div>
+      )}
       <MainRow>
         <Left>
           <Profile
@@ -132,7 +139,6 @@ export default function MedicineCard({
             <PetName>{petName}</PetName>
             <MedName $disabled={!!isStopped}>{medicineName}</MedName>
             {dosage ? <Dosage $disabled={!!isStopped}>{dosage}</Dosage> : null}
-            {isStopped ? <StoppedTag>Stopped</StoppedTag> : null}
           </Info>
         </Left>
         {(onEdit || onDelete) && (
@@ -210,6 +216,7 @@ export default function MedicineCard({
 }
 
 const Card = styled.div<{ $disabled: boolean }>`
+  position: relative;
   width: 100%;
   background: #fff;
   border-radius: 16px;

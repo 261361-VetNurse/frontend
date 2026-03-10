@@ -4,9 +4,10 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { PetSection, MedicineSection, ScheduleSection, RemindersSection, ReminderItem, StatusButton } from '@/styles/components/medication.styled';
 import Profile from '../../shared/Profile';
 import { FormDialog } from '@/components/pet-owners/shared/FormDialog';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { DashboardNotification } from '@/types/domain/dashboard';
 import { getFrequencyLabel } from '@/components/pet-owners/MainPage/MedicationPage/MedicationDetailPopup';
+import { getMedicationStatus } from '@/utils/medicationStatus';
 import Image from '@/components/shared/Image';
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
@@ -37,7 +38,7 @@ const getStatusMeta = (status: string) => {
       return { label: 'Missed', Icon: ErrorOutlineIcon };
     case 'pending':
     default:
-      return { label: 'Pending', Icon: RadioButtonUncheckedIcon };
+      return { label: 'Take', Icon: RadioButtonUncheckedIcon };
   }
 };
 
@@ -47,6 +48,25 @@ export default function MedicationDetailPopup({
   onToggleReminder,
   onEdit,
 }: MedicationDetailPopupProps) {
+
+  // Local state for instant optimistic UI update
+  const [localNoti, setLocalNoti] = useState<DashboardNotification>(noti);
+
+  useEffect(() => {
+    setLocalNoti(noti);
+  }, [noti]);
+
+  const handleToggle = () => {
+    // 1. Instant local update
+    setLocalNoti(prev => ({
+      ...prev,
+      istaken: true,
+      status: 'taken',
+      taken_at: new Date().toISOString()
+    }));
+    // 2. Trigger parent update / API call
+    onToggleReminder(noti.notification_id.toString(), true);
+  };
 
   const formatTakenTime = (updatedAt: string | undefined) => {
     // Assuming updated_at is the taken time if status is taken
@@ -58,31 +78,37 @@ export default function MedicationDetailPopup({
   };
 
   const renderNotification = () => {
-    const status = noti.status || 'pending';
-    const { label, Icon } = getStatusMeta(status);
-
-    // const notifDate = new Date(notification._at);
-    const notiDate = dayjs(noti.notification_at);
+    const notiDate = dayjs(localNoti.notification_at);
     const timeStr = `${notiDate.hour().toString().padStart(2, '0')}:${notiDate.minute().toString().padStart(2, '0')}`;
+
+    // Compute status: if already taken trust it; otherwise calculate pending/missed from time
+    let status = localNoti.istaken ? 'taken' : 'pending';
+    if (status !== 'taken') {
+      status = getMedicationStatus(timeStr, false, localNoti.notification_at);
+    }
+
+    const { label, Icon } = getStatusMeta(status);
+    const isTaken = status === 'taken';
 
     return (
       <ReminderItem
-        key={noti._id}
+        key={localNoti._id}
       >
         <div className='reminder-time'>{formatTimeForDisplay(timeStr)}</div>
 
         <div className='reminder-status'>
           <StatusButton
-            $status={noti.status || 'pending'}
-            onClick={() => onToggleReminder(noti._id, !noti.istaken)}
-            title={noti.status || 'pending'}
+            $status={status}
+            onClick={() => !isTaken && handleToggle()}
+            title={label}
+            disabled={isTaken}
           >
             <Icon style={{ width: 16, height: 16 }} />
             <span>{label}</span>
           </StatusButton>
 
-          {noti.istaken && (
-            <div className='taken-time'>{formatTakenTime(noti.taken_at)}</div>
+          {isTaken && localNoti.taken_at && (
+            <div className='taken-time'>{formatTakenTime(localNoti.taken_at)}</div>
           )}
         </div>
       </ReminderItem>

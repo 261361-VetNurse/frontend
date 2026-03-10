@@ -16,6 +16,7 @@ type AddSymptomPopupProps = {
   onClose: () => void;
   onSubmit?: (data: AddSymptomPayloadDTO) => void;
   allPets: PetLite[];
+  initialDate?: string;
   initialPetId?: number | null;
 };
 
@@ -41,6 +42,7 @@ export default function AddSymptomPopup({
   onSubmit,
   allPets,
   initialPetId,
+  initialDate,
 }: AddSymptomPopupProps) {
   const MAX_FILES = 4;
 
@@ -72,7 +74,7 @@ export default function AddSymptomPopup({
       setSelectedPetId(initialPetId || 0);
       const today = new Date();
       const localDateIso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString();
-      setDate(localDateIso.split('T')[0]);
+      setDate(initialDate || localDateIso.split('T')[0]);
       setTime(localDateIso.split('T')[1].substring(0, 5));
       setNote("");
       setFiles([]);
