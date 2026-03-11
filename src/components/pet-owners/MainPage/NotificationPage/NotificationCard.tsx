@@ -19,7 +19,7 @@ export default function NotificationCard({ item, onClick }: { item: UnifiedNotif
       <div className="flex-grow">
         <div className="flex justify-between items-start">
           <h3 className={`text-gray-800 font-bold text-[14px] ${!item.is_read ? 'text-blue-700' : ''}`}>{item.title}</h3>
-          <span className="text-[10px] text-gray-400 font-normal">{dayjs.utc(item.notification_at).local().fromNow()}</span>
+          <span className="text-[10px] text-gray-400 font-normal">{dayjs(item.notification_at).fromNow()}</span>
         </div>
         {/* Payload details if needed, e.g. location for appointments */}
         {item.type === 'appointment' && item.payload?.location && (
