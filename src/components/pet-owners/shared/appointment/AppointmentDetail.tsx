@@ -13,7 +13,7 @@ type Props = {
   onClose: () => void;
   onEdit?: (appt: Appointment) => void;
   onDelete?: (id: number) => void;
-  onAddToCalendar?: (appt: Appointment) => void;
+  onAddToCalendar?: (appt: Appointment, type: "google" | "local") => void;
   triggerParam?: string;
   triggerValue?: string;
 };
@@ -133,14 +133,29 @@ export default function AppointmentDetail({
 
         {/* Add to Calendar */}
         {onAddToCalendar && (
-          <Button
-            variant="secondary"
-            shape="pill"
-            fullWidth
-            onClick={() => onAddToCalendar(appointment)}
-          >
-            Add to Calendar
-          </Button>
+          <div className="pt-2">
+            <div className="text-sm font-medium text-zinc-800 mb-2">
+              Add to Calendar
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                variant="secondary"
+                shape="pill"
+                fullWidth
+                onClick={() => onAddToCalendar(appointment, "google")}
+              >
+                Google
+              </Button>
+              <Button
+                variant="secondary"
+                shape="pill"
+                fullWidth
+                onClick={() => onAddToCalendar(appointment, "local")}
+              >
+                Apple/Local
+              </Button>
+            </div>
+          </div>
         )}
       </div>
     </FormDialog >

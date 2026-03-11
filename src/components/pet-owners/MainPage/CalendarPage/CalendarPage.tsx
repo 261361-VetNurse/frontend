@@ -49,7 +49,7 @@ import { Appointment } from "@/types/domain/appointment";
 import { SymptomRecord } from "@/types/domain/symptom";
 import { AddAppointmentPayload } from "@/types/api/appointment.dto";
 import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
-import { exportICS } from "@/utils/exportICS";
+import { addToGoogleCalendar, downloadICS } from "@/utils/addToCalendar";
 
 const AddIcon = () => <Image width={24} height={24} src="/add-new.svg" alt="add" style={{ width: 24, height: 24, filter: 'brightness(0) invert(1)' }} />;
 const EventNoteIcon = ({ sx }: { sx?: { color?: string; fontSize?: number } }) => (
@@ -584,10 +584,17 @@ function UnifiedCalendarPageContent() {
                 onClose={closeAll}
                 onEdit={(a) => { setApptDetail(null); openEditAppt(a); }}
                 onDelete={handleDeleteAppt}
-                onAddToCalendar={(a) => {
-                    const start = dayjs(`${a.appointment_date} ${a.appointment_time}`).toDate();
+                onAddToCalendar={(a, type) => {
+                    const datePart = dayjs(a.appointment_date).format("YYYY-MM-DD");
+                    const timePart = a.appointment_time ? a.appointment_time.slice(0, 5) : "00:00";
+                    const start = dayjs(`${datePart}T${timePart}:00`).toDate();
                     const end = dayjs(start).add(1, "hour").toDate();
-                    exportICS({ title: `${a.pet_name} Appointment`, description: `Pet ID: ${a.pet_id}`, location: a.location, start, end });
+                    const appt = { title: `${a.pet_name} Appointment`, description: `Pet ID: ${a.pet_id}`, location: a.location, start, end };
+                    if (type === "google") {
+                        addToGoogleCalendar(appt);
+                    } else {
+                        downloadICS(appt);
+                    }
                 }}
             />
             <EditAppointment
