@@ -30,7 +30,7 @@ export default function PetOwnersLayout({
           justifyContent: "center",
         }}
       >
-        <Container>
+        <Container hasNavBar={shouldShowNavbar}>
           <div key={pathname} className="fade-in" style={{ width: "100%" }}>
             {children}
           </div>

@@ -518,7 +518,7 @@ export default function HomePage() {
           onToggleReminder={handleToggleReminder}
           onEdit={() => {
             // Optional: Handle edit if needed
-            router.push(`/pet-owners/medication-page?popup=edit-medication&med_id=${selectedNotification.medicine_id}`);
+            router.push(`/pet-owners/medication-page?popup=edit-medication&med_id=${selectedNotification.medicine_id}&noti_id=${selectedNotification.notification_id}`);
           }}
         />
       )}

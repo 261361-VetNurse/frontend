@@ -6,10 +6,12 @@ export interface ContainerProps {
   children: React.ReactNode;
   padding?: number | string;
   className?: string;
+  hasNavBar?: boolean;
 }
 
 interface StyledContainerProps {
   $padding: string;
+  $hasNavBar: boolean;
 }
 
 const StyledContainer = styled.div<StyledContainerProps>`
@@ -23,13 +25,14 @@ const StyledContainer = styled.div<StyledContainerProps>`
   width: 100%;             
   padding: ${({ $padding }) => $padding};
 
-  margin-bottom: 60px;
+  margin-bottom: ${({ $hasNavBar }) => ($hasNavBar ? '60px' : '24px')};
 `;
 
 export default function Container({
   children,
   padding,
   className,
+  hasNavBar = false,
   ...props
 }: ContainerProps) {
   const processValue = (value: number | string): string =>
@@ -42,6 +45,7 @@ export default function Container({
   return (
     <StyledContainer
       $padding={resolvedPadding}
+      $hasNavBar={hasNavBar}
       className={className}
       {...props}
     >
