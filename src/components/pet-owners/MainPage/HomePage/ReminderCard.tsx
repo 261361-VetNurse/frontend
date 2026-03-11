@@ -2,8 +2,6 @@ import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import Profile from "../../shared/Profile";
 import { ReminderCardStyle } from "@/styles/components/homepage.styled";
-import React from 'react';
-
 const CheckCircleIcon = () => <Image width={24} height={24} src="/complete.svg" alt="taken" style={{ width: 20, height: 20 }} />;
 const AccessTimeIcon = () => <Image width={24} height={24} src="/clock.svg" alt="time" style={{ width: 20, height: 20 }} />;
 const CalendarMonthIcon = () => <Image width={24} height={24} src="/calendar.svg" alt="calendar" style={{ width: 20, height: 20 }} />;

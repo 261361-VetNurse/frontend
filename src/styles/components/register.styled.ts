@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 
 export const RegisterContainer = styled.div`
-  height: fit-content;
+  height: 100vh;
   width: 100%;
   background-color: #ffffff;
   display: flex;
@@ -14,6 +14,7 @@ export const RegisterCard = styled.div`
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   padding: 24px;
   gap: 36px;
 `;

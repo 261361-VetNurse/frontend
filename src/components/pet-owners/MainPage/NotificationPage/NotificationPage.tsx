@@ -104,10 +104,10 @@ export default function NotificationsPage() {
         const now = dayjs();
 
         // Sort by Date Desc
-        const sorted = [...notifications].sort((a, b) => dayjs.utc(b.notification_at).diff(dayjs.utc(a.notification_at)));
+        const sorted = [...notifications].sort((a, b) => dayjs(b.notification_at).diff(dayjs(a.notification_at)));
 
         sorted.forEach(n => {
-            const d = dayjs.utc(n.notification_at).local();
+            const d = dayjs(n.notification_at);
             const diffMinutes = d.diff(now, 'minute');
 
             if (diffMinutes > 15) {
@@ -130,11 +130,11 @@ export default function NotificationsPage() {
 
         // Group upcoming notifications (Group the future)
         // Usually upcoming shows nearest first.
-        const upcomingSorted = [...upcoming].sort((a, b) => dayjs.utc(a.notification_at).diff(dayjs.utc(b.notification_at)));
+        const upcomingSorted = [...upcoming].sort((a, b) => dayjs(a.notification_at).diff(dayjs(b.notification_at)));
 
         const upcomingGroupsMap: { [key: string]: UnifiedNotification[] } = {};
         upcomingSorted.forEach(n => {
-            const d = dayjs.utc(n.notification_at).local();
+            const d = dayjs(n.notification_at);
             let key = d.format("D MMM YYYY");
             if (d.isTomorrow()) key = "Tomorrow";
             if (d.isToday()) key = "Today"; // Should not happen for > 15 mins, but for 0-15 mins it is Today.
@@ -144,7 +144,7 @@ export default function NotificationsPage() {
         });
 
         const uniqueUpcomingKeys = Array.from(new Set(upcomingSorted.map(n => {
-            const d = dayjs.utc(n.notification_at).local();
+            const d = dayjs(n.notification_at);
             if (d.isTomorrow()) return "Tomorrow";
             if (d.isToday()) return "Today";
             return d.format("D MMM YYYY");
