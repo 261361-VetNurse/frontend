@@ -10,6 +10,7 @@ import PetFilterSelector from "@/components/pet-owners/shared/PetFilterSelector"
 import { uploadImage, authStorage } from "@/services/api/client";
 import { PetLite } from "@/types/domain/pet";
 import { AddSymptomPayload as AddSymptomPayloadDTO } from "@/types/api/record.dto";
+import { getLocalDateString } from "@/utils/dateUtils";
 
 type AddSymptomPopupProps = {
   open: boolean;
@@ -74,7 +75,7 @@ export default function AddSymptomPopup({
       setSelectedPetId(initialPetId || 0);
       const today = new Date();
       const localDateIso = new Date(today.getTime() - today.getTimezoneOffset() * 60000).toISOString();
-      setDate(initialDate || localDateIso.split('T')[0]);
+      setDate(initialDate || getLocalDateString(today));
       setTime(localDateIso.split('T')[1].substring(0, 5));
       setNote("");
       setFiles([]);

@@ -219,6 +219,8 @@ import { editMedicine } from '@/services/api/client';
 import { authStorage } from '@/services/api/client';
 
 import Image from '@/components/shared/Image';
+import { getLocalDateString } from "@/utils/dateUtils";
+
 export default function EditMedicationPopup({
   open,
   onClose,
@@ -268,8 +270,7 @@ export default function EditMedicationPopup({
           setSelectedDays(parts);
         }
       }
-
-      setStartDate(medicineReminder.start_date ? new Date(medicineReminder.start_date).toISOString().split('T')[0] : '');
+      setStartDate(medicineReminder.start_date ? getLocalDateString(new Date(medicineReminder.start_date)) : '');
 
       // Reminders
       const currentReminders = (medicineReminder.reminder_time || []).map((t: string, idx: number) => ({
@@ -380,7 +381,7 @@ export default function EditMedicationPopup({
         dosage: dosage,
         frequency: frequencyVal,
         start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
-        reminder_time: reminders.map(r => r.time),
+        reminder_time: Array.from(new Set(reminders.map(r => r.time))),
         status: isStopped ? 'STOP' : 'TAKE',
         notes: isStopped && stopReason ? [stopReason] : []
       };

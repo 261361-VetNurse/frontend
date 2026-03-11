@@ -586,7 +586,7 @@ function UnifiedCalendarPageContent() {
                 onDelete={handleDeleteAppt}
                 onAddToCalendar={(a, type) => {
                     const datePart = dayjs(a.appointment_date).format("YYYY-MM-DD");
-                    const timePart = a.appointment_time ? a.appointment_time.slice(0, 5) : "00:00";
+                    const timePart = a.appointment_time ? a.appointment_time.slice(0, 5) : dayjs(a.appointment_date).format("HH:mm");
                     const start = dayjs(`${datePart}T${timePart}:00`).toDate();
                     const end = dayjs(start).add(1, "hour").toDate();
                     const appt = { title: `${a.pet_name} Appointment`, description: `Pet ID: ${a.pet_id}`, location: a.location, start, end };

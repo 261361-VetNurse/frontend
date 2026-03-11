@@ -270,7 +270,7 @@ export default function EditBasicInfo() {
             </div>
           </div>
 
-          {/* Allergies */}
+          {/* Note */}
           <div>
             <label className="block text-sm font-medium text-zinc-800 mb-1">
               Note

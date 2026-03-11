@@ -63,16 +63,13 @@ export default function EditAppointment({
 
     if (onSave) {
       try {
-        // Create date as UTC to prevent timezone shifting
-        const [y, m, d] = date.split("-").map(Number);
-        const [h, min] = time.split(":").map(Number);
-
-        const appointmentDate = new Date(Date.UTC(y, m - 1, d, h, min));
+        // Send Thai time directly with +07:00 offset — backend stores as-is
+        const appointmentDate = `${date}T${time}:00+07:00`;
 
         onSave({
           appointment_id: a.appointment_id,
           pet_id: Number(a.pet_id),
-          appointment_date: appointmentDate.toISOString(),
+          appointment_date: appointmentDate,
           location: location.trim(),
           note: note.trim(),
           status: "Upcoming"

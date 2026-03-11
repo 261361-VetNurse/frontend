@@ -27,6 +27,7 @@ export interface CreatePetDTO {
     profile_image?: string | null;
     previous_clinic?: string | null;
     has_medical_history?: boolean;
+    note?: string | null;
 }
 
 export interface UpdatePetDTO {

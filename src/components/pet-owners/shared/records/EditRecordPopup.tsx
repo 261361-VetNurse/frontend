@@ -5,6 +5,7 @@ import Image from '@/components/shared/Image';
 import { uploadImage, authStorage } from "@/services/api/client";
 import { SymptomRecord } from "@/types/domain/symptom";
 import { FormDialog } from "../FormDialog";
+import { getLocalDateString } from "@/utils/dateUtils";
 
 export type EditRecordFormState = {
   id: string;
@@ -141,7 +142,7 @@ export default function EditRecordPopup({
       onSave?.(Number(r.record_id), {
         id: String(r.record_id),
         petId: String(r.pet_id),
-        date: dateObj.toISOString().split("T")[0],
+        date: getLocalDateString(dateObj),
         time,
         note: note.trim(),
         existingImages,

@@ -33,6 +33,7 @@ import {
   deleteMedicine,
   markMedicationTaken
 } from '@/services/api/client';
+import { getLocalDateString } from "@/utils/dateUtils";
 
 type TabType = 'today' | 'tomorrow' | 'other';
 
@@ -163,7 +164,7 @@ export default function MedicationPage() {
     const token = authStorage.getToken();
     if (!token) return;
 
-    const date = baseDate.toISOString().split('T')[0];
+    const date = getLocalDateString(baseDate);
     const petIdParam = selectedPetId === 0 ? undefined : selectedPetId;
     fetchMedicineNotiData(token, petIdParam, date);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -266,7 +267,7 @@ export default function MedicationPage() {
       try {
         const token = authStorage.getToken() || "";
         await deleteMedicine(token, medicineId);
-        const date = baseDate.toISOString().split('T')[0];
+        const date = getLocalDateString(baseDate);
         fetchMedicineNotiData(token, selectedPetId, date);
       } catch (err) {
         console.error(err);
@@ -278,7 +279,7 @@ export default function MedicationPage() {
     try {
       const token = authStorage.getToken() || "";
       await markMedicationTaken(token, notificationId);
-      const date = baseDate.toISOString().split('T')[0];
+      const date = getLocalDateString(baseDate);
       fetchMedicineNotiData(token, selectedPetId, date);
     } catch (e) {
       console.error(e);
@@ -332,7 +333,7 @@ export default function MedicationPage() {
             message="Failed to load medication reminders"
             onRetry={() => {
               const token = authStorage.getToken() || '';
-              const date = baseDate.toISOString().split('T')[0];
+              const date = getLocalDateString(baseDate);
               fetchMedicineNotiData(token, selectedPetId, date);
             }}
           />
@@ -400,7 +401,7 @@ export default function MedicationPage() {
       <CreateMedicationPopup
         open={showCreatePopup}
         onClose={closePopup}
-        onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, baseDate.toISOString().split('T')[0]); }}
+        onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, getLocalDateString(baseDate)); }}
         pets={pets}
       />
 
@@ -430,7 +431,7 @@ export default function MedicationPage() {
           onClose={closePopup}
           medicineReminder={editingReminder}
           pets={pets}
-          onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, baseDate.toISOString().split('T')[0]); }}
+          onSuccess={() => { closePopup(); fetchMedicineNotiData(authStorage.getToken() || '', selectedPetId, getLocalDateString(baseDate)); }}
         />
       )}
     </Page>

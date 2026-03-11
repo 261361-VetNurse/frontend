@@ -15,6 +15,8 @@ import { AddMedicationPayload } from '@/types/api/medication.dto';
 import { scanMedication } from '@/services/api/client';
 
 import Image from '@/components/shared/Image';
+import { getLocalDateString } from "@/utils/dateUtils";
+
 const Row = styled.div`
   display: flex;
   gap: 12px;
@@ -204,7 +206,7 @@ export default function CreateMedicationPopup({
   const [isEveryday, setIsEveryday] = useState(true);
   const [selectedDays, setSelectedDays] = useState<number[]>([]); // 0=Mon, 6=Sun
 
-  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState(getLocalDateString(new Date()));
   const [reminders, setReminders] = useState<ReminderTime[]>([
     { id: 'r1', time: '08:00', status: 'pending' }
   ]);
@@ -293,7 +295,7 @@ export default function CreateMedicationPopup({
         dosage: dosage,
         frequency: frequencyVal,
         start_date: startDate ? new Date(startDate).toISOString() : new Date().toISOString(),
-        reminder_time: reminders.map(r => r.time),
+        reminder_time: Array.from(new Set(reminders.map(r => r.time))),
         status: 'TAKE',
         end_date: new Date(new Date(startDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString() // Default to 1 week if not specified
       };
@@ -309,7 +311,7 @@ export default function CreateMedicationPopup({
       setDosage('');
       setIsEveryday(true);
       setSelectedDays([]);
-      setStartDate(new Date().toISOString().split('T')[0]);
+      setStartDate(getLocalDateString(new Date()));
       setReminders([{ id: 'r1', time: '08:00', status: 'pending' }]);
 
       onClose();

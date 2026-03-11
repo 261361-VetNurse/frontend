@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from '@/components/shared/Image';
 import type { PetLite } from "@/types/domain/pet";
+import { getLocalDateString } from "@/utils/dateUtils";
 
 export type AddMedicationPayloadV2 = {
   petId: number;
@@ -35,7 +36,7 @@ export default function AddMedicationPopupV2({
   const [dosage, setDosage] = useState("");
   const [frequency, setFrequency] = useState("everyday");
   const [startDate, setStartDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getLocalDateString(new Date())
   );
   const [reminders, setReminders] = useState<ReminderTime[]>([
     { id: "r1", time: "08:00" },
@@ -47,7 +48,7 @@ export default function AddMedicationPopupV2({
     setMedicationName("");
     setDosage("");
     setFrequency("everyday");
-    setStartDate(new Date().toISOString().split("T")[0]);
+    setStartDate(getLocalDateString(new Date()));
     setReminders([{ id: "r1", time: "08:00" }]);
     setNote("");
   }, [open]);

@@ -18,12 +18,13 @@ import { DashboardData, DashboardNotification } from "@/types/domain/dashboard";
 import { Appointment } from "@/types/domain/appointment";
 import MedicationDetailPopup from "./MedicationDetailPopup";
 import AppointmentDetailPopup from "./AppointmentDetailPopup";
-import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail } from "@/services/api/client";
 import SectionError from "@/components/pet-owners/shared/SectionError";
+import { getDashboardHome, authStorage, markMedicationTaken, getMedicationNotificationDetail, getAppointmentDetail, getMedications, getAppointments } from "@/services/api/client";
 import { getMedicationStatus } from "@/utils/medicationStatus";
 
 import Image from '@/components/shared/Image';
 import dayjs from "dayjs";
+import { getLocalDateString } from "@/utils/dateUtils";
 
 export default function HomePage() {
   const router = useRouter();
@@ -118,7 +119,68 @@ export default function HomePage() {
       setError(null);
       const response = await getDashboardHome(token);
       if (response.success) {
-        setData(response.data);
+        let dashboardData = response.data;
+
+        // Fetch today's medications using Thai time to avoid the UTC-shift anomaly from the dashboard API
+        try {
+          const localDate = getLocalDateString(new Date());
+          const medsResponse = await getMedications(token, undefined, localDate);
+          
+          const flattenedMeds: DashboardNotification[] = [];
+          if (medsResponse && Array.isArray(medsResponse)) {
+            medsResponse.forEach(group => {
+              if (group.reminders) {
+                 group.reminders.forEach(reminder => {
+                     flattenedMeds.push({
+                         _id: reminder.notification_id.toString(),
+                         notification_id: reminder.notification_id,
+                         title: `Time to give ${group.medicine_name} to ${group.pet_name}`,
+                         medicine_id: group.medicine_id.toString(),
+                         medicine_name: group.medicine_name,
+                         dosage: group.dosage || "",
+                         frequency: group.frequency || "",
+                         reminder_time: group.reminder_time || [],
+                         pet_id: group.pet_id.toString(),
+                         pet_name: group.pet_name,
+                         pet_image: group.pet_image || "",
+                         notification_at: `${localDate}T${reminder.time}:00`,
+                         time: reminder.time,
+                         status: reminder.status,
+                         istaken: reminder.status === 'taken'
+                     });
+                 });
+              }
+            });
+            // Sort by time
+            flattenedMeds.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+            dashboardData.medicines_notifications = flattenedMeds;
+          }
+        } catch (localMedsErr) {
+          console.warn("Failed to override medications with local time API", localMedsErr);
+        }
+
+        // Fetch upcoming appointments using the dedicated appointments API to avoid dashboard's UTC filtering
+        try {
+            const apptsResponse = await getAppointments(token, "Upcoming");
+            if (apptsResponse && Array.isArray(apptsResponse)) {
+                dashboardData.appointments = apptsResponse.map(appt => ({
+                    _id: appt.appointment_id?.toString() || "",
+                    appointment_id: appt.appointment_id || 0,
+                    pet_id: appt.pet_id?.toString() || "",
+                    pet_name: appt.pet_name || "Unknown Pet",
+                    pet_image: appt.pet_image || "",
+                    location: appt.location || "",
+                    appointment_date: appt.appointment_date || "",
+                    appointment_time: appt.appointment_time || undefined,
+                    status: appt.status || "Upcoming",
+                    note: appt.note || ""
+                }));
+            }
+        } catch (localApptsErr) {
+             console.warn("Failed to override appointments with appointments API", localApptsErr);
+        }
+
+        setData(dashboardData);
       }
     } catch (err) {
       console.error(err);
@@ -342,7 +404,7 @@ export default function HomePage() {
               );
             }
 
-            // Calculate status for each notification
+            // Calculate status for each notification relative to normal local time
             const processedNotifications = notifications.map(noti => {
               let timeStr = "00:00";
 
@@ -364,7 +426,7 @@ export default function HomePage() {
               const computedStatus = getMedicationStatus(
                 timeStr,
                 noti.istaken || false,
-                noti.notification_at // Pass the date string/object
+                noti.notification_at // Pass the date string/object without UTC override
               );
               return { ...noti, status: computedStatus };
             });
@@ -426,7 +488,7 @@ export default function HomePage() {
                 )}
 
                 {/* Normal Reminders */}
-                {otherReminders.map((med_noti) => (
+                {otherReminders.slice(0, 3).map((med_noti) => (
                   <div key={med_noti._id}>
                     <ReminderCard
                       datas={med_noti}
@@ -529,9 +591,11 @@ export default function HomePage() {
               .filter((apt) => {
                 if (apt.status !== "Upcoming") return false;
                 // Exclude appointments that have already passed in local time
-                const datePart = new Date(apt.appointment_date).toISOString().split("T")[0];
+                const datePart = getLocalDateString(new Date(apt.appointment_date));
                 const [year, month, day] = datePart.split("-").map(Number);
                 const [hour, minute] = (apt.appointment_time ?? "00:00").split(":").map(Number);
+                // Check if appointment is in the future
+                // Since appointment times are local Thai time, compare against local `new Date()`
                 const apptDate = new Date(year, month - 1, day, hour, minute, 0, 0);
                 return apptDate >= new Date();
               })

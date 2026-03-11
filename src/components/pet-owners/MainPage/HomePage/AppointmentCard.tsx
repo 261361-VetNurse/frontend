@@ -70,7 +70,7 @@ export default function AppointmentCard({
     const dateObj = new Date(datas.appointment_date);
     const hours = dateObj.getHours().toString().padStart(2, '0');
     const minutes = dateObj.getMinutes().toString().padStart(2, '0');
-    const timeStr = `${hours}:${minutes}`;
+    const timeStr = datas.appointment_time || `${hours}:${minutes}`;
 
     return (
         <CardContainer onClick={onClick}>

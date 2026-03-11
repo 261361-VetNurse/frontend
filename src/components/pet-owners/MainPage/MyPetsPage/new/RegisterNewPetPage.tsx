@@ -63,11 +63,11 @@ export default function RegisterNewPetPage() {
       breed: breed.trim() || null,
       birth_date: dob,
       gender: sex,
-      infecund: infecund ?? false,
       in_medical: inMedical,
       weight_kg: weight ? parseFloat(weight) : undefined,
       profile_image: avatarUrl,
       color: null,
+      note: note.trim() || null,
     };
 
     try {
@@ -231,18 +231,19 @@ export default function RegisterNewPetPage() {
             <label className="text-sm text-zinc-800">In Medical</label>
           </div>
 
-          {/* Allergies */}
+          {/* Note */}
           <div>
-            <label className="block text-sm font-medium text-zinc-800 mb-1.5">
+            <label className="block text-sm font-medium text-zinc-800 mb-1">
               Note
             </label>
-            <input
-              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-sky-200"
-              placeholder="e.g. Chicken, Beef, Dust (comma separated)"
+            <textarea
+              className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-sky-200 min-h-[80px]"
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              placeholder="e.g. allergies, medical conditions, notes"
             />
           </div>
+
         </div>
       </div>
 

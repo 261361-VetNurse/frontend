@@ -13,14 +13,15 @@ export type MedicationStatus = 'pending' | 'missed' | 'taken';
 export const getMedicationStatus = (
     reminderTime: string,
     isTaken: boolean,
-    date?: string | Date
+    date?: string | Date,
+    overrideNow?: Date
 ): MedicationStatus => {
     if (isTaken) return 'taken';
 
-    const now = new Date();
+    const now = overrideNow ? new Date(overrideNow) : new Date();
 
-    // Create a date object for the reminder
-    let reminderDate = date ? new Date(date) : new Date();
+    // Create a date object for the reminder based on the provided date, or now
+    let reminderDate = date ? new Date(date) : new Date(now);
 
     // If date is invalid, fallback to now (though ideally should handle error)
     if (isNaN(reminderDate.getTime())) {
@@ -34,7 +35,7 @@ export const getMedicationStatus = (
     // We need to be careful: if date is tomorrow, even if time is passed relative to NOW's time, it is pending.
     // So we must compare full timestamps.
 
-    const today = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
 
     const checkDate = new Date(reminderDate);

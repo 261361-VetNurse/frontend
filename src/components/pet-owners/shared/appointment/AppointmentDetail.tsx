@@ -38,7 +38,7 @@ export default function AppointmentDetail({
 
   // Extract only the date part (YYYY-MM-DD) in case appointment_date is a full ISO string
   const datePart = dayjs(appointment.appointment_date).format("YYYY-MM-DD");
-  const isPast = dayjs(`${datePart}T${appointment.appointment_time || "00:00"}`).isBefore(dayjs());
+  const isPast = dayjs(`${datePart}T${timeText}`).isBefore(dayjs());
   const displayStatus = (appointment.status === "Upcoming" && isPast) ? "Completed" : appointment.status;
 
   return (
@@ -137,22 +137,14 @@ export default function AppointmentDetail({
             <div className="text-sm font-medium text-zinc-800 mb-2">
               Add to Calendar
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="secondary"
-                shape="pill"
-                fullWidth
-                onClick={() => onAddToCalendar(appointment, "google")}
-              >
-                Google
-              </Button>
+            <div className="grid grid-cols-1 gap-2">
               <Button
                 variant="secondary"
                 shape="pill"
                 fullWidth
                 onClick={() => onAddToCalendar(appointment, "local")}
               >
-                Apple/Local
+                Add to Calendar
               </Button>
             </div>
           </div>
