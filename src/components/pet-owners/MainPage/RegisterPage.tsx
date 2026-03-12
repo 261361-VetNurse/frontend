@@ -263,7 +263,7 @@ export default function RegisterPage() {
             </FormField>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: "24px" }}>
             <FormField label="Province" htmlFor="province" error={errors.province}>
               <TextInput
                 id="province"
@@ -285,11 +285,11 @@ export default function RegisterPage() {
             </FormField>
           </div>
 
-        </Form>
+          <PrimaryButton size="md" type="submit" disabled={loading || !isFormComplete}>
+            {loading ? 'Registering...' : 'Register'}
+          </PrimaryButton>
 
-        <PrimaryButton size="md" type="submit" disabled={loading || !isFormComplete} onClick={handleSubmit}>
-          {loading ? 'Registering...' : 'Register'}
-        </PrimaryButton>
+        </Form>
       </RegisterCard>
     </RegisterContainer>
   );
